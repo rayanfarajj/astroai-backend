@@ -49,7 +49,7 @@ exports.handler = async (event) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.GMAIL_USER,  // e.g. rayan@farajcorp.com
+      user: process.env.GMAIL_USER,  // e.g. info@astroaibots.com
       pass: process.env.GMAIL_PASS,  // Gmail App Password (16 chars, no spaces)
     },
   });
@@ -88,7 +88,7 @@ Astro A.I. Marketing Platform
 
   const mailOptions = {
     from:    `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
-    to:      'rayan@farajcorp.com',
+    to:      'info@astroaibots.com',
     subject: `New Onboarding Signed — ${clientName || 'Unknown'} (${clientBusiness || 'Unknown'})`,
     text:    emailBody,
     attachments: [
