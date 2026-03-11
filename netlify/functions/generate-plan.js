@@ -156,35 +156,478 @@ Be extremely specific. Use their business name, service, and location throughout
 `.trim();
 }
 
-// ── PDF Builder — pure Node.js, zero dependencies ────────
-// Uses built-in PDF Type1 fonts (Helvetica/Helvetica-Bold)
-// No font .afm files needed — works in any serverless environment
+// ── HTML → PDF via PDFShift ─────────────────────────────
+const https = require('https');
 
-function buildPlanPDF(planText, clientName, businessName, generatedAt) {
-  const PW = 612, PH = 792, ML = 54, MR = 54, TM = 54, BM = 54;
-  const CW = PW - ML - MR;
+const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-  const NAVY   = '0.031 0.047 0.157';
-  const ORANGE = '0.976 0.451 0.086';
-  const WHITE  = '1 1 1';
-  const LIGHT  = '0.976 0.980 0.988';
-  const MUTED  = '0.420 0.478 0.604';
-  const DARK   = '0.102 0.102 0.180';
-  const BORDER = '0.867 0.882 0.918';
-  const DGRAY  = '0.267 0.267 0.267';
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  function esc(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)'); }
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10px;
+    color: #1A1A2E;
+    background: #fff;
+    padding: 0;
+  }
 
-  function wrap(text, cpl) {
-    if (!text) return [''];
-    const words = String(text).replace(/\*\*/g,'').split(/\s+/);
-    const lines = []; let cur = '';
-    for (const w of words) {
-      const t = cur ? cur+' '+w : w;
-      if (t.length > cpl) { if (cur) lines.push(cur); cur = w; } else cur = t;
-    }
-    if (cur) lines.push(cur);
-    return lines.length ? lines : [''];
+  /* ── PAGE BORDERS & CORNERS ── */
+  .page-wrap {
+    position: relative;
+    min-height: 100vh;
+    padding: 54px 60px 54px 60px;
+  }
+  .page-wrap::before {
+    content: '';
+    position: fixed;
+    top: 12px; left: 12px; right: 12px; bottom: 12px;
+    border: 0.5px solid #DDE1EA;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .page-wrap::after {
+    content: '';
+    position: fixed;
+    top: 15px; left: 15px; right: 15px; bottom: 15px;
+    border: 0.25px solid #E8EBF2;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Corner brackets */
+  .corner { position: fixed; width: 22px; height: 22px; z-index: 101; }
+  .corner::before, .corner::after { content: ''; position: absolute; background: #F97316; }
+  .corner::before { height: 2px; width: 22px; }
+  .corner::after  { width: 2px; height: 22px; }
+  .corner.tl { top: 12px; left: 12px; }
+  .corner.tr { top: 12px; right: 12px; transform: scaleX(-1); }
+  .corner.bl { bottom: 12px; left: 12px; transform: scaleY(-1); }
+  .corner.br { bottom: 12px; right: 12px; transform: scale(-1); }
+
+  /* ── WATERMARK ── */
+  .watermark {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(38deg);
+    font-size: 52px;
+    font-weight: 800;
+    color: #000;
+    opacity: 0.025;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: 2px;
+  }
+
+  /* ── COVER HEADER ── */
+  .cover-header {
+    background: #080C28;
+    margin: -54px -60px 0 -60px;
+    padding: 30px 60px 0 60px;
+  }
+  .cover-header-inner {
+    background: #080C28;
+    padding-bottom: 0;
+  }
+  .company-name {
+    font-size: 26px;
+    font-weight: 800;
+    color: #F97316;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .cover-subtitle {
+    font-size: 11px;
+    color: #B4C3D7;
+    margin-top: 6px;
+    font-weight: 400;
+  }
+  .cover-meta-bar {
+    background: #0E1435;
+    margin: 14px -60px 0 -60px;
+    padding: 8px 60px;
+    font-size: 8px;
+    color: #6B7A9A;
+    display: flex;
+    justify-content: space-between;
+  }
+  .orange-rule {
+    height: 3px;
+    background: #F97316;
+    margin: 0 -60px;
+  }
+
+  /* ── COVER BODY ── */
+  .biz-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1A1A2E;
+    margin-top: 28px;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .section-label {
+    font-size: 8px;
+    font-weight: 700;
+    color: #6B7A9A;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+
+  /* ── INCLUDED TABLE ── */
+  .inc-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .inc-table tr:nth-child(odd)  td.inc-body { background: #F8F9FC; }
+  .inc-table tr:nth-child(even) td.inc-body { background: #FFFFFF; }
+  .inc-table td { padding: 8px 10px; vertical-align: middle; }
+  .inc-num {
+    background: #080C28;
+    color: #fff;
+    font-weight: 700;
+    font-size: 10px;
+    width: 32px;
+    text-align: center;
+    border-left: 4px solid #F97316;
+  }
+  .inc-body { width: 100%; }
+  .inc-title { font-size: 9.5px; font-weight: 700; color: #1A1A2E; }
+  .inc-desc  { font-size: 8px; color: #6B7A9A; margin-top: 2px; }
+
+  /* ── CONFIDENTIAL BOX ── */
+  .conf-box {
+    background: #F8F9FC;
+    border-right: 3px solid #F97316;
+    padding: 10px 14px;
+    font-size: 8px;
+    color: #6B7A9A;
+    line-height: 1.6;
+  }
+  .conf-box b { color: #1A1A2E; }
+
+  /* ── PAGE BREAK ── */
+  .page-break { page-break-before: always; padding-top: 54px; }
+
+  /* ── RUNNING HEADER (inner pages) ── */
+  .running-header {
+    background: #080C28;
+    margin: -54px -60px 28px -60px;
+    padding: 8px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #F97316;
+  }
+  .rh-co   { font-size: 8px; font-weight: 700; color: #F97316; }
+  .rh-plan { font-size: 7px; color: #6B7A9A; }
+
+  /* ── SECTION BAND ── */
+  .section-band {
+    background: #080C28;
+    border-radius: 4px;
+    padding: 8px 14px 8px 10px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+    border-left: 5px solid #F97316;
+  }
+  .band-num {
+    background: #F97316;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .band-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── BODY TEXT ── */
+  .body-text { font-size: 9.5px; line-height: 1.65; color: #1A1A2E; margin-bottom: 6px; text-align: justify; }
+  .sub-head  { font-size: 10px; font-weight: 700; color: #F97316; margin: 10px 0 4px 0; }
+  .bullet-list { margin: 4px 0 6px 0; padding: 0; list-style: none; }
+  .bullet-list li {
+    font-size: 9.5px;
+    line-height: 1.6;
+    color: #1A1A2E;
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 3px;
+  }
+  .bullet-list li::before {
+    content: '•';
+    position: absolute;
+    left: 2px;
+    color: #F97316;
+    font-size: 10px;
+  }
+  .num-list { margin: 4px 0 6px 0; padding: 0; list-style: none; counter-reset: nl; }
+  .num-list li {
+    font-size: 9.5px;
+    line-height: 1.6;
+    color: #1A1A2E;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+    counter-increment: nl;
+  }
+  .num-list li::before {
+    content: counter(nl) '.';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: #F97316;
+  }
+
+  /* ── AD CARDS ── */
+  .ad-card {
+    background: #F8F9FC;
+    border: 0.5px solid #DDE1EA;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .ad-card-top {
+    background: #F97316;
+    height: 4px;
+  }
+  .ad-card-body { padding: 12px 14px 14px; }
+  .ad-badge {
+    display: inline-block;
+    background: #080C28;
+    color: #fff;
+    font-size: 7.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .ad-headline { font-size: 13px; font-weight: 700; color: #080C28; margin-bottom: 6px; line-height: 1.2; }
+  .ad-body-text { font-size: 9px; color: #444; line-height: 1.6; margin-bottom: 10px; }
+  .ad-cta {
+    display: inline-block;
+    background: #F97316;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── NEXT STEPS ── */
+  .step-row {
+    display: flex;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .step-num-box {
+    background: #F97316;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    width: 52px;
+    min-width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-body {
+    background: #F8F9FC;
+    padding: 12px 14px;
+    flex: 1;
+  }
+  .step-title { font-size: 10.5px; font-weight: 700; color: #1A1A2E; margin-bottom: 3px; }
+  .step-desc  { font-size: 8.5px; color: #6B7A9A; line-height: 1.5; }
+
+  /* ── CONTACT CTA ── */
+  .contact-row {
+    display: flex;
+    margin-top: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .contact-left {
+    background: #F8F9FC;
+    border-left: 3px solid #F97316;
+    padding: 16px 18px;
+    flex: 1;
+  }
+  .contact-right {
+    background: #F97316;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    width: 120px;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 10px;
+  }
+  .contact-title { font-size: 11px; font-weight: 700; color: #1A1A2E; margin-bottom: 4px; }
+  .contact-sub   { font-size: 9px; color: #6B7A9A; }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #080C28;
+    padding: 6px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1.5px solid #F97316;
+    z-index: 99;
+  }
+  .footer-left  { font-size: 7px; color: #6B7A9A; }
+  .footer-right { font-size: 7px; font-weight: 700; color: #F97316; }
+
+  /* thin divider */
+  .thin-rule { border: none; border-top: 0.5px solid #DDE1EA; margin: 8px 0 10px; }
+</style>
+</head>
+<body>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+<div class="watermark">ASTRO A.I. MARKETING</div>
+
+<div class="page-footer">
+  <span class="footer-left">CONFIDENTIAL &nbsp;|&nbsp; {{BUSINESS_NAME}} &nbsp;|&nbsp; info@astroaibots.com &nbsp;|&nbsp; astroaibots.com</span>
+  <span class="footer-right">Astro A.I. Marketing</span>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- COVER PAGE -->
+<!-- ══════════════════════════════════════════ -->
+<div class="page-wrap">
+  <div class="cover-header">
+    <div class="cover-header-inner">
+      <div class="company-name">ASTRO A.I. MARKETING</div>
+      <div class="cover-subtitle">Personalized Marketing Plan — Prepared Exclusively For You</div>
+      <div class="cover-meta-bar">
+        <span>Prepared for: <b style="color:#fff">{{CLIENT_NAME}}</b> &nbsp;|&nbsp; Generated: {{GENERATED_AT}}</span>
+        <span>astroaibots.com</span>
+      </div>
+    </div>
+    <div class="orange-rule"></div>
+  </div>
+
+  <div class="biz-name">{{BUSINESS_NAME}}</div>
+  <div class="section-label">Your Personalized Plan Includes:</div>
+
+  <table class="inc-table">
+    <tr><td class="inc-num">1</td><td class="inc-body"><div class="inc-title">Target Audience Breakdown</div><div class="inc-desc">Demographics, psychographics &amp; online behavior profile</div></td></tr>
+    <tr><td class="inc-num">2</td><td class="inc-body"><div class="inc-title">Platform &amp; Budget Strategy</div><div class="inc-desc">Ad channels, budget splits &amp; expected CPL ranges</div></td></tr>
+    <tr><td class="inc-num">3</td><td class="inc-body"><div class="inc-title">90-Day Campaign Roadmap</div><div class="inc-desc">Phase-by-phase plan with milestones and KPIs</div></td></tr>
+    <tr><td class="inc-num">4</td><td class="inc-body"><div class="inc-title">Ad Copy &amp; Headlines</div><div class="inc-desc">3 complete ad variations ready to deploy immediately</div></td></tr>
+    <tr><td class="inc-num">5</td><td class="inc-body"><div class="inc-title">Lead Qualification Script</div><div class="inc-desc">Word-for-word call script with objection handling</div></td></tr>
+    <tr><td class="inc-num">6</td><td class="inc-body"><div class="inc-title">Competitor Positioning Tips</div><div class="inc-desc">5 tactics to dominate your local market</div></td></tr>
+  </table>
+
+  <div class="conf-box">
+    <b>CONFIDENTIAL:</b> This marketing plan was generated exclusively for {{BUSINESS_NAME}} by Astro A.I. Marketing.
+    All strategies, ad copy, and recommendations are proprietary and intended solely for the named recipient.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTIONS (injected by JS) -->
+<!-- ══════════════════════════════════════════ -->
+{{SECTIONS_HTML}}
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CLOSING PAGE -->
+<!-- ══════════════════════════════════════════ -->
+<div class="page-break">
+  <div class="running-header">
+    <span class="rh-co">ASTRO A.I. MARKETING</span>
+    <span class="rh-plan">Marketing Plan &mdash; {{BUSINESS_NAME}}</span>
+  </div>
+
+  <div class="section-band">
+    <div class="band-num">8</div>
+    <div class="band-title">Next Steps — Let's Get You Launched 🚀</div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-num-box">1</div>
+    <div class="step-body">
+      <div class="step-title">Review This Plan</div>
+      <div class="step-desc">Read through each section. Highlight anything you want to discuss with your strategist.</div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="step-num-box">2</div>
+    <div class="step-body">
+      <div class="step-title">Schedule Your Strategy Call</div>
+      <div class="step-desc">Book a free call and walk through the plan together before anything goes live.</div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="step-num-box">3</div>
+    <div class="step-body">
+      <div class="step-title">Campaign Launch</div>
+      <div class="step-desc">We build your ads, targeting, and copy — and launch within days of your approval.</div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="step-num-box">4</div>
+    <div class="step-body">
+      <div class="step-title">Weekly Performance Reports</div>
+      <div class="step-desc">Every week: a clear report with leads generated, cost per lead, and results.</div>
+    </div>
+  </div>
+
+  <div class="contact-row">
+    <div class="contact-left">
+      <div class="contact-title">Questions? We're here for you.</div>
+      <div class="contact-sub">info@astroaibots.com &nbsp;|&nbsp; astroaibots.com</div>
+    </div>
+    <div class="contact-right">Schedule a Call &rarr;</div>
+  </div>
+</div>
+
+</body>
+</html>
+`;
+
+function planToHTML(planText, clientName, businessName, generatedAt) {
+  const SEC_TITLES = [
+    'Target Audience Breakdown',
+    'Recommended Platforms &amp; Budget Allocation',
+    '90-Day Campaign Strategy',
+    'Ad Copy Suggestions',
+    'Headlines &amp; Primary Text',
+    'Lead Qualification Script',
+    'Competitor Positioning &amp; Differentiation Tips',
+  ];
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function parseSections(text) {
@@ -198,318 +641,142 @@ function buildPlanPDF(planText, clientName, businessName, generatedAt) {
     return sections;
   }
 
-  // ── stream ops collector ──────────────────────────────
-  const pages = [];
-
-  function makePage() {
-    const ops = [];
-    const p = {
-      ops,
-      fillR(x,y,w,h,c)  { ops.push(`${c} rg ${x} ${PH-y-h} ${w} ${h} re f`); },
-      strokeR(x,y,w,h,c,lw=0.4) { ops.push(`${lw} w ${c} RG ${x} ${PH-y-h} ${w} ${h} re S`); },
-      line(x1,y1,x2,y2,c,lw=0.4) { ops.push(`${lw} w ${c} RG ${x1} ${PH-y1} m ${x2} ${PH-y2} l S`); },
-      txt(s,x,y,sz,f,c)  { ops.push(`BT /${f} ${sz} Tf ${c} rg ${x} ${PH-y} Td (${esc(s)}) Tj ET`); },
-      stream() { return ops.join('\n'); }
-    };
-    return p;
-  }
-
-  function decorate(p, isFirst) {
-    // borders
-    p.strokeR(15,15,PW-30,PH-30,BORDER,0.4);
-    p.strokeR(18,18,PW-36,PH-36,BORDER,0.2);
-    // orange corner brackets
-    [[15,15,1,1],[PW-15,15,-1,1],[15,PH-15,1,-1],[PW-15,PH-15,-1,-1]].forEach(([cx,cy,dx,dy])=>{
-      p.line(cx,cy,cx+dx*20,cy,ORANGE,1.8);
-      p.line(cx,cy,cx,cy+dy*20,ORANGE,1.8);
-    });
-    // watermark
-    p.ops.push(`q 0.03 g /F2 40 Tf ${ML} ${PH/2} Td (ASTRO A.I. MARKETING) Tj Q`);
-    // footer
-    p.fillR(15,PH-42,PW-30,28,NAVY);
-    p.fillR(15,PH-44,PW-30,2,ORANGE);
-    p.txt('CONFIDENTIAL  |  '+esc(businessName)+'  |  info@astroaibots.com  |  astroaibots.com',22,PH-28,7,'F1',MUTED);
-    // header (inner pages)
-    if (!isFirst) {
-      p.fillR(15,15,PW-30,28,NAVY);
-      p.fillR(15,42,PW-30,2,ORANGE);
-      p.txt('ASTRO A.I. MARKETING',22,30,8,'F2',ORANGE);
-      p.txt('Marketing Plan - '+esc(businessName),ML+180,30,7,'F1',MUTED);
+  function linesToHTML(lines) {
+    let html = ''; let inBullet = false, inNum = false;
+    function closeLists() {
+      if (inBullet) { html += '</ul>'; inBullet = false; }
+      if (inNum)    { html += '</ol>'; inNum = false; }
     }
-  }
-
-  function bandY(p, num, title, y) {
-    p.fillR(ML,y,CW,26,NAVY);
-    p.fillR(ML,y,5,26,ORANGE);
-    p.fillR(ML+10,y+5,18,16,ORANGE);
-    p.txt(String(num),ML+14,y+17,9,'F2',WHITE);
-    p.txt(title.toUpperCase(),ML+34,y+17,10,'F2',WHITE);
-    return y+32;
-  }
-
-  // ── COVER PAGE ─────────────────────────────────────────
-  {
-    const p = makePage(); decorate(p,true);
-    p.fillR(15,15,PW-30,115,NAVY);
-    p.fillR(15,129,PW-30,2.5,ORANGE);
-    p.txt('ASTRO A.I. MARKETING',ML,44,24,'F2',ORANGE);
-    p.txt('Personalized Marketing Plan',ML,72,10,'F1','0.706 0.765 0.843');
-    p.fillR(ML,82,CW,0.8,ORANGE);
-    p.txt('Prepared for: '+esc(clientName)+'   |   Generated: '+esc(generatedAt),ML,96,8,'F1',MUTED);
-    let y=148;
-    p.txt(esc(businessName),ML,y,22,'F2',DARK); y+=32;
-    p.txt('YOUR PERSONALIZED PLAN INCLUDES:',ML,y,8,'F2',MUTED); y+=16;
-    const inc=[
-      ['1','Target Audience Breakdown','Demographics, psychographics & online behavior'],
-      ['2','Platform & Budget Strategy','Ad channels, budget splits & expected CPL ranges'],
-      ['3','90-Day Campaign Roadmap','Phase-by-phase plan with milestones and KPIs'],
-      ['4','Ad Copy & Headlines','3 complete ad variations ready to deploy'],
-      ['5','Lead Qualification Script','Word-for-word call script with objection handling'],
-      ['6','Competitor Positioning Tips','5 tactics to dominate your local market'],
-    ];
-    inc.forEach(([num,title,desc],i)=>{
-      const bg=i%2===0?LIGHT:WHITE;
-      p.fillR(ML,y-2,CW,24,bg);
-      p.fillR(ML,y-2,4,24,ORANGE);
-      p.fillR(ML+4,y-2,28,24,NAVY);
-      p.txt(num,ML+10,y+13,10,'F2',WHITE);
-      p.txt(title,ML+40,y+8,9.5,'F2',DARK);
-      p.txt(desc,ML+40,y+20,8,'F1',MUTED);
-      y+=24;
-    });
-    y+=14;
-    p.fillR(ML,y,CW,40,LIGHT);
-    p.fillR(ML,y,4,40,ORANGE);
-    const conf='CONFIDENTIAL: This marketing plan was generated exclusively for '+businessName+' by Astro A.I. Marketing. All strategies and recommendations are proprietary and intended solely for the named recipient.';
-    let cy=y+10;
-    for (const cl of wrap(conf,86)) { p.txt(cl,ML+12,cy,8,'F1',MUTED); cy+=11; }
-    pages.push(p.stream());
-  }
-
-  // ── SECTION PAGES ──────────────────────────────────────
-  const secTitles=['Target Audience Breakdown','Recommended Platforms & Budget Allocation','90-Day Campaign Strategy','Ad Copy Suggestions','Headlines & Primary Text','Lead Qualification Script','Competitor Positioning & Differentiation Tips'];
-  const sections = parseSections(planText);
-  const BOTTOM = PH-BM-50;
-
-  function renderSection(idx, section) {
-    const title = secTitles[idx] || section.title;
-    let p = makePage(); decorate(p,false);
-    let y = bandY(p, idx+1, title, TM+34) + 10;
-
-    // Ad copy — card layout
-    if (idx===3) {
-      const fullText = section.lines.join('\n');
-      const adBlocks = fullText.split(/\*\*Ad Variation \d+\*\*|Ad Variation \d+:/).filter(b=>b.trim());
-      adBlocks.slice(0,3).forEach((block,ai)=>{
-        const blines = block.split('\n').map(l=>l.trim()).filter(Boolean);
-        let headline='',bodyT='',cta='Learn More';
-        for (const ln of blines) {
-          const ll=ln.toLowerCase();
-          if (ll.includes('headline:')) headline=ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
-          else if (ll.includes('primary text:')) bodyT=ln.split(':').slice(1).join(':').trim().replace(/\*\*/g,'');
-          else if (ll.includes('call to action:')) cta=ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
-          else if (!headline&&ln.length>5&&ln.length<65) headline=ln.replace(/\*\*/g,'');
-          else if (!bodyT&&ln.length>40) bodyT=ln.replace(/\*\*/g,'');
-        }
-        const CH=110;
-        if (y+CH>BOTTOM) { pages.push(p.stream()); p=makePage(); decorate(p,false); y=bandY(p,idx+1,title+' (cont.)',TM+34)+10; }
-        p.fillR(ML,y,CW,CH,LIGHT);
-        p.fillR(ML,y,CW,4,ORANGE);
-        p.fillR(ML+10,y+10,92,16,NAVY);
-        p.txt('AD VARIATION '+(ai+1),ML+14,y+22,7.5,'F2',WHITE);
-        p.txt(esc(headline.slice(0,55)),ML+10,y+38,13,'F2',DARK);
-        const bw=wrap(bodyT,86);
-        let by=y+54;
-        bw.slice(0,3).forEach(bl=>{ p.txt(esc(bl),ML+10,by,9,'F1',DGRAY); by+=13; });
-        p.fillR(ML+10,y+CH-22,95,17,ORANGE);
-        p.txt(esc(cta.slice(0,22)),ML+14,y+CH-10,8,'F2',WHITE);
-        y+=CH+10;
-      });
-      pages.push(p.stream());
-      return;
-    }
-
-    // Normal rendering
-    for (const raw of section.lines) {
+    for (const raw of lines) {
       const line = raw.trim();
-      if (!line) { y+=6; if(y>BOTTOM){pages.push(p.stream());p=makePage();decorate(p,false);y=bandY(p,idx+1,title+' (cont.)',TM+34)+10;} continue; }
-
-      if ((line.startsWith('**')&&line.endsWith('**'))||(line.endsWith(':')&&line.length<70&&!line.startsWith('-'))) {
-        const t=line.replace(/\*\*/g,'').replace(/:$/,'');
-        if(y+20>BOTTOM){pages.push(p.stream());p=makePage();decorate(p,false);y=bandY(p,idx+1,title+' (cont.)',TM+34)+10;}
-        y+=4; p.txt(esc(t),ML,y,10,'F2',ORANGE); y+=15; continue;
-      }
-      if (line.startsWith('- ')||line.startsWith('* ')) {
-        const t=line.slice(2).replace(/\*\*/g,'');
-        const wl=wrap(t,82);
-        if(y+wl.length*14>BOTTOM){pages.push(p.stream());p=makePage();decorate(p,false);y=bandY(p,idx+1,title+' (cont.)',TM+34)+10;}
-        p.fillR(ML+4,y-3,3,3,ORANGE);
-        p.txt(esc(wl[0]),ML+14,y,9.5,'F1',DARK); y+=14;
-        wl.slice(1).forEach(l=>{p.txt(esc(l),ML+14,y,9.5,'F1',DARK);y+=14;});
+      if (!line) { closeLists(); continue; }
+      if ((line.startsWith('**') && line.endsWith('**') && !line.slice(2,-2).includes('**')) ||
+          (line.endsWith(':') && line.length < 70 && !line.startsWith('-') && !line.match(/^\d/))) {
+        closeLists();
+        const t = esc(line.replace(/\*\*/g,'').replace(/:$/,''));
+        html += `<div class="sub-head">${t}</div>`;
         continue;
       }
-      const nm=line.match(/^(\d+)\.\s+(.+)/);
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        if (inNum) { html += '</ol>'; inNum = false; }
+        if (!inBullet) { html += '<ul class="bullet-list">'; inBullet = true; }
+        const t = esc(line.slice(2)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+        html += `<li>${t}</li>`; continue;
+      }
+      const nm = line.match(/^(\d+)\.\s+(.+)/);
       if (nm) {
-        const t=nm[2].replace(/\*\*/g,'');
-        const wl=wrap(t,80);
-        if(y+wl.length*14>BOTTOM){pages.push(p.stream());p=makePage();decorate(p,false);y=bandY(p,idx+1,title+' (cont.)',TM+34)+10;}
-        p.txt(nm[1]+'.',ML+4,y,9.5,'F2',ORANGE);
-        p.txt(esc(wl[0]),ML+20,y,9.5,'F1',DARK); y+=14;
-        wl.slice(1).forEach(l=>{p.txt(esc(l),ML+20,y,9.5,'F1',DARK);y+=14;});
-        continue;
+        if (inBullet) { html += '</ul>'; inBullet = false; }
+        if (!inNum) { html += '<ol class="num-list">'; inNum = true; }
+        const t = esc(nm[2]).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+        html += `<li>${t}</li>`; continue;
       }
-      const wl=wrap(line.replace(/\*\*/g,''),85);
-      if(y+wl.length*14>BOTTOM){pages.push(p.stream());p=makePage();decorate(p,false);y=bandY(p,idx+1,title+' (cont.)',TM+34)+10;}
-      wl.forEach(l=>{p.txt(esc(l),ML,y,9.5,'F1',DARK);y+=14;});
+      closeLists();
+      const t = esc(line).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+      html += `<p class="body-text">${t}</p>`;
     }
-    pages.push(p.stream());
+    closeLists(); return html;
   }
 
-  sections.forEach((s,i) => renderSection(i,s));
-
-  // ── CLOSING PAGE ───────────────────────────────────────
-  {
-    const p = makePage(); decorate(p,false);
-    let y = bandY(p,8,"Next Steps - Let's Get You Launched",TM+34)+10;
-    [['1','Review This Plan','Read through each section and highlight anything to discuss with your strategist.'],
-     ['2','Schedule Your Strategy Call','Book a free call and walk through the plan before anything goes live.'],
-     ['3','Campaign Launch','We build your ads, targeting, and copy — and launch within days of your approval.'],
-     ['4','Weekly Performance Reports','Every week: clear report with leads, cost per lead, and results.'],
-    ].forEach(([num,title,desc])=>{
-      p.fillR(ML,y-2,CW,44,LIGHT);
-      p.fillR(ML,y-2,40,44,ORANGE);
-      p.txt(num,ML+12,y+20,18,'F2',WHITE);
-      p.txt(esc(title),ML+50,y+10,10.5,'F2',DARK);
-      const dl=wrap(desc,72); let dy=y+26;
-      dl.forEach(l=>{p.txt(esc(l),ML+50,dy,8.5,'F1',MUTED);dy+=12;});
-      y+=52;
+  function parseAds(bodyText) {
+    const blocks = bodyText.split(/\*\*Ad Variation \d+\*\*|Ad Variation \d+:/).filter(b=>b.trim());
+    return blocks.slice(0,3).map(block => {
+      const blines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+      let headline='', body='', cta='Learn More';
+      for (const ln of blines) {
+        const ll = ln.toLowerCase();
+        if (ll.includes('headline:'))         headline = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
+        else if (ll.includes('primary text:'))body = ln.split(':').slice(1).join(':').trim().replace(/\*\*/g,'');
+        else if (ll.includes('call to action:')||ll.includes('cta:')) cta = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
+        else if (!headline && ln.length>5 && ln.length<70) headline = ln.replace(/[*"]/g,'');
+        else if (!body && ln.length>40) body = ln.replace(/\*\*/g,'');
+      }
+      return { headline: esc(headline), body: esc(body), cta: esc(cta) };
     });
-    y+=14;
-    const ctaX=ML+Math.round(CW*0.72)+4, ctaW=Math.round(CW*0.28)-4;
-    p.fillR(ML,y,Math.round(CW*0.72),52,LIGHT);
-    p.fillR(ML,y,4,52,ORANGE);
-    p.fillR(ctaX,y,ctaW,52,ORANGE);
-    p.txt('Questions? We are here for you.',ML+14,y+16,11,'F2',DARK);
-    p.txt('info@astroaibots.com  |  astroaibots.com',ML+14,y+32,9,'F1',MUTED);
-    p.txt('Schedule a Call',ctaX+8,y+26,9,'F2',WHITE);
-    pages.push(p.stream());
   }
 
-  // ── ASSEMBLE PDF ───────────────────────────────────────
-  const totalPages = pages.length;
-  // inject page numbers
-  const finalStreams = pages.map((stream,i)=>{
-    const label = `Page ${i+1} of ${totalPages}`;
-    const x = PW-MR-label.length*4;
-    return stream + `\nBT /F2 7 Tf ${ORANGE} rg ${x} ${BM+10} Td (${label}) Tj ET`;
+  const sections = parseSections(planText);
+  let sectionsHTML = '';
+  sections.forEach((section, idx) => {
+    const title = SEC_TITLES[idx] || esc(section.title);
+    const bodyText = section.lines.join('\n');
+    sectionsHTML += `
+    <div class="page-break">
+      <div class="running-header">
+        <span class="rh-co">ASTRO A.I. MARKETING</span>
+        <span class="rh-plan">Marketing Plan &mdash; ${esc(businessName)}</span>
+      </div>
+      <div class="section-band">
+        <div class="band-num">${idx+1}</div>
+        <div class="band-title">${title}</div>
+      </div>`;
+    if (idx === 3) {
+      const ads = parseAds(bodyText);
+      ads.forEach((ad, ai) => {
+        sectionsHTML += `
+        <div class="ad-card">
+          <div class="ad-card-top"></div>
+          <div class="ad-card-body">
+            <div class="ad-badge">AD VARIATION ${ai+1}</div>
+            <div class="ad-headline">${ad.headline || `Ad Variation ${ai+1}`}</div>
+            <div class="ad-body-text">${ad.body}</div>
+            <div class="ad-cta">${ad.cta}</div>
+          </div>
+        </div>`;
+      });
+    } else {
+      sectionsHTML += linesToHTML(section.lines);
+    }
+    sectionsHTML += `</div>`;
   });
 
-  const objs=[];
-  function addObj(c){ objs.push(c); return objs.length; }
+  return PLAN_HTML_TEMPLATE
+    .replace(/{{CLIENT_NAME}}/g,   esc(clientName))
+    .replace(/{{BUSINESS_NAME}}/g, esc(businessName))
+    .replace(/{{GENERATED_AT}}/g,  esc(generatedAt))
+    .replace('{{SECTIONS_HTML}}',  sectionsHTML);
+}
 
-  const f1 = addObj(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`);
-  const f2 = addObj(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
+function htmlToPDF(html) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      source:   html,
+      landscape: false,
+      format:   'Letter',
+      margin:   { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
+    });
+    const auth = Buffer.from(`api:${process.env.PDFSHIFT_API_KEY}`).toString('base64');
+    const options = {
+      hostname: 'api.pdfshift.io',
+      path:     '/v3/convert/pdf',
+      method:   'POST',
+      headers: {
+        'Content-Type':   'application/json',
+        'Authorization':  `Basic ${auth}`,
+        'Content-Length':  Buffer.byteLength(payload),
+      },
+    };
+    const req = https.request(options, (res) => {
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => {
+        if (res.statusCode !== 200 && res.statusCode !== 201) {
+          return reject(new Error(`PDFShift ${res.statusCode}: ${Buffer.concat(chunks).toString().slice(0,200)}`));
+        }
+        resolve(Buffer.concat(chunks));
+      });
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
 
-  const pageIds=[];
-  for (const stream of finalStreams) {
-    const sb = Buffer.from(stream,'utf8');
-    const cid = addObj(`<< /Length ${sb.length} >>\nstream\n${stream}\nendstream`);
-    const pid = addObj(`<< /Type /Page /Parent ${objs.length+2} 0 R /MediaBox [0 0 ${PW} ${PH}] /Contents ${cid} 0 R /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R >> >> >>`);
-    pageIds.push(pid);
-  }
-
-  const pagesId = addObj(`<< /Type /Pages /Kids [${pageIds.map(id=>`${id} 0 R`).join(' ')}] /Count ${totalPages} >>`);
-  const catId   = addObj(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
-
-  const header = '%PDF-1.4\n';
-  let pdf = header;
-  const offsets=[];
-  for (let i=0;i<objs.length;i++){
-    offsets.push(pdf.length);
-    pdf+=`${i+1} 0 obj\n${objs[i]}\nendobj\n`;
-  }
-  const xrefOff=pdf.length;
-  let xref=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`;
-  for (const off of offsets) xref+=String(off).padStart(10,'0')+' 00000 n \n';
-  pdf+=xref+`trailer\n<< /Size ${objs.length+1} /Root ${catId} 0 R >>\nstartxref\n${xrefOff}\n%%EOF`;
-
-  return Promise.resolve(Buffer.from(pdf,'binary'));
+async function buildPlanPDF(planText, clientName, businessName, generatedAt) {
+  const html = planToHTML(planText, clientName, businessName, generatedAt);
+  return await htmlToPDF(html);
 }
 
 
-// ── Client HTML email template ─────────────────────────────
-function buildClientEmail(clientName, businessName) {
-  const firstName = (clientName || '').split(' ')[0] || 'there';
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-        <!-- Header -->
-        <tr><td style="background:#080c18;padding:36px 40px 28px;">
-          <div style="font-size:22px;font-weight:800;color:#f97316;letter-spacing:-0.5px;">ASTRO A.I. MARKETING</div>
-          <div style="font-size:13px;color:#b4c3d7;margin-top:6px;">Your Personalized Marketing Plan is Ready</div>
-          <div style="height:3px;background:#f97316;margin-top:18px;border-radius:2px;"></div>
-        </td></tr>
-        <!-- Body -->
-        <tr><td style="padding:36px 40px;">
-          <p style="font-size:16px;color:#1a1a2e;font-weight:700;margin:0 0 12px;">Hi ${firstName}! 👋</p>
-          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 16px;">
-            Thank you for completing your onboarding with <strong>Astro A.I. Marketing</strong>. We've reviewed everything you shared about <strong>${businessName}</strong> and our AI has generated a fully personalized marketing plan just for your business.
-          </p>
-          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 24px;">
-            Your marketing plan is attached to this email as a PDF. It includes:
-          </p>
-          <!-- Feature list -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-            ${[
-              ['🎯', 'Target Audience Breakdown', 'A detailed profile of your ideal customers'],
-              ['📊', 'Platform & Budget Strategy', 'Where to run ads and how to allocate your budget'],
-              ['📅', '90-Day Campaign Roadmap', 'Week-by-week plan with milestones and KPIs'],
-              ['✍️', 'Ad Copy & Headlines', 'Ready-to-use ads written in professional marketing language'],
-              ['📋', 'Lead Qualification Script', 'A complete script to close more leads'],
-              ['🏆', 'Competitor Positioning Tips', 'How to stand out and dominate your market'],
-            ].map(([icon, title, desc]) => `
-            <tr>
-              <td width="44" style="padding:6px 0;vertical-align:top;">
-                <div style="width:36px;height:36px;background:#fff7ed;border-radius:8px;text-align:center;line-height:36px;font-size:18px;">${icon}</div>
-              </td>
-              <td style="padding:6px 0 6px 10px;vertical-align:top;">
-                <div style="font-size:13px;font-weight:700;color:#1a1a2e;">${title}</div>
-                <div style="font-size:12px;color:#888;margin-top:2px;">${desc}</div>
-              </td>
-            </tr>`).join('')}
-          </table>
-          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 28px;">
-            Our team will be in touch within <strong>3–5 business days</strong> to walk you through the plan and get your first campaign live.
-          </p>
-          <!-- CTA -->
-          <div style="text-align:center;margin-bottom:28px;">
-            <a href="https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh" style="display:inline-block;background:#f97316;color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;">
-              📅 Schedule Your Strategy Call
-            </a>
-          </div>
-          <p style="font-size:12px;color:#aaa;line-height:1.6;margin:0;">
-            Questions? Reply to this email or reach us at <a href="mailto:info@astroaibots.com" style="color:#f97316;">info@astroaibots.com</a>
-          </p>
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="background:#080c18;padding:20px 40px;text-align:center;">
-          <div style="font-size:11px;color:#4a5568;">
-            © ${new Date().getFullYear()} Astro A.I. Marketing &nbsp;|&nbsp; astroaibots.com
-          </div>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-}
-
-// ── Main handler ───────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
