@@ -776,6 +776,69 @@ async function buildPlanPDF(planText, clientName, businessName, generatedAt) {
 }
 
 
+// ── Client HTML email template ─────────────────────────────
+function buildClientEmail(clientName, businessName) {
+  const firstName = (clientName || '').split(' ')[0] || 'there';
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:#080c28;padding:36px 40px 28px;">
+          <div style="font-size:22px;font-weight:800;color:#f97316;">ASTRO A.I. MARKETING</div>
+          <div style="font-size:13px;color:#b4c3d7;margin-top:6px;">Your Personalized Marketing Plan is Ready</div>
+          <div style="height:3px;background:#f97316;margin-top:18px;border-radius:2px;"></div>
+        </td></tr>
+        <tr><td style="padding:36px 40px;">
+          <p style="font-size:16px;color:#1a1a2e;font-weight:700;margin:0 0 12px;">Hi ${firstName}! 👋</p>
+          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 16px;">
+            Thank you for completing your onboarding with <strong>Astro A.I. Marketing</strong>. We've reviewed everything you shared about <strong>${businessName}</strong> and our AI has generated a fully personalized marketing plan just for your business.
+          </p>
+          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 24px;">Your marketing plan is attached to this email as a PDF. It includes:</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+            ${[
+              ['🎯','Target Audience Breakdown','A detailed profile of your ideal customers'],
+              ['📊','Platform & Budget Strategy','Where to run ads and how to allocate your budget'],
+              ['📅','90-Day Campaign Roadmap','Week-by-week plan with milestones and KPIs'],
+              ['✍️','Ad Copy & Headlines','Ready-to-use ads written in professional marketing language'],
+              ['📋','Lead Qualification Script','A complete script to close more leads'],
+              ['🏆','Competitor Positioning Tips','How to stand out and dominate your market'],
+            ].map(([icon,title,desc]) => `
+            <tr>
+              <td width="44" style="padding:6px 0;vertical-align:top;">
+                <div style="width:36px;height:36px;background:#fff7ed;border-radius:8px;text-align:center;line-height:36px;font-size:18px;">${icon}</div>
+              </td>
+              <td style="padding:6px 0 6px 10px;vertical-align:top;">
+                <div style="font-size:13px;font-weight:700;color:#1a1a2e;">${title}</div>
+                <div style="font-size:12px;color:#888;margin-top:2px;">${desc}</div>
+              </td>
+            </tr>`).join('')}
+          </table>
+          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 28px;">
+            Our team will be in touch within <strong>3–5 business days</strong> to walk you through the plan and get your first campaign live.
+          </p>
+          <div style="text-align:center;margin-bottom:28px;">
+            <a href="https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh" style="display:inline-block;background:#f97316;color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;">
+              📅 Schedule Your Strategy Call
+            </a>
+          </div>
+          <p style="font-size:12px;color:#aaa;line-height:1.6;margin:0;">
+            Questions? Reply to this email or reach us at <a href="mailto:info@astroaibots.com" style="color:#f97316;">info@astroaibots.com</a>
+          </p>
+        </td></tr>
+        <tr><td style="background:#080c18;padding:20px 40px;text-align:center;">
+          <div style="font-size:11px;color:#4a5568;">© ${new Date().getFullYear()} Astro A.I. Marketing &nbsp;|&nbsp; astroaibots.com</div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
@@ -792,71 +855,50 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
   }
 
-  try {
-    // ── Step 1: Generate plan via GPT-4 ───────────────────
-    console.log('Generating marketing plan for:', businessName);
-    const prompt   = buildPrompt(data);
-    const planText = await callGPT(prompt);
-    console.log('Plan generated, length:', planText.length);
+  // Respond immediately — process in background to avoid network timeouts
+  (async () => {
+    try {
+      console.log('Generating marketing plan for:', businessName);
+      const prompt   = buildPrompt(data);
+      const planText = await callGPT(prompt);
+      console.log('Plan generated, length:', planText.length);
 
-    // ── Step 2: Build plan PDF ─────────────────────────────
-    const generatedAt = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
-    const planPDFBuffer  = await buildPlanPDF(planText, clientName, businessName, generatedAt);
-    const planPDFBase64  = planPDFBuffer.toString('base64');
-    const planFilename   = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
+      const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+      const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
+      const planPDFBase64 = planPDFBuffer.toString('base64');
+      const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
 
-    // ── Step 3: Send emails ────────────────────────────────
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-    });
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+      });
 
-    // Email to OWNER — plan PDF attached
-    const ownerEmail = {
-      from:    `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
-      to:      'info@astroaibots.com',
-      subject: `Marketing Plan Ready — ${clientName} (${businessName})`,
-      text: `Marketing plan generated for ${clientName} at ${businessName}.\n\nPlan PDF attached.\n\nGenerated: ${generatedAt}`,
-      attachments: [{
-        filename:    planFilename,
-        content:     planPDFBase64,
-        encoding:    'base64',
-        contentType: 'application/pdf',
-      }],
-    };
+      await Promise.all([
+        transporter.sendMail({
+          from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
+          to:          'info@astroaibots.com',
+          subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
+          text:        `Marketing plan for ${clientName} at ${businessName}. Generated: ${generatedAt}`,
+          attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+        }),
+        transporter.sendMail({
+          from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
+          to:          clientEmail,
+          subject:     `Your Personalized Marketing Plan is Ready — ${businessName}`,
+          html:        buildClientEmail(clientName, businessName),
+          attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+        }),
+      ]);
 
-    // Email to CLIENT — branded HTML + plan PDF
-    const clientEmailMsg = {
-      from:    `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
-      to:      clientEmail,
-      subject: `Your Personalized Marketing Plan is Ready — ${businessName}`,
-      html:    buildClientEmail(clientName, businessName),
-      attachments: [{
-        filename:    planFilename,
-        content:     planPDFBase64,
-        encoding:    'base64',
-        contentType: 'application/pdf',
-      }],
-    };
+      console.log('Both emails sent successfully to:', clientEmail);
+    } catch (err) {
+      console.error('Background error:', err.message, err.stack);
+    }
+  })();
 
-    await Promise.all([
-      transporter.sendMail(ownerEmail),
-      transporter.sendMail(clientEmailMsg),
-    ]);
-
-    console.log('Both emails sent successfully');
-    return {
-      statusCode: 200,
-      headers: CORS,
-      body: JSON.stringify({ success: true, message: 'Marketing plan generated and emailed' }),
-    };
-
-  } catch (err) {
-    console.error('generate-plan error:', err);
-    return {
-      statusCode: 500,
-      headers: CORS,
-      body: JSON.stringify({ error: 'Failed to generate plan', details: err.message }),
-    };
-  }
+  return {
+    statusCode: 200,
+    headers: CORS,
+    body: JSON.stringify({ success: true, message: 'Plan generation started — email will arrive in 30-60 seconds' }),
+  };
 };
