@@ -4,5 +4,8 @@
   "description": "AstroAI Bots — Square subscription backend for Netlify Functions",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "nodemailer": "^3.1.0"
   }
 }
