@@ -156,166 +156,418 @@ Be extremely specific. Use their business name, service, and location throughout
 `.trim();
 }
 
-// ── Minimal PDF builder (pure Node.js, no jsPDF) ──────────
-// Uses raw PDF syntax to create a clean text-based PDF
-function buildPlanPDF(planText, clientName, businessName, generatedAt) {
-  const lines = [];
-  const safeStr = (s) => String(s || '').replace(/[()\\]/g, c => '\\' + c);
+// ── PDF Builder (Impressive branded design) ───────────────
+// Uses pdfkit — add to package.json: "pdfkit": "^0.15.0"
+const PDFDocument = require('pdfkit');
 
-  // Parse sections from markdown
-  const sections = [];
-  let currentSection = null;
-  planText.split('\n').forEach(line => {
-    if (line.startsWith('## ')) {
-      if (currentSection) sections.push(currentSection);
-      currentSection = { title: line.replace('## ', '').trim(), body: [] };
-    } else if (currentSection) {
-      currentSection.body.push(line);
+// Brand colors (RGB 0-255)
+const C = {
+  navy:    [8,  12,  40],
+  navy2:   [14, 20,  53],
+  orange:  [249,115, 22],
+  orange2: [234,108, 12],
+  white:   [255,255,255],
+  lightBg: [248,249,252],
+  border:  [221,225,234],
+  muted:   [107,122,154],
+  dark:    [26, 26,  46],
+  green:   [34, 197, 94],
+  gold:    [251,191, 36],
+};
+
+function hex(rgb){ return '#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+function buildPlanPDF(planText, clientName, businessName, generatedAt) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ size: 'LETTER', margin: 0, bufferPages: true });
+      const chunks = [];
+      doc.on('data', c => chunks.push(c));
+      doc.on('end',  () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const W = 612, H = 792;
+      const ML = 54, MR = 54, MT = 54, MB = 54;
+      const CW = W - ML - MR; // content width = 504
+
+      // ── Helpers ────────────────────────────────────────
+      function rgb(c){ return { r: c[0], g: c[1], b: c[2] }; }
+
+      function drawBorder() {
+        // outer border
+        doc.rect(15, 15, W-30, H-30).lineWidth(0.4).stroke(hex(C.border));
+        // inner border
+        doc.rect(18, 18, W-36, H-36).lineWidth(0.2).stroke(hex(C.border));
+        // orange corner brackets
+        const corners = [
+          [15, 15, 1, 1], [W-15, 15, -1, 1],
+          [15, H-15, 1, -1], [W-15, H-15, -1, -1]
+        ];
+        doc.lineWidth(1.8).strokeColor(hex(C.orange));
+        corners.forEach(([cx,cy,dx,dy]) => {
+          doc.moveTo(cx, cy).lineTo(cx+dx*20, cy).stroke();
+          doc.moveTo(cx, cy).lineTo(cx, cy+dy*20).stroke();
+        });
+      }
+
+      function drawWatermark() {
+        doc.save();
+        doc.opacity(0.025);
+        doc.fontSize(50).font('Helvetica-Bold').fillColor('#000000');
+        doc.rotate(40, { origin: [W/2, H/2] });
+        doc.text('ASTRO A.I. MARKETING', W/2 - 200, H/2 - 25);
+        doc.restore();
+      }
+
+      function drawFooter(pageNum, totalPages) {
+        // footer bar
+        doc.rect(15, H-40, W-30, 26).fill(hex(C.navy));
+        doc.rect(15, H-41, W-30, 1.5).fill(hex(C.orange));
+        doc.fontSize(7).font('Helvetica').fillColor(hex(C.muted));
+        doc.text(
+          `CONFIDENTIAL  |  ${businessName}  |  info@astroaibots.com  |  astroaibots.com`,
+          22, H-31, { lineBreak: false }
+        );
+        doc.fontSize(7).font('Helvetica-Bold').fillColor(hex(C.orange));
+        doc.text(`Page ${pageNum} of ${totalPages}`, W-80, H-31, { lineBreak: false });
+      }
+
+      function drawRunningHeader() {
+        doc.rect(15, 15, W-30, 26).fill(hex(C.navy));
+        doc.rect(15, 40, W-30, 1.5).fill(hex(C.orange));
+        doc.fontSize(8).font('Helvetica-Bold').fillColor(hex(C.orange));
+        doc.text('ASTRO A.I. MARKETING', 22, 22, { lineBreak: false });
+        doc.fontSize(7).font('Helvetica').fillColor(hex(C.muted));
+        doc.text(`Marketing Plan — ${businessName}`, W/2, 24, { align: 'center', lineBreak: false, width: CW });
+      }
+
+      function sectionBand(num, title, y) {
+        doc.rect(ML, y, CW, 26).fill(hex(C.navy));
+        doc.rect(ML, y, 5, 26).fill(hex(C.orange));
+        // number badge
+        doc.roundedRect(ML+10, y+5, 18, 16, 3).fill(hex(C.orange));
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(hex(C.white));
+        doc.text(String(num), ML+10, y+9, { width: 18, align: 'center', lineBreak: false });
+        doc.fontSize(10.5).font('Helvetica-Bold').fillColor(hex(C.white));
+        doc.text(title.toUpperCase(), ML+34, y+9, { lineBreak: false });
+        return y + 36;
+      }
+
+      function checkPage(doc, neededHeight) {
+        if (doc.y + neededHeight > H - MB - 40) {
+          doc.addPage();
+          drawBorder();
+          drawWatermark();
+          drawRunningHeader();
+          doc.y = MT + 30;
+        }
+      }
+
+      function renderBody(text) {
+        const lines = text.split('\n');
+        for (let line of lines) {
+          line = line.trim();
+          if (!line) { doc.moveDown(0.3); continue; }
+
+          checkPage(doc, 30);
+
+          // Bold subheading **text**
+          if (line.startsWith('**') && line.endsWith('**') && !line.slice(2,-2).includes('**')) {
+            const t = line.slice(2,-2);
+            doc.moveDown(0.3);
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(hex(C.orange));
+            doc.text(t, ML, doc.y, { width: CW });
+            doc.moveDown(0.1);
+            continue;
+          }
+
+          // Subheading ending in colon
+          if (line.endsWith(':') && line.length < 70 && !line.startsWith('-')) {
+            doc.moveDown(0.2);
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(hex(C.orange));
+            doc.text(line, ML, doc.y, { width: CW });
+            doc.moveDown(0.05);
+            continue;
+          }
+
+          // Bullet
+          if (line.startsWith('- ') || line.startsWith('* ')) {
+            const t = line.slice(2).replace(/\*\*(.+?)\*\*/g, '$1');
+            doc.fontSize(9.5).font('Helvetica').fillColor(hex(C.dark));
+            doc.text('•', ML+4, doc.y, { continued: true, width: 12 });
+            doc.text(t, ML+18, doc.y, { width: CW-18 });
+            continue;
+          }
+
+          // Numbered list
+          const nm = line.match(/^(\d+)\.\s+(.+)/);
+          if (nm) {
+            const t = nm[2].replace(/\*\*(.+?)\*\*/g, '$1');
+            doc.fontSize(9.5).font('Helvetica').fillColor(hex(C.dark));
+            doc.text(`${nm[1]}.`, ML+4, doc.y, { continued: true, width: 16 });
+            doc.text(t, ML+22, doc.y, { width: CW-22 });
+            continue;
+          }
+
+          // Normal paragraph — handle inline bold
+          const parts = line.split(/\*\*(.+?)\*\*/g);
+          doc.fontSize(9.5).fillColor(hex(C.dark));
+          if (parts.length === 1) {
+            doc.font('Helvetica').text(line, ML, doc.y, { width: CW, align: 'justify' });
+          } else {
+            let first = true;
+            for (let i=0; i<parts.length; i++) {
+              if (!parts[i]) continue;
+              const isBold = (i % 2 === 1);
+              doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica');
+              const isLast = (i === parts.length-1) || (i === parts.length-2 && !parts[parts.length-1]);
+              doc.text(parts[i], first ? ML : undefined, first ? doc.y : undefined,
+                { continued: !isLast, width: CW });
+              first = false;
+            }
+            if (!line.endsWith(parts[parts.length-1])) doc.text('');
+          }
+        }
+      }
+
+      // ── Parse plan text into sections ──────────────────
+      function parseSections(text) {
+        const sections = [];
+        let current = null;
+        for (const line of text.split('\n')) {
+          const m = line.match(/^##\s+\d+\.\s+(.+)/);
+          if (m) {
+            if (current) sections.push(current);
+            current = { title: m[1].trim(), body: [] };
+          } else if (current) {
+            current.body.push(line);
+          }
+        }
+        if (current) sections.push(current);
+        return sections;
+      }
+
+      const sections = parseSections(planText);
+      const sectionTitles = [
+        'Target Audience Breakdown',
+        'Recommended Platforms & Budget Allocation',
+        '90-Day Campaign Strategy',
+        'Ad Copy Suggestions',
+        'Headlines & Primary Text',
+        'Lead Qualification Script',
+        'Competitor Positioning & Differentiation Tips',
+      ];
+
+      // ══════════════════════════════════════════════
+      // PAGE 1: COVER
+      // ══════════════════════════════════════════════
+      drawBorder();
+      drawWatermark();
+
+      // Dark header
+      doc.rect(15, 15, W-30, 110).fill(hex(C.navy));
+      // Orange accent line
+      doc.rect(15, 124, W-30, 2).fill(hex(C.orange));
+
+      // Company name
+      doc.fontSize(26).font('Helvetica-Bold').fillColor(hex(C.orange));
+      doc.text('ASTRO A.I. MARKETING', ML, 32, { lineBreak: false });
+
+      // Subtitle
+      doc.fontSize(11).font('Helvetica').fillColor(hex([180,195,215]));
+      doc.text('Personalized Marketing Plan — Prepared Exclusively For You', ML, 62, { lineBreak: false });
+
+      // Orange rule inside header
+      doc.rect(ML, 76, CW, 1).fill(hex(C.orange));
+
+      // Doc meta
+      doc.fontSize(8).font('Helvetica').fillColor(hex(C.muted));
+      doc.text(`Prepared for: ${clientName}   |   Generated: ${generatedAt}`, ML, 84, { lineBreak: false });
+      doc.text(`astroaibots.com`, W-MR-80, 84, { lineBreak: false });
+
+      // Business name
+      doc.fontSize(24).font('Helvetica-Bold').fillColor(hex(C.dark));
+      doc.text(businessName, ML, 140);
+
+      // "What's included" label
+      doc.moveDown(0.4);
+      doc.fontSize(8.5).font('Helvetica-Bold').fillColor(hex(C.muted));
+      doc.text('WHAT\'S INCLUDED IN YOUR PLAN:', ML, doc.y);
+      doc.moveDown(0.4);
+
+      // Included items table
+      const included = [
+        ['🎯', 'Target Audience Breakdown',    'Detailed demographics, psychographics & online behavior'],
+        ['📊', 'Platform & Budget Strategy',   'Where to run ads, budget splits & expected CPL ranges'],
+        ['📅', '90-Day Campaign Roadmap',      'Phase-by-phase plan with milestones and KPIs'],
+        ['✍️', 'Ad Copy & Headlines',          '3 complete ad variations ready to deploy immediately'],
+        ['📋', 'Lead Qualification Script',    'Word-for-word call script with objection handling'],
+        ['🏆', 'Competitor Positioning Tips',  '5 tactics to dominate your local market'],
+      ];
+
+      included.forEach(([icon, title, desc], i) => {
+        const rowY = doc.y;
+        const bg = i % 2 === 0 ? hex(C.lightBg) : '#FFFFFF';
+        doc.rect(ML, rowY-2, CW, 24).fill(bg);
+        doc.rect(ML, rowY-2, 3, 24).fill(hex(C.orange));
+        doc.fontSize(12).fillColor(hex(C.dark)).text(icon, ML+8, rowY+3, { lineBreak: false, width: 20 });
+        doc.fontSize(9.5).font('Helvetica-Bold').fillColor(hex(C.dark)).text(title, ML+32, rowY+2, { lineBreak: false, width: 180 });
+        doc.fontSize(8.5).font('Helvetica').fillColor(hex(C.muted)).text(desc, ML+220, rowY+4, { lineBreak: false, width: CW-220 });
+        doc.y = rowY + 24;
+      });
+
+      doc.moveDown(1);
+
+      // Confidential box
+      const confY = doc.y;
+      doc.rect(ML, confY, CW, 38).fill(hex(C.lightBg));
+      doc.rect(ML, confY, 3, 38).fill(hex(C.orange));
+      doc.fontSize(8).font('Helvetica').fillColor(hex(C.muted));
+      doc.text(
+        `CONFIDENTIAL: This marketing plan was generated exclusively for ${businessName} by Astro A.I. Marketing. ` +
+        `All strategies, ad copy, and recommendations are proprietary and intended solely for the named recipient.`,
+        ML+10, confY+10, { width: CW-16 }
+      );
+
+      drawFooter(1, '—');
+
+      // ══════════════════════════════════════════════
+      // SECTIONS
+      // ══════════════════════════════════════════════
+      const sectionIcons = ['🎯','📊','📅','✍️','💬','📋','🏆'];
+
+      sections.forEach((section, idx) => {
+        doc.addPage();
+        drawBorder();
+        drawWatermark();
+        drawRunningHeader();
+        doc.y = MT + 36;
+
+        const title = sectionTitles[idx] || section.title;
+        const icon  = sectionIcons[idx] || '';
+
+        // Section band
+        doc.rect(ML, doc.y, CW, 26).fill(hex(C.navy));
+        doc.rect(ML, doc.y, 5, 26).fill(hex(C.orange));
+        // number badge
+        doc.roundedRect(ML+10, doc.y+5, 18, 16, 3).fill(hex(C.orange));
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(hex(C.white));
+        doc.text(String(idx+1), ML+10, doc.y+9, { width: 18, align: 'center', lineBreak: false });
+        doc.fontSize(10.5).font('Helvetica-Bold').fillColor(hex(C.white));
+        doc.text(`${icon}  ${title.toUpperCase()}`, ML+34, doc.y+9, { lineBreak: false });
+        doc.y += 38;
+
+        // Special: Ad Copy — render as cards
+        if (idx === 3) {
+          const bodyText = section.body.join('\n');
+          const adBlocks = bodyText.split(/\*\*Ad Variation \d+\*\*/).filter(b=>b.trim());
+          adBlocks.forEach((block, ai) => {
+            checkPage(doc, 110);
+            const lines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+            let headline='', bodyT='', cta='Learn More';
+            lines.forEach(ln => {
+              const ll = ln.toLowerCase();
+              if (ll.includes('headline:')) headline = ln.split(':').slice(1).join(':').trim().replace(/^"|"$/g,'');
+              else if (ll.includes('primary text:') || ll.includes('body:')) bodyT = ln.split(':').slice(1).join(':').trim();
+              else if (ll.includes('call to action:') || ll.includes('cta:')) cta = ln.split(':').slice(1).join(':').trim().replace(/^"|"$/g,'');
+              else if (!headline && ln.length > 5 && ln.length < 60) headline = ln.replace(/^-\s*/,'');
+              else if (!bodyT && ln.length > 40) bodyT = ln.replace(/^-\s*/,'');
+            });
+
+            const cardY = doc.y;
+            const cardH = 105;
+            // Card
+            doc.roundedRect(ML, cardY, CW, cardH, 5).fill(hex(C.lightBg));
+            doc.roundedRect(ML, cardY, CW, 4, 2).fill(hex(C.orange));
+            // Variation badge
+            doc.roundedRect(ML+10, cardY+10, 85, 16, 3).fill(hex(C.navy));
+            doc.fontSize(7.5).font('Helvetica-Bold').fillColor(hex(C.white));
+            doc.text(`AD VARIATION ${ai+1}`, ML+14, cardY+15, { lineBreak: false });
+            // Headline
+            doc.fontSize(13).font('Helvetica-Bold').fillColor(hex(C.navy));
+            doc.text(headline || `Ad ${ai+1}`, ML+10, cardY+32, { width: CW-20, lineBreak: false });
+            // Body text — word-wrapped manually to 2 lines max display
+            doc.fontSize(9).font('Helvetica').fillColor(hex([68,68,68]));
+            doc.text(bodyT || block.trim().slice(0,140), ML+10, cardY+50, { width: CW-20, height: 28, ellipsis: true });
+            // CTA button
+            doc.roundedRect(ML+10, cardY+cardH-22, 90, 16, 4).fill(hex(C.orange));
+            doc.fontSize(8).font('Helvetica-Bold').fillColor(hex(C.white));
+            doc.text(cta, ML+10, cardY+cardH-17, { width: 90, align: 'center', lineBreak: false });
+
+            doc.y = cardY + cardH + 10;
+          });
+        } else {
+          renderBody(section.body.join('\n'));
+        }
+      });
+
+      // ══════════════════════════════════════════════
+      // CLOSING PAGE
+      // ══════════════════════════════════════════════
+      doc.addPage();
+      drawBorder();
+      drawWatermark();
+      drawRunningHeader();
+      doc.y = MT + 36;
+
+      // Next steps band
+      doc.rect(ML, doc.y, CW, 26).fill(hex(C.navy));
+      doc.rect(ML, doc.y, 5, 26).fill(hex(C.orange));
+      doc.fontSize(10.5).font('Helvetica-Bold').fillColor(hex(C.white));
+      doc.text('🚀  NEXT STEPS — LET\'S GET YOU LAUNCHED', ML+12, doc.y+9, { lineBreak: false });
+      doc.y += 38;
+
+      const steps = [
+        ['1', 'Review This Plan',         'Read through each section. Highlight anything you want to discuss with your strategist.'],
+        ['2', 'Schedule Your Strategy Call', 'Book a free call and we\'ll walk through your plan together before anything goes live.'],
+        ['3', 'Campaign Launch',          'We build your ads, targeting, and copy — and launch within days of your approval.'],
+        ['4', 'Weekly Performance Reports', 'Every week you receive a clear report: leads generated, cost per lead, and results.'],
+      ];
+
+      steps.forEach(([num, title, desc]) => {
+        checkPage(doc, 50);
+        const rowY = doc.y;
+        doc.roundedRect(ML, rowY, CW, 40, 4).fill(hex(C.lightBg));
+        doc.roundedRect(ML, rowY, 38, 40, 4).fill(hex(C.orange));
+        doc.fontSize(18).font('Helvetica-Bold').fillColor(hex(C.white));
+        doc.text(num, ML, rowY+10, { width: 38, align: 'center', lineBreak: false });
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(hex(C.dark));
+        doc.text(title, ML+46, rowY+8, { lineBreak: false });
+        doc.fontSize(8.5).font('Helvetica').fillColor(hex(C.muted));
+        doc.text(desc, ML+46, rowY+22, { width: CW-52, lineBreak: false });
+        doc.y = rowY + 48;
+      });
+
+      doc.moveDown(1);
+
+      // Contact card
+      checkPage(doc, 60);
+      const ctaY = doc.y;
+      doc.rect(ML, ctaY, CW*0.72, 52).fill(hex(C.lightBg));
+      doc.rect(ML, ctaY, 3, 52).fill(hex(C.orange));
+      doc.roundedRect(ML + CW*0.72 + 4, ctaY, CW*0.28 - 4, 52, 4).fill(hex(C.orange));
+      doc.fontSize(12).font('Helvetica-Bold').fillColor(hex(C.dark));
+      doc.text('Questions? We\'re here for you.', ML+12, ctaY+12, { lineBreak: false });
+      doc.fontSize(9).font('Helvetica').fillColor(hex(C.muted));
+      doc.text('info@astroaibots.com  |  astroaibots.com', ML+12, ctaY+30, { lineBreak: false });
+      doc.fontSize(9).font('Helvetica-Bold').fillColor(hex(C.white));
+      doc.text('Schedule a Call →', ML + CW*0.72 + 4, ctaY+20, { width: CW*0.28 - 4, align: 'center', lineBreak: false });
+
+      // ── Add footers to all pages ──────────────────
+      const totalPages = doc.bufferedPageRange().count;
+      for (let i=0; i < totalPages; i++) {
+        doc.switchToPage(i);
+        drawFooter(i+1, totalPages);
+      }
+
+      doc.end();
+    } catch(err) {
+      reject(err);
     }
   });
-  if (currentSection) sections.push(currentSection);
-
-  // Build PDF content stream
-  const contentLines = [];
-  const FONT_NORMAL = '/F1';
-  const FONT_BOLD   = '/F2';
-  const PAGE_W = 612, PAGE_H = 792;
-  const MARGIN = 54;
-  const MAX_W  = PAGE_W - MARGIN * 2;
-  const LINE_H = 14;
-  const SECTION_H = 20;
-
-  function wrapText(text, charsPerLine) {
-    if (!text.trim()) return [''];
-    const words = text.split(' ');
-    const wrapped = [];
-    let current = '';
-    words.forEach(word => {
-      if ((current + ' ' + word).length > charsPerLine) {
-        if (current) wrapped.push(current.trim());
-        current = word;
-      } else {
-        current = current ? current + ' ' + word : word;
-      }
-    });
-    if (current) wrapped.push(current.trim());
-    return wrapped.length ? wrapped : [''];
-  }
-
-  // We'll build pages as arrays of PDF commands
-  const pages = [];
-  let currentPageLines = [];
-  let yPos = PAGE_H - 120; // start below header
-
-  function newPage() {
-    pages.push(currentPageLines.slice());
-    currentPageLines = [];
-    yPos = PAGE_H - 60;
-  }
-
-  function addText(text, fontSize, isBold, r, g, b) {
-    const font = isBold ? FONT_BOLD : FONT_NORMAL;
-    const charsPerLine = Math.floor(MAX_W / (fontSize * 0.5));
-    const wrapped = wrapText(text, charsPerLine);
-
-    wrapped.forEach(wline => {
-      if (yPos < 80) newPage();
-      currentPageLines.push(`BT ${font} ${fontSize} Tf ${r||0} ${g||0} ${b||0} rg ${MARGIN} ${yPos} Td (${safeStr(wline)}) Tj ET`);
-      yPos -= LINE_H;
-    });
-  }
-
-  // Header section
-  currentPageLines.push(`0.031 0.047 0.157 rg ${MARGIN - 10} ${PAGE_H - 10} m ${PAGE_W - MARGIN + 10} ${PAGE_H - 10} l ${PAGE_W - MARGIN + 10} ${PAGE_H - 90} l ${MARGIN - 10} ${PAGE_H - 90} l h f`);
-  currentPageLines.push(`BT ${FONT_BOLD} 22 Tf 0.980 0.451 0.086 rg ${MARGIN} ${PAGE_H - 42} Td (ASTRO A.I. MARKETING) Tj ET`);
-  currentPageLines.push(`BT ${FONT_NORMAL} 11 Tf 0.706 0.765 0.843 rg ${MARGIN} ${PAGE_H - 60} Td (Personalized Marketing Plan) Tj ET`);
-  currentPageLines.push(`BT ${FONT_BOLD} 13 Tf 1 1 1 rg ${MARGIN} ${PAGE_H - 78} Td (${safeStr(businessName)}) Tj ET`);
-  currentPageLines.push(`BT ${FONT_NORMAL} 9 Tf 0.549 0.608 0.667 rg ${MARGIN} ${PAGE_H - 92} Td (Prepared for: ${safeStr(clientName)}  |  Generated: ${safeStr(generatedAt)}) Tj ET`);
-  // Orange accent line
-  currentPageLines.push(`0.980 0.451 0.086 rg ${MARGIN - 10} ${PAGE_H - 96} m ${PAGE_W - MARGIN + 10} ${PAGE_H - 96} l ${PAGE_W - MARGIN + 10} ${PAGE_H - 99} l ${MARGIN - 10} ${PAGE_H - 99} l h f`);
-
-  // Border
-  currentPageLines.push(`q 0.706 0.718 0.769 RG 0.4 w 15 15 ${PAGE_W - 30} ${PAGE_H - 30} re S Q`);
-  currentPageLines.push(`q 0.820 0.827 0.859 RG 0.2 w 18 18 ${PAGE_W - 36} ${PAGE_H - 36} re S Q`);
-  // Corner accents
-  ['15 15','15 785','582 15','582 785'].forEach((pt, i) => {
-    const [cx, cy] = pt.split(' ').map(Number);
-    const hDir = i < 2 ? 1 : -1;
-    const vDir = (i === 0 || i === 2) ? 1 : -1;
-    currentPageLines.push(`0.980 0.451 0.086 rg`);
-    currentPageLines.push(`${cx} ${cy} m ${cx + hDir*18} ${cy} l ${cx + hDir*18} ${cy + vDir*1.5} l ${cx} ${cy + vDir*1.5} l h f`);
-    currentPageLines.push(`${cx} ${cy} m ${cx + hDir*1.5} ${cy} l ${cx + hDir*1.5} ${cy + vDir*18} l ${cx} ${cy + vDir*18} l h f`);
-  });
-
-  yPos = PAGE_H - 118;
-
-  // Sections
-  sections.forEach(section => {
-    if (yPos < 140) newPage();
-    // Section band
-    yPos -= 6;
-    currentPageLines.push(`0.031 0.047 0.157 rg ${MARGIN - 4} ${yPos - 4} m ${PAGE_W - MARGIN + 4} ${yPos - 4} l ${PAGE_W - MARGIN + 4} ${yPos + 12} l ${MARGIN - 4} ${yPos + 12} l h f`);
-    currentPageLines.push(`0.980 0.451 0.086 rg ${MARGIN - 4} ${yPos - 4} m ${MARGIN - 1} ${yPos - 4} l ${MARGIN - 1} ${yPos + 12} l ${MARGIN - 4} ${yPos + 12} l h f`);
-    currentPageLines.push(`BT ${FONT_BOLD} 10 Tf 1 1 1 rg ${MARGIN + 4} ${yPos + 5} Td (${safeStr(section.title)}) Tj ET`);
-    yPos -= SECTION_H;
-
-    // Body text
-    section.body.forEach(line => {
-      const trimmed = line.trim();
-      if (!trimmed) { yPos -= 5; return; }
-      const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.match(/^\d+\./);
-      const isSubHead = trimmed.endsWith(':') && trimmed.length < 50;
-      addText(trimmed, isSubHead ? 10 : 9, isSubHead, isSubHead ? 0.031 : (isBullet ? 0.2 : 0.1), isSubHead ? 0.047 : (isBullet ? 0.2 : 0.1), isSubHead ? 0.157 : (isBullet ? 0.2 : 0.1));
-    });
-    yPos -= 8;
-  });
-
-  // Footer on all pages
-  pages.push(currentPageLines.slice());
-
-  // Assemble raw PDF
-  const pdfObjects = [];
-  let offset = 0;
-  const offsets = [];
-
-  function addObj(content) {
-    const idx = pdfObjects.length + 1;
-    offsets.push(offset);
-    const obj = `${idx} 0 obj\n${content}\nendobj\n`;
-    pdfObjects.push(obj);
-    offset += obj.length;
-    return idx;
-  }
-
-  // Build each page content stream
-  const pageContentIds = pages.map(pageLines => {
-    const stream = pageLines.join('\n');
-    return addObj(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-  });
-
-  const pageIds = pageContentIds.map((contentId, i) => {
-    return addObj(`<< /Type /Page /Parent 4 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Contents ${contentId} 0 R /Resources << /Font << /F1 2 0 R /F2 3 0 R >> >> >>`);
-  });
-
-  // Font objects
-  const f1Id = addObj(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`);
-  const f2Id = addObj(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
-
-  // Pages dict
-  const pagesId = addObj(`<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`);
-
-  // Catalog
-  const catalogId = addObj(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
-
-  // Cross-reference table
-  const xrefOffset = pdfObjects.reduce((sum, obj) => sum + obj.length, 0) + '%PDF-1.4\n'.length;
-  const xref = `xref\n0 ${pdfObjects.length + 1}\n0000000000 65535 f \n` +
-    offsets.map(o => String(o + '%PDF-1.4\n'.length).padStart(10, '0') + ' 00000 n ').join('\n') + '\n';
-
-  const trailer = `trailer\n<< /Size ${pdfObjects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefOffset + xref.length}\n%%EOF`;
-
-  return '%PDF-1.4\n' + pdfObjects.join('') + xref + trailer;
 }
+
+
 
 // ── Client HTML email template ─────────────────────────────
 function buildClientEmail(clientName, businessName) {
@@ -415,8 +667,8 @@ exports.handler = async (event) => {
 
     // ── Step 2: Build plan PDF ─────────────────────────────
     const generatedAt = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
-    const planPDFContent = buildPlanPDF(planText, clientName, businessName, generatedAt);
-    const planPDFBase64  = Buffer.from(planPDFContent, 'binary').toString('base64');
+    const planPDFBuffer  = await buildPlanPDF(planText, clientName, businessName, generatedAt);
+    const planPDFBase64  = planPDFBuffer.toString('base64');
     const planFilename   = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
 
     // ── Step 3: Send emails ────────────────────────────────
