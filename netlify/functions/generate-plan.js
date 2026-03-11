@@ -157,7 +157,6 @@ Be extremely specific. Use their business name, service, and location throughout
 }
 
 // ── HTML → PDF via PDFShift ─────────────────────────────
-const https = require('https');
 
 const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
