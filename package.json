@@ -2,10 +2,9 @@
   "name": "astroai-bots-backend",
   "version": "1.0.0",
   "description": "AstroAI Bots — Square subscription backend for Netlify Functions",
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "engines": { "node": ">=18.0.0" },
   "dependencies": {
-    "nodemailer": "^3.1.0"
+    "nodemailer": "^3.1.0",
+    "pdfkit": "^0.15.0"
   }
 }
