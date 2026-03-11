@@ -180,7 +180,7 @@ const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
   .page-wrap {
     position: relative;
     min-height: 100vh;
-    padding: 54px 60px 54px 60px;
+    padding: 54px 60px 80px 60px;
   }
   .page-wrap::before {
     content: '';
@@ -217,7 +217,7 @@ const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
     font-size: 52px;
     font-weight: 800;
     color: #000;
-    opacity: 0.025;
+    opacity: 0.018;
     white-space: nowrap;
     pointer-events: none;
     z-index: 0;
@@ -311,7 +311,7 @@ const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
   .conf-box b { color: #1A1A2E; }
 
   /* ── PAGE BREAK ── */
-  .page-break { page-break-before: always; padding-top: 54px; }
+  .page-break { page-break-before: always; padding: 54px 0px 80px 0px; }
 
   /* ── RUNNING HEADER (inner pages) ── */
   .running-header {
@@ -490,7 +490,7 @@ const PLAN_HTML_TEMPLATE = `<!DOCTYPE html>
   /* ── FOOTER ── */
   .page-footer {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
+    bottom: 15px; left: 15px; right: 15px;
     background: #080C28;
     padding: 6px 22px;
     display: flex;
@@ -649,6 +649,16 @@ function planToHTML(planText, clientName, businessName, generatedAt) {
     for (const raw of lines) {
       const line = raw.trim();
       if (!line) { closeLists(); continue; }
+
+      // Handle ### headings from GPT
+      if (line.startsWith('### ') || line.startsWith('## ')) {
+        closeLists();
+        const t = esc(line.replace(/^#+\s+/, ''));
+        html += `<div class="sub-head">${t}</div>`;
+        continue;
+      }
+
+      // Bold subheading **text** or line ending with colon
       if ((line.startsWith('**') && line.endsWith('**') && !line.slice(2,-2).includes('**')) ||
           (line.endsWith(':') && line.length < 70 && !line.startsWith('-') && !line.match(/^\d/))) {
         closeLists();
@@ -677,18 +687,23 @@ function planToHTML(planText, clientName, businessName, generatedAt) {
   }
 
   function parseAds(bodyText) {
-    const blocks = bodyText.split(/\*\*Ad Variation \d+\*\*|Ad Variation \d+:/).filter(b=>b.trim());
-    return blocks.slice(0,3).map(block => {
+    // Split on any variation of "Ad Variation N" header
+    const blocks = bodyText.split(/(?:\*\*)?(?:Ad Variation|AD VARIATION)\s*\d+(?:\*\*)?:?/i).filter(b=>b.trim());
+    // If no blocks found, try splitting on ### 
+    const finalBlocks = blocks.length > 1 ? blocks : bodyText.split(/###/).filter(b=>b.trim());
+    return finalBlocks.slice(0,3).map((block, idx) => {
       const blines = block.split('\n').map(l=>l.trim()).filter(Boolean);
       let headline='', body='', cta='Learn More';
       for (const ln of blines) {
         const ll = ln.toLowerCase();
-        if (ll.includes('headline:'))         headline = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
-        else if (ll.includes('primary text:'))body = ln.split(':').slice(1).join(':').trim().replace(/\*\*/g,'');
-        else if (ll.includes('call to action:')||ll.includes('cta:')) cta = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
-        else if (!headline && ln.length>5 && ln.length<70) headline = ln.replace(/[*"]/g,'');
-        else if (!body && ln.length>40) body = ln.replace(/\*\*/g,'');
+        if (ll.startsWith('headline:'))            headline = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
+        else if (ll.startsWith('primary text:'))   body = ln.split(':').slice(1).join(':').trim().replace(/\*\*/g,'').replace(/^["']|["']$/g,'');
+        else if (ll.startsWith('call to action:')||ll.startsWith('cta:')) cta = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
+        else if (ll.startsWith('body:'))           body = ln.split(':').slice(1).join(':').trim().replace(/[*"]/g,'');
+        else if (!headline && ln.length>5 && ln.length<80 && !ln.includes(':')) headline = ln.replace(/[*"#]/g,'').trim();
+        else if (!body && ln.length>40) body = ln.replace(/\*\*/g,'').replace(/^["']|["']$/g,'');
       }
+      if (!headline) headline = `Ad Variation ${idx+1}`;
       return { headline: esc(headline), body: esc(body), cta: esc(cta) };
     });
   }
