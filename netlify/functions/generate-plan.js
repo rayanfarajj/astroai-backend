@@ -855,50 +855,53 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
   }
 
-  // Respond immediately — process in background to avoid network timeouts
-  (async () => {
-    try {
-      console.log('Generating marketing plan for:', businessName);
-      const prompt   = buildPrompt(data);
-      const planText = await callGPT(prompt);
-      console.log('Plan generated, length:', planText.length);
+  try {
+    console.log('Generating marketing plan for:', businessName);
+    const prompt   = buildPrompt(data);
+    const planText = await callGPT(prompt);
+    console.log('Plan generated, length:', planText.length);
 
-      const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
-      const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
-      const planPDFBase64 = planPDFBuffer.toString('base64');
-      const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
+    const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+    const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
+    const planPDFBase64 = planPDFBuffer.toString('base64');
+    const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
+    console.log('PDF built, size:', planPDFBuffer.length);
 
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-      });
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+    });
 
-      await Promise.all([
-        transporter.sendMail({
-          from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
-          to:          'info@astroaibots.com',
-          subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
-          text:        `Marketing plan for ${clientName} at ${businessName}. Generated: ${generatedAt}`,
-          attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
-        }),
-        transporter.sendMail({
-          from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
-          to:          clientEmail,
-          subject:     `Your Personalized Marketing Plan is Ready — ${businessName}`,
-          html:        buildClientEmail(clientName, businessName),
-          attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
-        }),
-      ]);
+    await Promise.all([
+      transporter.sendMail({
+        from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
+        to:          'info@astroaibots.com',
+        subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
+        text:        `Marketing plan for ${clientName} at ${businessName}. Generated: ${generatedAt}`,
+        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+      }),
+      transporter.sendMail({
+        from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
+        to:          clientEmail,
+        subject:     `Your Personalized Marketing Plan is Ready — ${businessName}`,
+        html:        buildClientEmail(clientName, businessName),
+        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+      }),
+    ]);
 
-      console.log('Both emails sent successfully to:', clientEmail);
-    } catch (err) {
-      console.error('Background error:', err.message, err.stack);
-    }
-  })();
+    console.log('Both emails sent successfully to:', clientEmail);
+    return {
+      statusCode: 200,
+      headers: CORS,
+      body: JSON.stringify({ success: true, message: 'Marketing plan generated and emailed' }),
+    };
 
-  return {
-    statusCode: 200,
-    headers: CORS,
-    body: JSON.stringify({ success: true, message: 'Plan generation started — email will arrive in 30-60 seconds' }),
-  };
+  } catch (err) {
+    console.error('generate-plan error:', err.message, err.stack);
+    return {
+      statusCode: 500,
+      headers: CORS,
+      body: JSON.stringify({ error: 'Failed to generate plan', details: err.message }),
+    };
+  }
 };
