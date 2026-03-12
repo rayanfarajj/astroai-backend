@@ -10,32 +10,28 @@ const CORS = {
 };
 
 function callGPT(prompt) {
+  // Claude Sonnet for the full marketing plan
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'gpt-4o',
-      max_tokens: 1500,
-      temperature: 0.7,
-      messages: [
-        {
-          role: 'system',
-          content: `You are an elite digital marketing strategist at Astro A.I. Marketing. 
+      model:      'claude-sonnet-4-6',
+      max_tokens: 3000,
+      system:     `You are an elite digital marketing strategist at Astro A.I. Marketing.
 You create highly detailed, actionable, personalized marketing plans for small and medium businesses.
 Your plans are professional, specific, and immediately usable.
 Always write in clear sections with headers. Be specific — use the client's actual business name, service, location, and budget in every section.
 Never use generic filler. Every recommendation must be tailored to THIS client.`,
-        },
-        { role: 'user', content: prompt },
-      ],
+      messages: [{ role: 'user', content: prompt }],
     });
 
     const options = {
-      hostname: 'api.openai.com',
-      path:     '/v1/chat/completions',
+      hostname: 'api.anthropic.com',
+      path:     '/v1/messages',
       method:   'POST',
       headers:  {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Length': Buffer.byteLength(body),
+        'Content-Type':      'application/json',
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length':    Buffer.byteLength(body),
       },
     };
 
@@ -46,7 +42,7 @@ Never use generic filler. Every recommendation must be tailored to THIS client.`
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) return reject(new Error(parsed.error.message));
-          resolve(parsed.choices[0].message.content);
+          resolve(parsed.content[0].text);
         } catch (e) { reject(e); }
       });
     });
@@ -56,27 +52,25 @@ Never use generic filler. Every recommendation must be tailored to THIS client.`
   });
 }
 
-
 // ── Claude API call for Marketing Command Center HTML ─────
 function callClaude(prompt) {
-  // Using gpt-4o-mini for speed — generates dashboard JSON in ~3s vs ~35s for Claude
+  // Using Claude Haiku for speed — fast (~3-5s) and 100% Anthropic
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model:      'gpt-4o-mini',
+      model:      'claude-haiku-4-5-20251001',
       max_tokens: 2000,
-      messages:   [
-        { role: 'system', content: 'You are a marketing strategist. Always respond with valid JSON only. No markdown, no backticks, no explanation.' },
-        { role: 'user',   content: prompt },
-      ],
+      system:     'You are a marketing strategist. Always respond with valid JSON only. No markdown, no backticks, no explanation.',
+      messages:   [{ role: 'user', content: prompt }],
     });
 
     const options = {
-      hostname: 'api.openai.com',
-      path:     '/v1/chat/completions',
+      hostname: 'api.anthropic.com',
+      path:     '/v1/messages',
       method:   'POST',
       headers:  {
         'Content-Type':   'application/json',
-        'Authorization':  `Bearer ${process.env.OPENAI_API_KEY}`,
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
         'Content-Length': Buffer.byteLength(body),
       },
     };
@@ -88,7 +82,7 @@ function callClaude(prompt) {
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) return reject(new Error(parsed.error.message));
-          resolve(parsed.choices[0].message.content);
+          resolve(parsed.content[0].text);
         } catch (e) { reject(e); }
       });
     });
