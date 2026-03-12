@@ -5,7 +5,7 @@
   node_bundler = "esbuild"
 
 [functions."generate-plan"]
-  timeout = 60
+  timeout = 120
 
 [[headers]]
   for = "/.netlify/functions/*"
