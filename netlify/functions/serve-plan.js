@@ -1,6 +1,4 @@
 // netlify/functions/serve-plan.js
-// Reads a marketing command center HTML from Netlify Blobs and serves it
-
 const https = require('https');
 
 function fetchBlob(slug) {
@@ -14,18 +12,16 @@ function fetchBlob(slug) {
       hostname: 'api.netlify.com',
       path:     `/api/v1/sites/${siteId}/blobs/${encodeURIComponent(slug)}?visibility=public`,
       method:   'GET',
-      headers:  {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers:  { 'Authorization': `Bearer ${token}` },
     };
 
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        console.log('Blob fetch status:', res.statusCode, 'length:', data.length);
+        console.log('Blob fetch status:', res.statusCode, 'data length:', data.length);
         if (res.statusCode === 404) return resolve(null);
-        if (res.statusCode !== 200) return reject(new Error(`Blob fetch failed: ${res.statusCode} — ${data.slice(0,200)}`));
+        if (res.statusCode !== 200) return reject(new Error(`Blob fetch failed: ${res.statusCode} — ${data.slice(0,300)}`));
         resolve(data);
       });
     });
@@ -35,9 +31,18 @@ function fetchBlob(slug) {
 }
 
 exports.handler = async (event) => {
-  console.log('serve-plan called, path:', event.path, 'params:', JSON.stringify(event.queryStringParameters));
+  console.log('Event path:', event.path);
+  console.log('Query params:', JSON.stringify(event.queryStringParameters));
 
-  const slug = (event.queryStringParameters?.slug || '').replace(/^\/+/, '');
+  // Try query param first, then fall back to raw path
+  let slug = event.queryStringParameters?.slug || event.queryStringParameters?.splat || '';
+
+  // If still empty, pull from the raw path
+  if (!slug && event.path) {
+    slug = event.path.replace(/^\/\.netlify\/functions\/serve-plan\/?/, '').replace(/^\/+/, '');
+  }
+
+  slug = slug.replace(/^\/+/, '').trim();
 
   console.log('Resolved slug:', slug);
 
@@ -45,7 +50,11 @@ exports.handler = async (event) => {
     return {
       statusCode: 400,
       headers: { 'Content-Type': 'text/html' },
-      body: '<html><body><h1>No slug provided</h1></body></html>',
+      body: `<html><body style="background:#0a0a0f;color:#eee;font-family:sans-serif;padding:2rem;">
+        <h1 style="color:#f97316">No slug</h1>
+        <p>Path: ${event.path}</p>
+        <p>Params: ${JSON.stringify(event.queryStringParameters)}</p>
+      </body></html>`,
     };
   }
 
@@ -58,15 +67,12 @@ exports.handler = async (event) => {
         headers: { 'Content-Type': 'text/html' },
         body: `<!DOCTYPE html><html>
         <head><title>Not Found</title>
-        <style>
-          body{background:#0a0a0f;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:1rem;}
-          h1{color:#f97316;font-size:2rem;}
-          p{color:#888;}
-        </style></head>
+        <style>body{background:#0a0a0f;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:1rem;}h1{color:#f97316;}p{color:#888;}</style>
+        </head>
         <body>
           <h1>Page Not Found</h1>
-          <p>Slug looked up: <code style="color:#f97316">${slug}</code></p>
-          <p>This marketing plan hasn't been generated yet or the link is incorrect.</p>
+          <p>Slug: <code style="color:#f97316">${slug}</code></p>
+          <p>This marketing plan hasn't been generated yet or the link may be incorrect.</p>
         </body></html>`,
       };
     }
