@@ -62,6 +62,214 @@ Never use generic filler. Every recommendation must be tailored to THIS client.`
   });
 }
 
+
+// ── Claude API call for Marketing Command Center HTML ─────
+function callClaude(prompt) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      path:     '/v1/messages',
+      method:   'POST',
+      headers:  {
+        'Content-Type':      'application/json',
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Length':    Buffer.byteLength(body),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) return reject(new Error(parsed.error.message));
+          resolve(parsed.content[0].text);
+        } catch (e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── Netlify Blobs — save HTML file ────────────────────────
+function saveToNetlifyBlobs(slug, html) {
+  return new Promise((resolve, reject) => {
+    const body = Buffer.from(html, 'utf8');
+    const siteId = process.env.NETLIFY_SITE_ID;
+    const token  = process.env.NETLIFY_TOKEN;
+
+    if (!siteId || !token) {
+      console.warn('SITE_ID or NETLIFY_TOKEN not set — skipping blob save');
+      return resolve(null);
+    }
+
+    const options = {
+      hostname: 'api.netlify.com',
+      path:     `/api/v1/sites/${siteId}/blobs/${slug}?visibility=public`,
+      method:   'PUT',
+      headers:  {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type':  'text/html',
+        'Content-Length': body.length,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        console.log('Blob save response:', res.statusCode, data.slice(0,200));
+        resolve(res.statusCode);
+      });
+    });
+    req.on('error', e => { console.warn('Blob save error:', e.message); resolve(null); });
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── Build Claude prompt for Marketing Command Center ───────
+function buildDashboardPrompt(d, planText) {
+  const businessName  = d.businessName || d.authSignerBusiness || 'Your Business';
+  const ownerName     = `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.authSignerName || 'Owner';
+  const industry      = d.industry || 'N/A';
+  const primaryService= d.primaryService || 'N/A';
+  const bizDesc       = d.bizDescription || 'N/A';
+  const companySize   = d.companySize || 'N/A';
+  const website       = d.website || '#';
+  const serviceArea   = `${d.serviceAreaType || ''} — ${d.serviceDetails || 'N/A'}`;
+  const language      = d.language || 'English';
+  const idealCustomer = d.idealCustomer || 'N/A';
+  const ageGroups     = d.ageGroups || 'N/A';
+  const genderPref    = d.genderPref || 'All genders';
+  const interests     = d.interests || 'N/A';
+  const mainGoal      = d.mainGoal || 'N/A';
+  const avgValue      = d.avgCustomerValue || 'N/A';
+  const standOut      = d.standOut || 'N/A';
+  const promotions    = d.promotions || 'N/A';
+  const qualifiedLead = d.qualifiedLead || 'N/A';
+  const badLead       = d.badLead || 'N/A';
+  const qualifyingQs  = d.qualifyingQuestions || 'N/A';
+  const disqualifyQs  = d.disqualifyingQuestions || 'N/A';
+  const paidBefore    = d.paidAdsBefore || 'N/A';
+  const pastPlatforms = d.platformsUsedBefore || 'N/A';
+  const workedWell    = d.workedWell || 'N/A';
+  const notWorked     = d.notWorked || 'N/A';
+  const goal90        = d.goal90Days || 'N/A';
+  const limitations   = d.limitations || 'N/A';
+  const priorities    = d.priorities || 'N/A';
+  const adBudget      = d.adBudget || 'N/A';
+  const budgetScale   = d.budgetIncrease || 'N/A';
+  const adPlatforms   = d.adPlatforms || 'N/A';
+  const finalNotes    = d.finalNotes || 'N/A';
+  const leadHandoff   = d.leadHandoff || 'N/A';
+  const handoffEmail  = d.handoffEmail || 'N/A';
+  const handoffPhone  = d.handoffPhone || 'N/A';
+  const responseTime  = d.responseTime || 'N/A';
+  const customQ1      = d.customQ1 || '';
+  const customQ2      = d.customQ2 || '';
+  const customQ3      = d.customQ3 || '';
+  const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+
+  return `You are building a Marketing Command Center — a beautiful, professional, single-page HTML dashboard for a business client. 
+
+OUTPUT RULES (CRITICAL):
+- Output ONLY raw HTML. No markdown. No explanation. No code fences. No backticks. Just the HTML starting with <!DOCTYPE html>
+- Every piece of client data must be dynamically inserted — never use placeholder text like "[Business Name]" or "N/A" visibly
+- The page must be fully self-contained (all CSS and JS inline)
+- Make it look exactly like a premium SaaS marketing dashboard — dark theme, professional, beautiful
+- Do NOT include any reference to "FIT N FLO", "Crystal Ostler", or any other example business
+
+HERE IS THE CLIENT DATA — use every field throughout the dashboard:
+
+Business Name: ${businessName}
+Owner: ${ownerName}
+Industry: ${industry}
+Primary Service: ${primaryService}
+Business Description: ${bizDesc}
+Company Size: ${companySize}
+Website: ${website}
+Service Area: ${serviceArea}
+Language: ${language}
+Daily Ad Budget: ${adBudget}
+Platforms: ${adPlatforms}
+Open to Scaling: ${budgetScale}
+
+TARGET AUDIENCE:
+Ideal Customer: ${idealCustomer}
+Age Groups: ${ageGroups}
+Gender: ${genderPref}
+Interests: ${interests}
+
+OFFER & POSITIONING:
+Main Goal: ${mainGoal}
+Avg Customer Value: ${avgValue}
+Stand Out: ${standOut}
+Promotions: ${promotions}
+
+LEAD QUALIFICATION:
+Qualified Lead: ${qualifiedLead}
+Bad Lead: ${badLead}
+Qualifying Questions: ${qualifyingQs}
+Disqualifying Questions: ${disqualifyQs}
+Custom Q1: ${customQ1}
+Custom Q2: ${customQ2}
+Custom Q3: ${customQ3}
+
+LEAD HANDOFF:
+Destination: ${leadHandoff}
+Handoff Email: ${handoffEmail}
+Handoff Phone: ${handoffPhone}
+Response Time: ${responseTime}
+
+PAST MARKETING:
+Paid Ads Before: ${paidBefore}
+Platforms Used: ${pastPlatforms}
+What Worked: ${workedWell}
+What Didn't Work: ${notWorked}
+
+GOALS:
+90-Day Goal: ${goal90}
+Limitations: ${limitations}
+Priorities: ${priorities}
+Final Notes: ${finalNotes}
+
+GENERATED MARKETING PLAN (use this to populate ad copy, strategy, and targeting sections):
+${planText}
+
+DESIGN REQUIREMENTS:
+- Dark background (#0a0a0f), surface cards (#12121a), orange accent (#f97316)
+- Google Fonts: DM Sans + Space Mono
+- Smooth fade-in animations on scroll
+- Fixed nav with section links
+- All sections must use the client's ACTUAL data — nothing generic
+- Use Chart.js from cdnjs for any charts (funnel, budget split, targeting)
+- Include these 9 sections populated with their real data:
+  1. Hero — business name, owner, generated date, key stats (budget, platforms, avg value, service area)
+  2. Client Profile — all business details, dream client avatar built from their ideal customer + age + interests
+  3. Funnel Architecture — based on their goal, platforms, and lead handoff method
+  4. Ad Copy — use the 3 ad variations from the marketing plan above, formatted as cards
+  5. Targeting Strategy — built from their age groups, interests, gender, service area, platforms
+  6. 90-Day Roadmap — pulled from the marketing plan, formatted as a visual timeline
+  7. Lead Qualification — their qualifying/disqualifying questions + custom questions as a script
+  8. Competitor Positioning — 5 tips from the marketing plan, formatted as cards
+  9. Next Steps — schedule call button linking to https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh
+
+FOOTER: "Marketing Command Center — ${businessName} | Prepared by Astro A.I. Marketing | Generated ${generatedAt}"
+
+Output the complete HTML now. Start with <!DOCTYPE html> immediately.`;
+}
+
 // ── Build prompt from onboarding data ─────────────────────
 function buildPrompt(d) {
   return `
@@ -792,7 +1000,7 @@ async function buildPlanPDF(planText, clientName, businessName, generatedAt) {
 
 
 // ── Client HTML email template ─────────────────────────────
-function buildClientEmail(clientName, businessName) {
+function buildClientEmail(clientName, businessName, dashboardUrl) {
   const firstName = (clientName || '').split(' ')[0] || 'there';
   return `
 <!DOCTYPE html>
@@ -835,8 +1043,13 @@ function buildClientEmail(clientName, businessName) {
           <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 28px;">
             Our team will be in touch within <strong>3–5 business days</strong> to walk you through the plan and get your first campaign live.
           </p>
+          <div style="text-align:center;margin-bottom:16px;">
+            <a href="${dashboardUrl}" style="display:inline-block;background:#f97316;color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;margin-bottom:10px;">
+              🚀 Open Your Marketing Command Center
+            </a>
+          </div>
           <div style="text-align:center;margin-bottom:28px;">
-            <a href="https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh" style="display:inline-block;background:#f97316;color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;">
+            <a href="https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh" style="display:inline-block;background:#080c28;color:#f97316;font-size:13px;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;border:2px solid #f97316;">
               📅 Schedule Your Strategy Call
             </a>
           </div>
@@ -871,17 +1084,30 @@ exports.handler = async (event) => {
   }
 
   try {
+    // ── Step 1: Generate marketing plan text via GPT-4o ───
     console.log('Generating marketing plan for:', businessName);
-    const prompt   = buildPrompt(data);
-    const planText = await callGPT(prompt);
+    const planText = await callGPT(buildPrompt(data));
     console.log('Plan generated, length:', planText.length);
 
+    // ── Step 2: Generate Marketing Command Center HTML via Claude ──
+    console.log('Generating Marketing Command Center HTML...');
+    const dashboardHTML  = await callClaude(buildDashboardPrompt(data, planText));
+    console.log('Dashboard HTML generated, length:', dashboardHTML.length);
+
+    // ── Step 3: Save dashboard to Netlify Blobs ───────────
+    const slug        = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
+    await saveToNetlifyBlobs(slug, dashboardHTML);
+    console.log('Dashboard saved at:', dashboardUrl);
+
+    // ── Step 4: Build marketing plan PDF ─────────────────
     const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
     const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
     const planPDFBase64 = planPDFBuffer.toString('base64');
     const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
     console.log('PDF built, size:', planPDFBuffer.length);
 
+    // ── Step 5: Send emails ───────────────────────────────
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
@@ -892,14 +1118,14 @@ exports.handler = async (event) => {
         from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
         to:          'info@astroaibots.com',
         subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
-        text:        `Marketing plan for ${clientName} at ${businessName}. Generated: ${generatedAt}`,
+        html:        `<p>Marketing plan and command center generated for <b>${clientName}</b> at <b>${businessName}</b>.</p><p><b>Dashboard:</b> <a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Generated: ${generatedAt}</p>`,
         attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
       }),
       transporter.sendMail({
         from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
         to:          clientEmail,
-        subject:     `Your Personalized Marketing Plan is Ready — ${businessName}`,
-        html:        buildClientEmail(clientName, businessName),
+        subject:     `Your Marketing Command Center is Ready — ${businessName}`,
+        html:        buildClientEmail(clientName, businessName, dashboardUrl),
         attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
       }),
     ]);
@@ -908,7 +1134,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: CORS,
-      body: JSON.stringify({ success: true, message: 'Marketing plan generated and emailed' }),
+      body: JSON.stringify({ success: true, message: 'Marketing plan and command center generated and emailed' }),
     };
 
   } catch (err) {
