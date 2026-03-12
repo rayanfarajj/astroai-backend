@@ -58,7 +58,7 @@ function callClaude(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 4000,
+      max_tokens: 6000,
       system:     'You are a marketing strategist. Output ONLY raw valid JSON. No markdown, no backticks, no explanation. Keep all text fields SHORT — max 2 sentences each. Complete the entire JSON.',
       messages:   [{ role: 'user', content: prompt }],
     });
@@ -1787,11 +1787,33 @@ exports.handler = async (event) => {
 
     let dashboardJSON = {};
     try {
-      const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-      dashboardJSON = JSON.parse(cleaned);
-      console.log('[process-plan] JSON parsed OK, keys:', Object.keys(dashboardJSON).join(', '));
+      let cleaned = rawJSON.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      // Attempt direct parse first
+      try {
+        dashboardJSON = JSON.parse(cleaned);
+        console.log('[process-plan] JSON parsed OK, keys:', Object.keys(dashboardJSON).join(', '));
+      } catch(e) {
+        // Truncated JSON — attempt repair by closing open structures
+        console.warn('[process-plan] JSON truncated, attempting repair...');
+        // Remove trailing incomplete entry and close all open brackets
+        let repaired = cleaned;
+        // Strip trailing incomplete line (ends mid-string)
+        repaired = repaired.replace(/,?\s*"[^"]*$/, '');
+        repaired = repaired.replace(/,?\s*$/, '');
+        // Count open braces/brackets and close them
+        const opens = (repaired.match(/{/g)||[]).length - (repaired.match(/}/g)||[]).length;
+        const arrOpens = (repaired.match(/\[/g)||[]).length - (repaired.match(/\]/g)||[]).length;
+        for(let i=0;i<arrOpens;i++) repaired += ']';
+        for(let i=0;i<opens;i++) repaired += '}';
+        try {
+          dashboardJSON = JSON.parse(repaired);
+          console.log('[process-plan] JSON repaired OK, keys:', Object.keys(dashboardJSON).join(', '));
+        } catch(e2) {
+          console.error('[process-plan] JSON repair failed:', e2.message);
+        }
+      }
     } catch(e) {
-      console.error('[process-plan] JSON parse error:', e.message, rawJSON.slice(0,200));
+      console.error('[process-plan] JSON parse error:', e.message);
     }
 
     const dashboardHTML = buildDashboardHTML(dashboardJSON, data);
