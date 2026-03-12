@@ -101,40 +101,83 @@ function callClaude(prompt) {
   });
 }
 
-// ── Netlify Blobs — save HTML file ────────────────────────
-function saveToNetlifyBlobs(slug, html) {
+// ── GitHub — save HTML file to repo/public/ ───────────────
+function saveToGitHub(slug, html) {
   return new Promise((resolve, reject) => {
-    const body = Buffer.from(html, 'utf8');
-    const siteId = process.env.NETLIFY_SITE_ID;
-    const token  = process.env.NETLIFY_TOKEN;
+    const token  = process.env.GITHUB_TOKEN;
+    const repo   = 'rayanfarajj/astroai-backend';
+    const path   = `public/${slug}.html`;
+    const content = Buffer.from(html, 'utf8').toString('base64');
 
-    if (!siteId || !token) {
-      console.warn('SITE_ID or NETLIFY_TOKEN not set — skipping blob save');
+    if (!token) {
+      console.warn('GITHUB_TOKEN not set — skipping GitHub save');
       return resolve(null);
     }
 
-    const options = {
-      hostname: 'api.netlify.com',
-      path:     `/api/v1/sites/${siteId}/blobs/${slug}?visibility=public`,
-      method:   'PUT',
+    // First check if file exists to get its SHA (required for updates)
+    const getOptions = {
+      hostname: 'api.github.com',
+      path:     `/repos/${repo}/contents/${path}`,
+      method:   'GET',
       headers:  {
         'Authorization': `Bearer ${token}`,
-        'Content-Type':  'text/html',
-        'Content-Length': body.length,
+        'User-Agent':    'astroai-bots',
+        'Accept':        'application/vnd.github+json',
       },
     };
 
-    const req = https.request(options, (res) => {
+    const doSave = (sha) => {
+      const body = JSON.stringify({
+        message: `Add marketing plan: ${slug}`,
+        content,
+        ...(sha ? { sha } : {}),
+      });
+
+      const putOptions = {
+        hostname: 'api.github.com',
+        path:     `/repos/${repo}/contents/${path}`,
+        method:   'PUT',
+        headers:  {
+          'Authorization': `Bearer ${token}`,
+          'User-Agent':    'astroai-bots',
+          'Accept':        'application/vnd.github+json',
+          'Content-Type':  'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+      };
+
+      const req = https.request(putOptions, (res) => {
+        let data = '';
+        res.on('data', c => data += c);
+        res.on('end', () => {
+          console.log('GitHub save status:', res.statusCode);
+          resolve(res.statusCode);
+        });
+      });
+      req.on('error', e => { console.warn('GitHub save error:', e.message); resolve(null); });
+      req.write(body);
+      req.end();
+    };
+
+    // Try to get existing file SHA
+    const getReq = https.request(getOptions, (res) => {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => {
-        console.log('Blob save response:', res.statusCode, data.slice(0,200));
-        resolve(res.statusCode);
+        if (res.statusCode === 200) {
+          try {
+            const json = JSON.parse(data);
+            console.log('File exists, updating with SHA:', json.sha.slice(0,8));
+            doSave(json.sha);
+          } catch(e) { doSave(null); }
+        } else {
+          console.log('New file, creating...');
+          doSave(null);
+        }
       });
     });
-    req.on('error', e => { console.warn('Blob save error:', e.message); resolve(null); });
-    req.write(body);
-    req.end();
+    getReq.on('error', () => doSave(null));
+    getReq.end();
   });
 }
 
@@ -1097,7 +1140,7 @@ exports.handler = async (event) => {
     // ── Step 3: Save dashboard to Netlify Blobs ───────────
     const slug        = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
     const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
-    await saveToNetlifyBlobs(slug, dashboardHTML);
+    await saveToGitHub(slug, dashboardHTML);
     console.log('Dashboard saved at:', dashboardUrl);
 
     // ── Step 4: Build marketing plan PDF ─────────────────
