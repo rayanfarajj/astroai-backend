@@ -58,8 +58,8 @@ function callClaude(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 2000,
-      system:     'You are a marketing strategist. Always respond with valid JSON only. No markdown, no backticks, no explanation.',
+      max_tokens: 6000,
+      system:     'You are a marketing strategist. Output ONLY raw valid JSON. No markdown, no backticks, no explanation. You MUST complete the entire JSON — every field, every array. Never truncate. Never stop mid-string.',
       messages:   [{ role: 'user', content: prompt }],
     });
 
@@ -1852,7 +1852,14 @@ exports.handler = async (event) => {
   try {
     console.log('[process-plan] Starting for:', businessName);
 
-    const rawJSON = await callClaude(buildDashboardPrompt(data, ''));
+    // Step 1: Generate full marketing plan with Sonnet (fast enough, ~8-12s)
+    console.log('[process-plan] Generating marketing plan...');
+    const planText = await callGPT(buildPlanPrompt(data));
+    console.log('[process-plan] Plan length:', planText.length);
+
+    // Step 2: Generate dashboard JSON with Haiku (3-5s)
+    console.log('[process-plan] Generating dashboard JSON...');
+    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
     console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
     let dashboardJSON = {};
