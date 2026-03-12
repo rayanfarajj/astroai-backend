@@ -14,8 +14,8 @@
   force = true
 
 [[redirects]]
-  from = "/:slug"
-  to = "/.netlify/functions/serve-plan?slug=:slug"
+  from = "/*"
+  to = "/.netlify/functions/serve-plan?slug=:splat"
   status = 200
 
 [[headers]]
