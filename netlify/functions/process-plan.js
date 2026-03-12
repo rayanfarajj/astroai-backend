@@ -57,7 +57,7 @@ function callClaude(prompt) {
   // Using Claude Haiku for speed — fast (~3-5s) and 100% Anthropic
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model:      'claude-haiku-4-5-20251001',
+      model:      'claude-sonnet-4-6',
       max_tokens: 6000,
       system:     'You are a marketing strategist. Output ONLY raw valid JSON. No markdown, no backticks, no explanation. You MUST complete the entire JSON — every field, every array. Never truncate. Never stop mid-string.',
       messages:   [{ role: 'user', content: prompt }],
@@ -1852,14 +1852,9 @@ exports.handler = async (event) => {
   try {
     console.log('[process-plan] Starting for:', businessName);
 
-    // Step 1: Generate full marketing plan with Sonnet (fast enough, ~8-12s)
-    console.log('[process-plan] Generating marketing plan...');
-    const planText = await callGPT(buildPrompt(data));
-    console.log('[process-plan] Plan length:', planText.length);
-
-    // Step 2: Generate dashboard JSON with Haiku (3-5s)
+    // Generate dashboard JSON with Haiku — all 40+ client fields are in the prompt
     console.log('[process-plan] Generating dashboard JSON...');
-    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
+    const rawJSON = await callClaude(buildDashboardPrompt(data, ''));
     console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
     let dashboardJSON = {};
