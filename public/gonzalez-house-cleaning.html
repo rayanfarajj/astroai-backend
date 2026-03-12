@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gonzalez House Cleaning — Marketing Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--surface3:#22222f;--border:rgba(255,255,255,0.08);--text:#eeeef2;--dim:#b0b0c8;--muted:#7e7e9a;--orange:#f97316;--orange-glow:rgba(249,115,22,0.2);--green:#1de9b6;--red:#ff6b6b;--radius:12px;--font:'DM Sans',sans-serif;--mono:'Space Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px;}
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
+.nav-brand{font-family:var(--mono);font-size:0.8rem;font-weight:700;color:var(--orange);letter-spacing:0.05em;}
+.nav-links{display:flex;gap:0.2rem;}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:0.72rem;font-weight:600;padding:0.35rem 0.7rem;border-radius:6px;transition:all 0.2s;}
+.nav-links a:hover{color:var(--text);background:var(--surface2);}
+/* HERO */
+.hero{padding:100px 2rem 60px;max-width:1200px;margin:0 auto;position:relative;}
+.hero::before{content:'';position:absolute;top:60px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,var(--orange-glow) 0%,transparent 70%);pointer-events:none;}
+.hero-label{font-family:var(--mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+.hero-label::before{content:'';width:7px;height:7px;background:var(--orange);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--orange-glow);}50%{opacity:0.7;box-shadow:0 0 0 8px transparent;}}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.15;margin-bottom:0.75rem;background:linear-gradient(135deg,var(--text) 0%,var(--dim) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{color:var(--dim);font-size:1rem;margin-bottom:2rem;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:2rem;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.stat-val{font-family:var(--mono);font-size:1.4rem;font-weight:700;color:var(--orange);margin-bottom:0.2rem;}
+.stat-lbl{font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.08em;}
+/* SECTIONS */
+.section{max-width:1200px;margin:0 auto;padding:3rem 2rem;}
+.sec-label{font-family:var(--mono);font-size:0.62rem;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.4rem;}
+.sec-title{font-size:1.5rem;font-weight:700;margin-bottom:0.4rem;}
+.sec-desc{color:var(--dim);font-size:0.85rem;margin-bottom:2rem;}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:all 0.3s;}
+.card:hover{border-color:rgba(249,115,22,0.25);transform:translateY(-2px);}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;}
+/* PROFILE */
+.detail-label{font-size:0.62rem;color:var(--orange);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:0.2rem;}
+.detail-val{font-size:0.9rem;margin-bottom:1rem;}
+.tag{display:inline-block;font-size:0.65rem;padding:0.25rem 0.6rem;border-radius:20px;margin:0.2rem;font-weight:500;}
+.tag.green{background:rgba(29,233,182,0.1);color:var(--green);border:1px solid rgba(29,233,182,0.3);}
+.tag.red{background:rgba(255,107,107,0.1);color:var(--red);border:1px solid rgba(255,107,107,0.3);}
+.tag.orange{background:rgba(249,115,22,0.1);color:var(--orange);border:1px solid rgba(249,115,22,0.3);}
+/* FUNNEL */
+.funnel-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;margin:2rem 0;}
+.funnel-step{padding:1rem 2rem;border-radius:8px;text-align:center;background:linear-gradient(135deg,var(--orange),#ea580c);color:#fff;font-weight:600;transition:transform 0.2s;margin:0 auto;}
+.funnel-step:hover{transform:scale(1.02);}
+.funnel-step-title{font-size:0.9rem;font-weight:700;}
+.funnel-step-desc{font-size:0.75rem;opacity:0.85;margin-top:0.2rem;}
+/* ADS */
+.ad-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 0.3s;}
+.ad-card:hover{border-color:rgba(249,115,22,0.3);transform:translateY(-2px);}
+.ad-num{background:var(--orange);color:#fff;font-family:var(--mono);font-size:0.65rem;padding:0.4rem 1rem;font-weight:700;letter-spacing:0.1em;}
+.ad-headline{font-size:1rem;font-weight:700;color:var(--orange);padding:1rem 1rem 0.5rem;}
+.ad-body{font-size:0.82rem;color:var(--dim);padding:0 1rem 1rem;line-height:1.6;}
+.ad-cta{margin:0 1rem 1rem;display:inline-block;background:var(--surface3);border:1px solid var(--border);padding:0.4rem 1rem;border-radius:6px;font-size:0.75rem;font-weight:600;color:var(--text);}
+/* TARGETING */
+.target-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.target-label{font-size:0.65rem;color:var(--orange);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:0.75rem;}
+.target-card ul{list-style:none;}
+.target-card li{font-size:0.8rem;padding:0.3rem 0;padding-left:1rem;position:relative;color:var(--text);}
+.target-card li::before{content:'';position:absolute;left:0;top:0.65rem;width:4px;height:4px;border-radius:50%;background:var(--orange);}
+/* TIMELINE */
+.timeline{position:relative;padding-left:2rem;}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--orange),#ea580c,var(--green));border-radius:2px;}
+.tl-item{position:relative;margin-bottom:1.5rem;padding:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.3s;}
+.tl-item:hover{border-color:rgba(249,115,22,0.25);}
+.tl-item::before{content:'';position:absolute;left:-2.15rem;top:1.4rem;width:11px;height:11px;border-radius:50%;border:2px solid var(--orange);background:var(--bg);}
+.tl-phase{font-family:var(--mono);font-size:0.62rem;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem;}
+.tl-title{font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;}
+.tl-desc{font-size:0.8rem;color:var(--dim);line-height:1.6;}
+/* SCRIPT */
+.script-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
+.script-heading{font-size:0.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:0.75rem;}
+.script-text{font-size:0.85rem;color:var(--dim);line-height:1.7;}
+.script-q{background:var(--surface2);border-radius:8px;padding:1rem;margin-bottom:0.75rem;border-left:3px solid var(--orange);}
+.q-num{font-family:var(--mono);font-size:0.6rem;color:var(--orange);font-weight:700;margin-bottom:0.3rem;}
+.q-text{font-size:0.88rem;font-weight:600;margin-bottom:0.2rem;}
+.q-why{font-size:0.75rem;color:var(--muted);}
+.objection{background:var(--surface2);border-radius:8px;padding:1rem;margin-bottom:0.75rem;}
+.obj-text{font-size:0.82rem;color:var(--red);margin-bottom:0.4rem;}
+.obj-response{font-size:0.82rem;color:var(--green);}
+/* POSITIONING */
+.pos-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:relative;overflow:hidden;transition:all 0.3s;}
+.pos-card:hover{border-color:rgba(249,115,22,0.3);transform:translateY(-2px);}
+.pos-num{font-family:var(--mono);font-size:2.5rem;font-weight:700;color:var(--surface3);position:absolute;top:0.5rem;right:1rem;}
+.pos-tip{font-size:0.95rem;font-weight:700;color:var(--orange);margin-bottom:0.5rem;padding-right:3rem;}
+.pos-desc{font-size:0.82rem;color:var(--dim);line-height:1.6;}
+/* NEXT STEPS */
+.next-card{background:linear-gradient(135deg,var(--surface),var(--surface2));border:2px solid var(--orange);border-radius:20px;padding:3rem;text-align:center;}
+.next-card h2{font-size:1.8rem;font-weight:700;margin-bottom:1rem;}
+.next-card p{color:var(--dim);font-size:0.95rem;margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;}
+.btn-primary{display:inline-block;background:linear-gradient(135deg,var(--orange),#ea580c);color:#fff;font-size:1rem;font-weight:700;padding:1rem 3rem;border-radius:50px;text-decoration:none;box-shadow:0 10px 30px var(--orange-glow);transition:all 0.3s;}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 15px 40px var(--orange-glow);}
+/* FOOTER */
+.footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--border);margin-top:3rem;}
+.footer p{font-size:0.72rem;color:var(--muted);}
+/* FADE IN */
+.fade{opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.fade.visible{opacity:1;transform:translateY(0);}
+@media(max-width:768px){.nav-links{display:none;}.hero h1{font-size:1.8rem;}.section{padding:2rem 1rem;}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-brand">⚡ Gonzalez House Cleaning</div>
+  <div class="nav-links">
+    <a href="#profile">Profile</a>
+    <a href="#funnel">Funnel</a>
+    <a href="#ads">Ads</a>
+    <a href="#targeting">Targeting</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#script">Script</a>
+    <a href="#positioning">Positioning</a>
+    <a href="#next">Next Steps</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero fade">
+  <div class="hero-label">Marketing Command Center — Live</div>
+  <h1>Gonzalez House Cleaning</h1>
+  <p class="hero-sub">Prepared for Maria Gonzalez &nbsp;·&nbsp; Residential Cleaning &nbsp;·&nbsp; Generated March 12, 2026 at 8:08 AM</p>
+  <p class="hero-sub" style="font-size:0.85rem;color:var(--muted)">Gonzalez House Cleaning provides reliable weekly and biweekly home cleaning services for busy San Antonio homeowners who value quality and consistency.</p>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val">$20</div><div class="stat-lbl">Daily Ad Budget</div></div>
+    <div class="stat"><div class="stat-val">Facebook and Instagram</div><div class="stat-lbl">Platforms</div></div>
+    <div class="stat"><div class="stat-val">$2400</div><div class="stat-lbl">Avg Job Value</div></div>
+    <div class="stat"><div class="stat-val">30-55</div><div class="stat-lbl">Target Age Range</div></div>
+    <div class="stat"><div class="stat-val">San Antonio TX and surrounding areas within 20 miles</div><div class="stat-lbl">Service Area</div></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<section class="section fade" id="profile">
+  <div class="sec-label">01 / Client Profile</div>
+  <div class="sec-title">Business Overview & Dream Client Avatar</div>
+  <div class="grid2">
+    <div class="card">
+      <div class="detail-label">Business</div><div class="detail-val">Gonzalez House Cleaning</div>
+      <div class="detail-label">Owner</div><div class="detail-val">Maria Gonzalez</div>
+      <div class="detail-label">Industry</div><div class="detail-val">Residential Cleaning</div>
+      <div class="detail-label">Primary Service</div><div class="detail-val">Weekly and biweekly home cleaning services</div>
+      <div class="detail-label">Description</div><div class="detail-val">Gonzalez House Cleaning provides reliable residential cleaning in San Antonio TX. Family owned, 5 years in business, fully insured, background checked staff, and we bring all our own supplies. We specialize in recurring weekly and biweekly cleans for busy homeowners.</div>
+      <div class="detail-label">Team Size</div><div class="detail-val">2-10 employees</div>
+      <div class="detail-label">Website</div><div class="detail-val">gonzalezhousecleaning.com</div>
+      <div class="detail-label">Service Area</div><div class="detail-val">Within a set radius — San Antonio TX and surrounding areas within 20 miles</div>
+      <div class="detail-label">90-Day Goal</div><div class="detail-val">25 new recurring cleaning contracts generating at least $5000 per month in recurring revenue within 90 days</div>
+    </div>
+    <div class="card">
+      <div class="detail-label">Who They Are</div><div class="detail-val">Our ideal customers are busy homeowners and dual-income couples aged 30-55 who juggle demanding careers, family responsibilities, and active lifestyles. They own homes over 1500 square feet in San Antonio and surrounding areas, and appreciate quality service while having disposable income to invest in professional home maintenance.</div>
+      <div class="detail-label">Pain Points</div><div class="detail-val">They struggle to find time for thorough house cleaning between work demands, family obligations, and personal commitments, often feeling stressed about their home's cleanliness. They worry about trusting service providers in their home and have concerns about inconsistent quality from cleaning services they've tried before.</div>
+      <div class="detail-label">What They Want</div><div class="detail-val">They want a consistently clean, organized home environment without the time investment or stress of doing it themselves. They seek a reliable, trustworthy cleaning service with the same cleaner every visit, backed by quality guarantees and professional standards.</div>
+      <div class="detail-label">Qualifiers ✅</div>
+      <div class="detail-val"><span class="tag green">Homeowner with 1500+ sq ft house</span><span class="tag green">Wants weekly or biweekly recurring service</span><span class="tag green">Values quality and reliability over lowest price</span></div>
+      <div class="detail-label">Disqualifiers ❌</div>
+      <div class="detail-val"><span class="tag red">Renters without landlord approval</span><span class="tag red">Only seeking one-time deep cleaning services</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNNEL -->
+<section class="section fade" id="funnel">
+  <div class="sec-label">02 / Funnel Architecture</div>
+  <div class="sec-title">Lead-to-Sale Conversion Path</div>
+  <div class="sec-desc">Your custom funnel based on Facebook and Instagram targeting 30-55 in San Antonio TX and surrounding areas within 20 miles.</div>
+  <div class="funnel-wrap">
+    <div class="funnel-step" style="width:100%;opacity:1">
+      <div class="funnel-step-title">Awareness</div>
+      <div class="funnel-step-desc">Potential customers see Facebook/Instagram ads showcasing before-and-after cleaning transformations and learn about our reliable service.</div>
+    </div>
+    <div class="funnel-step" style="width:88%;opacity:0.9">
+      <div class="funnel-step-title">Interest</div>
+      <div class="funnel-step-desc">Prospects click through to learn more about our same-cleaner policy, insurance coverage, and 24-hour satisfaction guarantee.</div>
+    </div>
+    <div class="funnel-step" style="width:76%;opacity:0.8">
+      <div class="funnel-step-title">Consideration</div>
+      <div class="funnel-step-desc">Interested homeowners contact us through phone or online form to discuss their specific cleaning needs and schedule.</div>
+    </div>
+    <div class="funnel-step" style="width:64%;opacity:0.7">
+      <div class="funnel-step-title">Qualification</div>
+      <div class="funnel-step-desc">We qualify leads through our script to ensure they're homeowners seeking recurring service with homes over 1500 sq ft.</div>
+    </div>
+    <div class="funnel-step" style="width:52%;opacity:0.6">
+      <div class="funnel-step-title">Conversion</div>
+      <div class="funnel-step-desc">Qualified prospects book their first recurring cleaning appointment and take advantage of our 20% new client discount.</div>
+    </div></div>
+</section>
+
+<!-- ADS -->
+<section class="section fade" id="ads">
+  <div class="sec-label">03 / Ad Copy</div>
+  <div class="sec-title">Ready-to-Deploy Ad Creatives</div>
+  <div class="sec-desc">Three tested angles for Gonzalez House Cleaning. Launch all three, kill losers after 72 hours, scale the winner.</div>
+  <div class="grid3">
+    <div class="ad-card">
+      <div class="ad-num">Ad 1</div>
+      <div class="ad-headline">Spotless Homes, Happy Lives</div>
+      <div class="ad-body">Experience the joy of a consistently clean home with Gonzalez House Cleaning. Our reliable team brings all supplies and guarantees satisfaction with every visit. Book now and enjoy 20% off your first clean!</div>
+      <div class="ad-cta">Book Your Clean Today</div>
+    </div>
+    <div class="ad-card">
+      <div class="ad-num">Ad 2</div>
+      <div class="ad-headline">Your Trusted Cleaning Partner</div>
+      <div class="ad-body">Let Gonzalez House Cleaning handle the mess while you focus on what matters most. Fully insured, same trusted cleaner every time, and a 24-hour re-clean guarantee. Get started this month and save 20%!</div>
+      <div class="ad-cta">Schedule a Consultation</div>
+    </div>
+    <div class="ad-card">
+      <div class="ad-num">Ad 3</div>
+      <div class="ad-headline">Home Cleaning Made Easy</div>
+      <div class="ad-body">Busy schedule keeping you from a pristine home? Keep your house spotless without lifting a finger with our weekly and biweekly services. First-time recurring clients enjoy 20% off their first clean!</div>
+      <div class="ad-cta">Contact Us Now</div>
+    </div></div>
+</section>
+
+<!-- TARGETING -->
+<section class="section fade" id="targeting">
+  <div class="sec-label">04 / Targeting Strategy</div>
+  <div class="sec-title">Audience Architecture</div>
+  <div class="sec-desc">Layered targeting on Facebook and Instagram for maximum return on your $20/day budget.</div>
+  <div class="grid3">
+    <div class="target-card">
+      <div class="target-label">Demographics</div>
+      <ul><li>Ages 30-55</li><li>Homeowners in San Antonio TX area</li><li>Middle to upper-middle class income</li></ul>
+    </div>
+    <div class="target-card">
+      <div class="target-label">Interests</div>
+      <ul><li>Home organization</li><li>Interior design</li><li>Parenting</li><li>Real estate</li></ul>
+    </div>
+    <div class="target-card">
+      <div class="target-label">Behaviors</div>
+      <ul><li>Recently moved</li><li>Home improvement shoppers</li><li>Premium brand affinity</li></ul>
+    </div>
+    <div class="target-card">
+      <div class="target-label">Custom</div>
+      <ul><li>Homeowners with 1500+ sq ft properties</li><li>Dual-income households</li><li>Local Nextdoor app users</li></ul>
+    </div>
+    <div class="target-card">
+      <div class="target-label">Lookalike</div>
+      <ul><li>Existing customer database</li><li>Website visitors who requested quotes</li></ul>
+    </div></div>
+</section>
+
+<!-- ROADMAP -->
+<section class="section fade" id="roadmap">
+  <div class="sec-label">05 / 90-Day Roadmap</div>
+  <div class="sec-title">Phase-by-Phase Execution Plan</div>
+  <div class="sec-desc">Week-by-week actions to hit: 25 new recurring cleaning contracts generating at least $5000 per month in recurring revenue within 90 days</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-phase">Week 1</div>
+      <div class="tl-title">Campaign Launch</div>
+      <div class="tl-desc">Set up Facebook and Instagram ad accounts with conversion tracking and launch broad targeting campaigns to gather initial data. Create and test three different ad variations focusing on reliability, convenience, and satisfaction guarantee.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Week 2</div>
+      <div class="tl-title">Data Collection</div>
+      <div class="tl-desc">Monitor ad performance metrics including CTR, CPL, and engagement rates across different demographics and interests. Begin identifying which creative elements and audience segments are performing best.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Weeks 3-4</div>
+      <div class="tl-title">Initial Optimization</div>
+      <div class="tl-desc">Pause underperforming ads and double down on winning creative and audience combinations. Adjust budget allocation between Facebook and Instagram based on performance data and refine targeting parameters.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Weeks 5-6</div>
+      <div class="tl-title">Scaling Preparation</div>
+      <div class="tl-desc">Implement retargeting campaigns for website visitors and engaged users who haven't converted yet. Test lookalike audiences based on existing customers and high-intent website visitors.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Weeks 7-8</div>
+      <div class="tl-title">Scale Winning Campaigns</div>
+      <div class="tl-desc">Increase daily budget on best-performing campaigns while maintaining target CPL under $25. Launch seasonal messaging and expand successful campaigns to broader but similar audiences.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Weeks 9-12</div>
+      <div class="tl-title">Sustained Growth</div>
+      <div class="tl-desc">Achieve consistent flow of 8+ qualified leads per month while testing new creative angles and seasonal promotions. Implement customer referral incentives and build email nurture sequences for long-term client retention.</div>
+    </div></div>
+</section>
+
+<!-- SCRIPT -->
+<section class="section fade" id="script">
+  <div class="sec-label">06 / Lead Qualification Script</div>
+  <div class="sec-title">Ready-to-Use Call Script</div>
+  <div class="grid2">
+    <div>
+      <div class="script-box">
+        <div class="script-heading">Opening</div>
+        <div class="script-text">Hello, thank you for your interest in Gonzalez House Cleaning! My name is Maria, and I'm excited to learn how we can help keep your home spotless. I'd love to ask you a few quick questions to make sure we're the perfect fit for your cleaning needs.</div>
+      </div>
+      <div class="script-heading" style="margin:1.5rem 0 0.75rem;font-size:0.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Qualifying Questions</div>
+      
+    <div class="script-q">
+      <div class="q-num">Q1</div>
+      <div class="q-text">Do you own your home here in the San Antonio area?</div>
+      <div class="q-why">Why: Ensures they have authority to hire cleaning service and aren't renters</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q2</div>
+      <div class="q-text">Are you looking for recurring weekly or biweekly cleaning service?</div>
+      <div class="q-why">Why: Qualifies for our specialty and eliminates one-time cleaning requests</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q3</div>
+      <div class="q-text">Can you tell me approximately how many square feet your home is?</div>
+      <div class="q-why">Why: Ensures home size meets our 1500+ sq ft minimum requirement</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q4</div>
+      <div class="q-text">Do you have pets or any specific areas that need extra attention?</div>
+      <div class="q-why">Why: Helps us prepare proper service and pricing for their specific needs</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q5</div>
+      <div class="q-text">What's most important to you in a cleaning service - reliability, quality, or pricing?</div>
+      <div class="q-why">Why: Identifies if they value quality over price shopping which aligns with our positioning</div>
+    </div>
+      <div class="script-box" style="margin-top:1rem;">
+        <div class="script-heading">Transition to Close</div>
+        <div class="script-text">Based on what you've shared, it sounds like we'd be a great match for your cleaning needs. I'd love to schedule a time to visit your home and provide you with a personalized quote, plus you'll qualify for our 20% discount for new recurring clients.</div>
+      </div>
+    </div>
+    <div>
+      <div class="script-heading" style="margin-bottom:0.75rem;font-size:0.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Objection Handling</div>
+      
+    <div class="objection">
+      <div class="obj-text">❌ "I need to think about it"</div>
+      <div class="obj-response">✅ I completely understand this is an important decision. What specific concerns can I address for you right now, and would it help to know that we offer a satisfaction guarantee with our 24-hour re-clean policy?</div>
+    </div>
+    <div class="objection">
+      <div class="obj-text">❌ "I'm worried about having strangers in my home"</div>
+      <div class="obj-response">✅ That's a very valid concern and exactly why we assign the same background-checked cleaner to your home every visit - you'll always know exactly who's coming and can build a trusted relationship with them.</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- POSITIONING -->
+<section class="section fade" id="positioning">
+  <div class="sec-label">07 / Competitor Positioning</div>
+  <div class="sec-title">5 Ways to Stand Above the Competition</div>
+  <div class="grid2">
+    <div class="pos-card">
+      <div class="pos-num">01</div>
+      <div class="pos-tip">Emphasize Relationship Over Transaction</div>
+      <div class="pos-desc">Position Gonzalez House Cleaning as a trusted partner rather than just a service provider by highlighting the same-cleaner-every-visit policy. This builds long-term relationships and differentiates from competitors who send different staff each time.</div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-num">02</div>
+      <div class="pos-tip">Lead With Quality Guarantees</div>
+      <div class="pos-desc">Always mention the 24-hour re-clean guarantee prominently in marketing materials to address quality concerns upfront. This positions you as confident in your service quality and willing to stand behind your work unlike competitors.</div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-num">03</div>
+      <div class="pos-tip">Highlight Full-Service Convenience</div>
+      <div class="pos-desc">Emphasize that you bring all supplies and equipment to differentiate from competitors who require clients to provide cleaning products. This convenience factor appeals to busy homeowners who want a truly hands-off experience.</div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-num">04</div>
+      <div class="pos-tip">Leverage Family-Owned Trust Factor</div>
+      <div class="pos-desc">Share Maria's story and family business values to create emotional connection and trust that large corporate cleaning services can't match. Local homeowners often prefer supporting family businesses in their community.</div>
+    </div>
+    <div class="pos-card">
+      <div class="pos-num">05</div>
+      <div class="pos-tip">Target Quality Over Price</div>
+      <div class="pos-desc">Consistently message that you're not the cheapest option but the most reliable and thorough choice for discriminating homeowners. This attracts clients who value quality service and are willing to pay for dependable results.</div>
+    </div></div>
+</section>
+
+<!-- NEXT STEPS -->
+<section class="section fade" id="next">
+  <div class="next-card">
+    <h2>Ready to Launch?</h2>
+    <p>Your Marketing Command Center for Gonzalez House Cleaning is live. Schedule your strategy call to get your campaigns running within 48 hours.</p>
+    <a href="https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh" class="btn-primary">📅 Schedule Your Strategy Call</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>Marketing Command Center — Gonzalez House Cleaning &nbsp;|&nbsp; Prepared by Astro A.I. Marketing &nbsp;|&nbsp; Generated March 12, 2026 at 8:08 AM</p>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
