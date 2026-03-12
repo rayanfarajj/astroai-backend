@@ -5,7 +5,7 @@
   node_bundler = "esbuild"
 
 [functions."generate-plan"]
-  timeout = 120
+  timeout = 180
 
 [[redirects]]
   from = "/*"
