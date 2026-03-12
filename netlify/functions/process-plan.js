@@ -1854,7 +1854,7 @@ exports.handler = async (event) => {
 
     // Step 1: Generate full marketing plan with Sonnet (fast enough, ~8-12s)
     console.log('[process-plan] Generating marketing plan...');
-    const planText = await callGPT(buildPlanPrompt(data));
+    const planText = await callGPT(buildPrompt(data));
     console.log('[process-plan] Plan length:', planText.length);
 
     // Step 2: Generate dashboard JSON with Haiku (3-5s)
