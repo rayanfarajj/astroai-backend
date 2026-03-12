@@ -1,20 +1,14 @@
-// netlify/functions/generate-plan.js
-// 1. Receives full onboarding data
-// 2. Sends to GPT-4 to generate a complete marketing plan
-// 3. Generates a branded PDF of the plan
-// 4. Emails plan PDF to owner (with auth PDF) + separate email to client
-
+// netlify/functions/process-plan.js
 const nodemailer = require('nodemailer');
 const https      = require('https');
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, x-internal-key',
   'Content-Type':                 'application/json',
 };
 
-// ── GPT-4 call ────────────────────────────────────────────
 function callGPT(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
@@ -1419,6 +1413,8 @@ function buildClientEmail(clientName, businessName, dashboardUrl) {
 </html>`.trim();
 }
 
+
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
@@ -1427,44 +1423,76 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  const clientEmail  = data.email;
+  const clientName   = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.authSignerName || 'Client';
   const businessName = data.businessName || data.authSignerBusiness || 'Your Business';
+  const clientEmail  = data.email;
 
   if (!clientEmail) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
   }
 
-  // ── Call process-plan function asynchronously via HTTP ──
-  console.log('Received request for:', businessName, '— handing off to process-plan');
+  try {
+    console.log('[process-plan] Starting for:', businessName);
 
-  const body = JSON.stringify(data);
+    const planText = await callGPT(buildPrompt(data));
+    console.log('[process-plan] Plan generated, length:', planText.length);
 
-  // Use direct Netlify URL — custom domain redirect would intercept /.netlify/functions/*
-  const processOptions = {
-    hostname: 'celebrated-baklava-e035d6.netlify.app',
-    path:     '/.netlify/functions/process-plan',
-    method:   'POST',
-    headers:  {
-      'Content-Type':   'application/json',
-      'Content-Length': Buffer.byteLength(body),
-      'x-internal-key': process.env.INTERNAL_KEY || 'astroai-internal',
-    },
-  };
+    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
+    console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
-  // Fire the request to process-plan — don't await it
-  const req = https.request(processOptions);
-  req.on('error', e => console.error('process-plan trigger error:', e.message));
-  req.write(body);
-  req.end();
+    let dashboardJSON = {};
+    try {
+      const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+      dashboardJSON = JSON.parse(cleaned);
+      console.log('[process-plan] JSON parsed OK, keys:', Object.keys(dashboardJSON).join(', '));
+    } catch(e) {
+      console.error('[process-plan] JSON parse error:', e.message, rawJSON.slice(0,200));
+    }
 
-  console.log('process-plan triggered for:', businessName);
+    const dashboardHTML = buildDashboardHTML(dashboardJSON, data);
+    console.log('[process-plan] HTML assembled, length:', dashboardHTML.length);
 
-  return {
-    statusCode: 202,
-    headers: CORS,
-    body: JSON.stringify({
-      success: true,
-      message: `Got it! Your Marketing Command Center for ${businessName} is being generated. Check your email in 2-3 minutes.`,
-    }),
-  };
+    const slug         = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
+    await saveToGitHub(slug, dashboardHTML);
+    console.log('[process-plan] Saved to GitHub:', dashboardUrl);
+
+    const generatedAt = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+    });
+
+    await Promise.all([
+      transporter.sendMail({
+        from:    `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
+        to:      'info@astroaibots.com',
+        subject: `Marketing Plan Ready — ${clientName} (${businessName})`,
+        html:    `<p>Plan generated for <b>${clientName}</b> at <b>${businessName}</b>.</p><p><b>Dashboard:</b> <a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Generated: ${generatedAt}</p>`,
+      }),
+      transporter.sendMail({
+        from:    `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
+        to:      clientEmail,
+        subject: `Your Marketing Command Center is Ready — ${businessName}`,
+        html:    buildClientEmail(clientName, businessName, dashboardUrl),
+      }),
+    ]);
+
+    console.log('[process-plan] All done — emails sent to:', clientEmail);
+
+    return {
+      statusCode: 200,
+      headers: CORS,
+      body: JSON.stringify({ success: true }),
+    };
+
+  } catch (err) {
+    console.error('[process-plan] Error:', err.message, err.stack);
+    return {
+      statusCode: 500,
+      headers: CORS,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
 };
