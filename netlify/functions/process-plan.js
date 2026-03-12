@@ -1819,8 +1819,18 @@ exports.handler = async (event) => {
       console.error('[process-plan] JSON parse error:', e.message);
     }
 
+    // Debug: log adAngles structure
+    if (dashboardJSON.adAngles) {
+      console.log('[process-plan] adAngles count:', dashboardJSON.adAngles.length);
+      dashboardJSON.adAngles.forEach((a,i) => console.log(`  angle ${i}: ${a.angleLabel}, ads: ${(a.ads||[]).length}`));
+    } else {
+      console.error('[process-plan] adAngles MISSING from JSON');
+    }
+
     const dashboardHTML = buildDashboardHTML(dashboardJSON, data);
     console.log('[process-plan] HTML assembled, length:', dashboardHTML.length);
+    console.log('[process-plan] HTML has tab-angle0:', dashboardHTML.includes('tab-angle0'));
+    console.log('[process-plan] HTML has ad-card:', dashboardHTML.includes('ad-card-body'));
 
     const slug         = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
     const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
