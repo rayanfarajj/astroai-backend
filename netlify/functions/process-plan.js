@@ -771,8 +771,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="section-title">Ready-to-Deploy Ad Creatives</div>
     <div class="section-desc">Multiple angles for ${businessName}. Test all, kill losers after 72 hours, scale the winners.</div>
   </div>
-  <div class="tabs">${adTabBtns}</div>
-  ${adTabContents}
+  <div class="tabs-wrapper">
+    <div class="tabs">${adTabBtns}</div>
+    ${adTabContents}
+  </div>
 </section>
 
 <!-- 04 TARGETING -->
@@ -888,8 +890,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 
 <script>
 function switchTab(e, tabId) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const container = e.target.closest('.tabs-wrapper');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   e.target.classList.add('active');
   document.getElementById(tabId).classList.add('active');
 }
