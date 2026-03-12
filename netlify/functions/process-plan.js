@@ -57,9 +57,9 @@ function callClaude(prompt) {
   // Using Claude Haiku for speed — fast (~3-5s) and 100% Anthropic
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model:      'claude-sonnet-4-6',
-      max_tokens: 6000,
-      system:     'You are a marketing strategist. Output ONLY raw valid JSON. No markdown, no backticks, no explanation. You MUST complete the entire JSON — every field, every array. Never truncate. Never stop mid-string.',
+      model:      'claude-haiku-4-5-20251001',
+      max_tokens: 4000,
+      system:     'You are a marketing strategist. Output ONLY raw valid JSON. No markdown, no backticks, no explanation. Keep all text fields SHORT — max 2 sentences each. Complete the entire JSON.',
       messages:   [{ role: 'user', content: prompt }],
     });
 
@@ -173,226 +173,154 @@ function saveToGitHub(slug, html) {
 }
 
 // ── Build Claude prompt — returns JSON content only ────────
-function buildDashboardPrompt(d, planText) {
-  const businessName  = d.businessName || d.authSignerBusiness || 'Your Business';
-  const ownerName     = `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.authSignerName || 'Owner';
-  const industry      = d.industry || 'N/A';
-  const primaryService= d.primaryService || 'N/A';
-  const bizDesc       = d.bizDescription || 'N/A';
-  const idealCustomer = d.idealCustomer || 'N/A';
-  const ageGroups     = d.ageGroups || 'N/A';
-  const genderPref    = d.genderPref || 'All genders';
-  const interests     = d.interests || 'N/A';
-  const mainGoal      = d.mainGoal || 'N/A';
-  const avgValue      = d.avgCustomerValue || 'N/A';
-  const standOut      = d.standOut || 'N/A';
-  const promotions    = d.promotions || 'N/A';
-  const qualifiedLead = d.qualifiedLead || 'N/A';
-  const badLead       = d.badLead || 'N/A';
-  const qualifyingQs  = d.qualifyingQuestions || 'N/A';
-  const disqualifyQs  = d.disqualifyingQuestions || 'N/A';
-  const customQ1      = d.customQ1 || '';
-  const customQ2      = d.customQ2 || '';
-  const customQ3      = d.customQ3 || '';
-  const workedWell    = d.workedWell || 'N/A';
-  const notWorked     = d.notWorked || 'N/A';
-  const goal90        = d.goal90Days || 'N/A';
-  const limitations   = d.limitations || 'N/A';
-  const adBudget      = d.adBudget || 'N/A';
-  const adPlatforms   = d.adPlatforms || 'N/A';
-  const serviceArea   = `${d.serviceAreaType || ''} ${d.serviceDetails || ''}`.trim();
-  const finalNotes    = d.finalNotes || 'N/A';
-  const responseTime  = d.responseTime || 'N/A';
-  const leadHandoff   = d.leadHandoff || 'N/A';
+function buildDashboardPrompt(d) {
+  const b = d.businessName || d.authSignerBusiness || 'Your Business';
+  const o = `${d.firstName||''} ${d.lastName||''}`.trim() || d.authSignerName || 'Owner';
+  const ind = d.industry || 'N/A';
+  const svc = d.primaryService || 'N/A';
+  const desc = d.bizDescription || 'N/A';
+  const ideal = d.idealCustomer || 'N/A';
+  const ages = d.ageGroups || 'N/A';
+  const ints = d.interests || 'N/A';
+  const goal = d.mainGoal || 'N/A';
+  const val = d.avgCustomerValue || 'N/A';
+  const out = d.standOut || 'N/A';
+  const budget = d.adBudget || 'N/A';
+  const platforms = d.adPlatforms || 'N/A';
+  const area = `${d.serviceAreaType||''} ${d.serviceDetails||''}`.trim();
+  const qlead = d.qualifiedLead || 'N/A';
+  const blead = d.badLead || 'N/A';
+  const goal90 = d.goal90Days || 'N/A';
 
-  return `You are generating content for a premium Marketing Command Center dashboard for ${businessName}.
+  return `You are a marketing strategist. Output ONLY a raw JSON object. No markdown. No explanation. Keep ALL text values to 1-2 short sentences max.
 
-CRITICAL: Output ONLY a valid JSON object. No explanation, no markdown, no backticks. Raw JSON only.
+CLIENT: ${b} | Owner: ${o} | Industry: ${ind} | Service: ${svc}
+Description: ${desc} | Area: ${area} | Goal: ${goal} | 90-Day: ${goal90}
+Avg Value: $${val} | Budget: $${budget}/day | Platforms: ${platforms}
+Ideal Customer: ${ideal} | Ages: ${ages} | Interests: ${ints}
+Stand Out: ${out} | Qualified Lead: ${qlead} | Bad Lead: ${blead}
 
-Return this exact structure with rich, specific, actionable content for THIS business:
+Return this exact JSON structure with short, specific values for ${b}:
 
 {
-  "tagline": "one punchy sentence describing what ${businessName} does and who they serve",
-  "stats": {
-    "budget": "$${adBudget}/day",
-    "platforms": "${adPlatforms}",
-    "avgValue": "$${avgValue}",
-    "ageRange": "${ageGroups}",
-    "serviceArea": "${serviceArea}"
-  },
+  "tagline": "one sentence",
   "avatar": {
-    "initials": "2-letter initials of ideal customer first and last name archetype",
-    "name": "archetypal customer first name",
-    "role": "their job title or life role",
-    "whoTheyAre": "3 sentences describing the ideal customer — demographics, lifestyle, situation",
-    "painPoints": "3 sentences about their biggest frustrations your service solves",
-    "desires": "3 sentences about what they dream of achieving",
-    "qualifiers": ["qualifier 1", "qualifier 2", "qualifier 3", "qualifier 4"],
-    "disqualifiers": ["disqualifier 1", "disqualifier 2", "disqualifier 3"],
-    "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+    "initials": "2 letters",
+    "name": "first name",
+    "role": "job title",
+    "whoTheyAre": "1-2 sentences",
+    "painPoints": "1-2 sentences",
+    "desires": "1-2 sentences",
+    "qualifiers": ["q1","q2","q3","q4"],
+    "disqualifiers": ["d1","d2","d3"],
+    "tags": ["tag1","tag2","tag3","tag4","tag5"]
   },
   "funnelStages": [
-    {"label": "Stage name", "desc": "one sentence", "budget": "budget note if applicable", "color": "accent"},
-    {"label": "Stage name", "desc": "one sentence", "budget": "", "color": "blue"},
-    {"label": "Stage name", "desc": "one sentence", "budget": "", "color": "green"},
-    {"label": "Stage name", "desc": "one sentence", "budget": "", "color": "amber"},
-    {"label": "Stage name", "desc": "one sentence", "budget": "", "color": "coral"}
+    {"label":"Stage 1","desc":"one sentence","color":"accent"},
+    {"label":"Stage 2","desc":"one sentence","color":"blue"},
+    {"label":"Stage 3","desc":"one sentence","color":"green"},
+    {"label":"Stage 4","desc":"one sentence","color":"amber"},
+    {"label":"Stage 5","desc":"one sentence","color":"coral"}
   ],
   "funnelPhases": [
-    {"phase": "Phase 1", "badge": "ATTRACT", "badgeColor": "accent", "title": "Cold Traffic", "desc": "2 sentences on cold traffic strategy for ${businessName}"},
-    {"phase": "Phase 2", "badge": "CAPTURE", "badgeColor": "green", "title": "Lead Capture", "desc": "2 sentences on capture strategy"},
-    {"phase": "Phase 3", "badge": "NURTURE", "badgeColor": "amber", "title": "Build Trust", "desc": "2 sentences on nurture strategy"},
-    {"phase": "Phase 4", "badge": "CONVERT", "badgeColor": "coral", "title": "Close the Sale", "desc": "2 sentences on conversion strategy"}
+    {"phase":"Phase 1","badge":"ATTRACT","badgeColor":"accent","title":"Cold Traffic","desc":"1-2 sentences"},
+    {"phase":"Phase 2","badge":"CAPTURE","badgeColor":"green","title":"Lead Capture","desc":"1-2 sentences"},
+    {"phase":"Phase 3","badge":"NURTURE","badgeColor":"amber","title":"Build Trust","desc":"1-2 sentences"},
+    {"phase":"Phase 4","badge":"CONVERT","badgeColor":"coral","title":"Close the Sale","desc":"1-2 sentences"}
   ],
   "adAngles": [
-    {
-      "angleLabel": "Empathy",
-      "angleColor": "accent",
-      "ads": [
-        {"title": "Version A title", "primaryText": "Full ad copy 4-6 sentences. Conversational, specific to ${businessName}.", "headline": "Short punchy headline under 40 chars", "description": "One line description", "cta": "CTA button text"},
-        {"title": "Version B title", "primaryText": "Shorter version 2-3 sentences.", "headline": "Different headline angle", "description": "One line description", "cta": "CTA button text"}
-      ]
-    },
-    {
-      "angleLabel": "Pain Points",
-      "angleColor": "green",
-      "ads": [
-        {"title": "Version A — Problem Call-Out", "primaryText": "Lead with their specific pain points. 4-5 sentences specific to ${businessName} customers.", "headline": "Problem-focused headline", "description": "Solution teaser", "cta": "CTA button text"},
-        {"title": "Version B — Symptom List", "primaryText": "List format with checkmarks of their problems. 4-5 lines then solution.", "headline": "Symptom-based headline", "description": "Quick win promise", "cta": "CTA button text"}
-      ]
-    },
-    {
-      "angleLabel": "Proof & Results",
-      "angleColor": "amber",
-      "ads": [
-        {"title": "Version A — Results Hook", "primaryText": "Lead with a specific result or transformation. 3-4 sentences.", "headline": "Results-focused headline", "description": "Social proof teaser", "cta": "CTA button text"}
-      ]
-    },
-    {
-      "angleLabel": "Curiosity",
-      "angleColor": "blue",
-      "ads": [
-        {"title": "Version A — Education Hook", "primaryText": "Lead with a surprising fact or insight specific to ${industry}. 4-5 sentences.", "headline": "Curiosity-driven headline", "description": "What they will learn", "cta": "CTA button text"}
-      ]
-    },
-    {
-      "angleLabel": "Retargeting",
-      "angleColor": "coral",
-      "ads": [
-        {"title": "Warm Lead Conversion", "primaryText": "Speaks to someone who already showed interest. 3-4 sentences with urgency.", "headline": "Retargeting headline", "description": "Final push", "cta": "CTA button text"},
-        {"title": "Last Chance Urgency", "primaryText": "Scarcity and deadline. 2-3 sentences. Strong CTA.", "headline": "Urgency headline", "description": "Deadline or scarcity", "cta": "CTA button text"}
-      ]
-    }
+    {"angleLabel":"Empathy","angleColor":"accent","ads":[
+      {"title":"Version A","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"CTA text"},
+      {"title":"Version B","primaryText":"2-3 sentences","headline":"short headline","description":"one line","cta":"CTA text"}
+    ]},
+    {"angleLabel":"Pain Points","angleColor":"green","ads":[
+      {"title":"Version A","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"CTA text"},
+      {"title":"Version B","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"CTA text"}
+    ]},
+    {"angleLabel":"Proof","angleColor":"amber","ads":[
+      {"title":"Version A","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"CTA text"}
+    ]},
+    {"angleLabel":"Curiosity","angleColor":"blue","ads":[
+      {"title":"Version A","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"CTA text"}
+    ]},
+    {"angleLabel":"Retargeting","angleColor":"coral","ads":[
+      {"title":"Warm Lead","primaryText":"2-3 sentences","headline":"short headline","description":"one line","cta":"CTA text"},
+      {"title":"Last Chance","primaryText":"2-3 sentences","headline":"short headline","description":"one line","cta":"CTA text"}
+    ]}
   ],
   "targeting": {
-    "demographics": ["item1", "item2", "item3", "item4"],
-    "interests1": {"label": "Interest Stack 1 — Primary", "items": ["interest1", "interest2", "interest3", "interest4", "interest5"]},
-    "interests2": {"label": "Interest Stack 2 — Secondary", "items": ["interest1", "interest2", "interest3", "interest4"]},
-    "behaviors": ["behavior1", "behavior2", "behavior3", "behavior4"],
-    "custom": ["custom audience 1", "custom audience 2", "custom audience 3", "custom audience 4"],
-    "lookalike": ["lookalike 1", "lookalike 2", "lookalike 3"]
+    "demographics": ["d1","d2","d3","d4"],
+    "interests1": {"label":"Primary Interests","items":["i1","i2","i3","i4","i5"]},
+    "interests2": {"label":"Secondary Interests","items":["i1","i2","i3","i4"]},
+    "behaviors": ["b1","b2","b3","b4"],
+    "custom": ["c1","c2","c3","c4"],
+    "lookalike": ["l1","l2","l3"]
   },
   "roadmap": [
-    {"week": "Week 1", "title": "Foundation & Setup", "desc": "2-3 sentences of specific actions for ${businessName}"},
-    {"week": "Week 2", "title": "Launch", "desc": "2-3 sentences of specific actions"},
-    {"week": "Week 3", "title": "Optimize", "desc": "2-3 sentences of specific actions"},
-    {"week": "Week 4", "title": "Retarget & Nurture", "desc": "2-3 sentences of specific actions"},
-    {"week": "Weeks 5–6", "title": "Scale", "desc": "2-3 sentences of specific actions"},
-    {"week": "Weeks 7–8", "title": "Systemize", "desc": "2-3 sentences of specific actions"}
+    {"week":"Week 1","title":"Foundation","desc":"1-2 sentences"},
+    {"week":"Week 2","title":"Launch","desc":"1-2 sentences"},
+    {"week":"Week 3","title":"Optimize","desc":"1-2 sentences"},
+    {"week":"Week 4","title":"Retarget","desc":"1-2 sentences"},
+    {"week":"Weeks 5-6","title":"Scale","desc":"1-2 sentences"},
+    {"week":"Weeks 7-8","title":"Systemize","desc":"1-2 sentences"}
   ],
   "retargetFlow": [
-    {"day": "Day 0–3", "title": "First Contact", "desc": "2 sentences on immediate follow-up strategy"},
-    {"day": "Day 3–7", "title": "Value Delivery", "desc": "2 sentences on value-building touchpoints"},
-    {"day": "Day 7–14", "title": "Authority Build", "desc": "2 sentences on social proof and credibility"},
-    {"day": "Day 14–21", "title": "Direct Pitch", "desc": "2 sentences on direct offer presentation"},
-    {"day": "Day 21–30", "title": "Last Chance", "desc": "2 sentences on urgency and scarcity close"}
+    {"day":"Day 0-3","title":"First Contact","desc":"1-2 sentences"},
+    {"day":"Day 3-7","title":"Value Delivery","desc":"1-2 sentences"},
+    {"day":"Day 7-14","title":"Authority","desc":"1-2 sentences"},
+    {"day":"Day 14-21","title":"Direct Pitch","desc":"1-2 sentences"},
+    {"day":"Day 21-30","title":"Last Chance","desc":"1-2 sentences"}
   ],
   "automation": [
-    {
-      "week": "Week 1 — Welcome & Value",
-      "color": "accent",
-      "days": [
-        {"label": "Day 0 (Opt-In)", "actions": [{"type": "email", "text": "Welcome email + lead delivery"}, {"type": "sms", "text": "SMS confirmation message"}]},
-        {"label": "Day 1", "actions": [{"type": "email", "text": "Value email — educate on their main problem"}, {"type": "retarget", "text": "Retarget pixel fires — warm audience builds"}]},
-        {"label": "Day 3", "actions": [{"type": "email", "text": "Educational email #2 — deeper insight"}, {"type": "sms", "text": "Check-in SMS"}]},
-        {"label": "Day 5", "actions": [{"type": "email", "text": "Owner story / why we do this"}]}
-      ]
-    },
-    {
-      "week": "Week 2 — Educate & Authority",
-      "color": "green",
-      "days": [
-        {"label": "Day 7", "actions": [{"type": "email", "text": "Authority content email"}, {"type": "retarget", "text": "Retarget: alternate offer angle"}]},
-        {"label": "Day 9", "actions": [{"type": "sms", "text": "Quick tip SMS + link"}]},
-        {"label": "Day 10", "actions": [{"type": "email", "text": "Educational resource / checklist email"}]},
-        {"label": "Day 12", "actions": [{"type": "email", "text": "Behind the scenes / credibility email"}, {"type": "vm", "text": "Voicemail drop — personal check-in"}]}
-      ]
-    },
-    {
-      "week": "Week 3 — Social Proof & Desire",
-      "color": "amber",
-      "days": [
-        {"label": "Day 14", "actions": [{"type": "email", "text": "Customer testimonial / case study"}, {"type": "retarget", "text": "Retarget: social proof ad"}]},
-        {"label": "Day 16", "actions": [{"type": "sms", "text": "Teaser SMS about main offer"}]},
-        {"label": "Day 17", "actions": [{"type": "email", "text": "Full offer breakdown email"}]},
-        {"label": "Day 19", "actions": [{"type": "email", "text": "FAQ / objection handling email"}, {"type": "vm", "text": "Voicemail — personal invite"}]}
-      ]
-    },
-    {
-      "week": "Week 4 — Convert & Close",
-      "color": "coral",
-      "days": [
-        {"label": "Day 21", "actions": [{"type": "email", "text": "Enrollment open email"}, {"type": "sms", "text": "Offer launch SMS"}, {"type": "retarget", "text": "Retarget: direct offer ad"}]},
-        {"label": "Day 23", "actions": [{"type": "email", "text": "Pain of inaction email"}]},
-        {"label": "Day 25", "actions": [{"type": "email", "text": "Testimonial + bonus stack email"}, {"type": "sms", "text": "Scarcity SMS"}, {"type": "vm", "text": "Last chance voicemail"}]},
-        {"label": "Day 27", "actions": [{"type": "email", "text": "Final call / cart closing email"}, {"type": "sms", "text": "Closing tonight SMS"}, {"type": "retarget", "text": "Retarget: last-chance urgency ad"}]}
-      ]
-    }
+    {"week":"Week 1 — Welcome","color":"accent","days":[
+      {"label":"Day 0","actions":[{"type":"email","text":"Welcome + lead delivery"},{"type":"sms","text":"Confirmation SMS"}]},
+      {"label":"Day 2","actions":[{"type":"email","text":"Value email #1"},{"type":"retarget","text":"Pixel fires"}]},
+      {"label":"Day 4","actions":[{"type":"email","text":"Educational email"},{"type":"sms","text":"Check-in SMS"}]}
+    ]},
+    {"week":"Week 2 — Educate","color":"green","days":[
+      {"label":"Day 7","actions":[{"type":"email","text":"Authority email"},{"type":"retarget","text":"New ad angle"}]},
+      {"label":"Day 9","actions":[{"type":"sms","text":"Quick tip SMS"}]},
+      {"label":"Day 11","actions":[{"type":"email","text":"Resource email"},{"type":"vm","text":"Voicemail drop"}]}
+    ]},
+    {"week":"Week 3 — Proof","color":"amber","days":[
+      {"label":"Day 14","actions":[{"type":"email","text":"Testimonial email"},{"type":"retarget","text":"Social proof ad"}]},
+      {"label":"Day 16","actions":[{"type":"sms","text":"Offer teaser SMS"}]},
+      {"label":"Day 18","actions":[{"type":"email","text":"Full offer email"},{"type":"vm","text":"Personal invite VM"}]}
+    ]},
+    {"week":"Week 4 — Convert","color":"coral","days":[
+      {"label":"Day 21","actions":[{"type":"email","text":"Enrollment open"},{"type":"sms","text":"Offer launch SMS"},{"type":"retarget","text":"Direct offer ad"}]},
+      {"label":"Day 24","actions":[{"type":"email","text":"Pain of inaction email"},{"type":"sms","text":"Scarcity SMS"}]},
+      {"label":"Day 27","actions":[{"type":"email","text":"Final call email"},{"type":"sms","text":"Closing tonight SMS"},{"type":"retarget","text":"Last chance ad"}]}
+    ]}
   ],
   "qualificationScript": {
-    "opening": "2-3 sentence warm opening script specific to ${businessName}",
+    "opening": "1-2 sentence opening",
     "questions": [
-      {"q": "question text specific to ${industry}", "why": "why ask this"},
-      {"q": "question text", "why": "why ask this"},
-      {"q": "question text", "why": "why ask this"},
-      {"q": "question text", "why": "why ask this"},
-      {"q": "question text", "why": "why ask this"}
+      {"q":"question 1","why":"why ask"},
+      {"q":"question 2","why":"why ask"},
+      {"q":"question 3","why":"why ask"},
+      {"q":"question 4","why":"why ask"},
+      {"q":"question 5","why":"why ask"}
     ],
-    "transition": "2 sentence transition to close",
+    "transition": "1-2 sentence transition",
     "objections": [
-      {"obj": "most common objection in ${industry}", "response": "specific reframe response"},
-      {"obj": "second common objection", "response": "specific reframe response"},
-      {"obj": "third common objection", "response": "specific reframe response"}
+      {"obj":"objection 1","response":"response 1"},
+      {"obj":"objection 2","response":"response 2"},
+      {"obj":"objection 3","response":"response 3"}
     ]
   },
   "positioning": [
-    {"tip": "positioning tip title", "desc": "2 sentence description specific to ${businessName} vs competitors"},
-    {"tip": "positioning tip title", "desc": "2 sentence description"},
-    {"tip": "positioning tip title", "desc": "2 sentence description"},
-    {"tip": "positioning tip title", "desc": "2 sentence description"},
-    {"tip": "positioning tip title", "desc": "2 sentence description"}
+    {"tip":"tip 1","desc":"1-2 sentences"},
+    {"tip":"tip 2","desc":"1-2 sentences"},
+    {"tip":"tip 3","desc":"1-2 sentences"},
+    {"tip":"tip 4","desc":"1-2 sentences"},
+    {"tip":"tip 5","desc":"1-2 sentences"}
   ]
 }
 
-CLIENT DATA:
-Business: ${businessName} | Owner: ${ownerName} | Industry: ${industry}
-Service: ${primaryService} | Description: ${bizDesc}
-Service Area: ${serviceArea} | Goal: ${mainGoal}
-Avg Value: $${avgValue} | Budget: $${adBudget}/day | Platforms: ${adPlatforms}
-Stand Out: ${standOut} | Promos: ${promotions}
-Ideal Customer: ${idealCustomer} | Ages: ${ageGroups} | Gender: ${genderPref}
-Interests: ${interests} | Qualified Lead: ${qualifiedLead} | Bad Lead: ${badLead}
-Qualifying Qs: ${qualifyingQs} | Disqualifying Qs: ${disqualifyQs}
-Custom Q1: ${customQ1} | Custom Q2: ${customQ2} | Custom Q3: ${customQ3}
-Worked: ${workedWell} | Didn't Work: ${notWorked}
-90-Day Goal: ${goal90} | Limitations: ${limitations}
-Lead Handoff: ${leadHandoff} | Response Time: ${responseTime} | Notes: ${finalNotes}
-
-MARKETING PLAN CONTEXT:
-${planText}
-
-Output only the JSON object now. Make every field specific to ${businessName} — no generic filler.`;
+Fill every value with specific content for ${b}. Keep text SHORT. Output JSON only.`;
 }
+
 
 // ── Assemble full HTML from JSON content ───────────────────
 function buildDashboardHTML(json, d) {
@@ -1854,7 +1782,7 @@ exports.handler = async (event) => {
 
     // Generate dashboard JSON with Haiku — all 40+ client fields are in the prompt
     console.log('[process-plan] Generating dashboard JSON...');
-    const rawJSON = await callClaude(buildDashboardPrompt(data, ''));
+    const rawJSON = await callClaude(buildDashboardPrompt(data));
     console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
     let dashboardJSON = {};
