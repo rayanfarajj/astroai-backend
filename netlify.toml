@@ -5,6 +5,9 @@
   node_bundler = "esbuild"
 
 [functions."generate-plan"]
+  timeout = 30
+
+[functions."process-plan"]
   timeout = 180
 
 [[redirects]]
@@ -17,4 +20,4 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "POST, OPTIONS, GET"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, x-internal-key"
