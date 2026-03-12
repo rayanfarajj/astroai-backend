@@ -1,6 +1,24 @@
 // netlify/functions/serve-plan.js
 const https = require('https');
 
+function httpsGet(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      // Follow redirect if needed
+      if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
+        console.log('Following redirect to:', res.headers.location);
+        return httpsGet(res.headers.location).then(resolve).catch(reject);
+      }
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        console.log('Final fetch status:', res.statusCode, 'length:', data.length);
+        resolve({ status: res.statusCode, body: data });
+      });
+    }).on('error', reject);
+  });
+}
+
 function fetchBlob(slug) {
   return new Promise((resolve, reject) => {
     const siteId = process.env.NETLIFY_SITE_ID;
@@ -18,14 +36,33 @@ function fetchBlob(slug) {
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        console.log('Blob fetch status:', res.statusCode, 'data length:', data.length);
+      res.on('end', async () => {
+        console.log('Blob API status:', res.statusCode, 'length:', data.length);
+
         if (res.statusCode === 404) return resolve(null);
-        if (res.statusCode !== 200) return reject(new Error(`Blob fetch failed: ${res.statusCode} — ${data.slice(0,300)}`));
+
+        if (res.statusCode !== 200) {
+          return reject(new Error(`Blob API failed: ${res.statusCode} — ${data.slice(0, 300)}`));
+        }
+
+        // Check if response is a JSON redirect (signed S3 URL)
+        try {
+          const json = JSON.parse(data);
+          if (json.url) {
+            console.log('Got signed S3 URL, fetching HTML...');
+            const result = await httpsGet(json.url);
+            return resolve(result.status === 200 ? result.body : null);
+          }
+        } catch (e) {
+          // Not JSON — it's the raw HTML directly
+          console.log('Got raw HTML directly');
+        }
+
         resolve(data);
       });
     });
     req.on('error', reject);
+    req.write('');
     req.end();
   });
 }
@@ -34,16 +71,15 @@ exports.handler = async (event) => {
   console.log('Event path:', event.path);
   console.log('Query params:', JSON.stringify(event.queryStringParameters));
 
-  // Try query param first, then fall back to raw path
   let slug = event.queryStringParameters?.slug || event.queryStringParameters?.splat || '';
 
-  // If still empty, pull from the raw path
   if (!slug && event.path) {
-    slug = event.path.replace(/^\/\.netlify\/functions\/serve-plan\/?/, '').replace(/^\/+/, '');
+    slug = event.path
+      .replace(/^\/\.netlify\/functions\/serve-plan\/?/, '')
+      .replace(/^\/+/, '');
   }
 
   slug = slug.replace(/^\/+/, '').trim();
-
   console.log('Resolved slug:', slug);
 
   if (!slug) {
