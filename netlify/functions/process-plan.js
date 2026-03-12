@@ -407,29 +407,29 @@ function buildDashboardHTML(json, d) {
     `<button class="tab-btn${i===0?' active':''}" onclick="switchTab(event,'tab-angle${i}')">${a.angleLabel}</button>`
   ).join('');
 
-  const adTabContents = (json.adAngles||[]).map((a,i) => `
-    <div class="tab-content${i===0?' active':''}" id="tab-angle${i}">
-      <div class="ad-grid">
-        ${(a.ads||[]).map(ad => `
-        <div class="ad-card">
-          <div class="ad-card-header">
-            <h4>${ad.title}</h4>
-            <span class="ad-angle-tag" style="background:${bgMap[a.angleColor]||bgMap.accent};color:${colorMap[a.angleColor]||colorMap.accent};">${a.angleLabel.toUpperCase()}</span>
-          </div>
-          <div class="ad-card-body">
-            <div class="ad-field-label">Primary Text</div>
-            <p>${(ad.primaryText||'').replace(/\n/g,'<br>')}</p>
-            <div class="ad-field-label">Headline</div>
-            <p class="headline">${ad.headline||''}</p>
-            <div class="ad-field-label">Description</div>
-            <p>${ad.description||''}</p>
-            <div class="ad-field-label">CTA Button</div>
-            <p>${ad.cta||''}</p>
-            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>`).join('');
+  const adTabContents = (json.adAngles||[]).map((a,i) => {
+    const safe = (s) => (s||'').replace(/`/g,"'").replace(/\$/g,'&#36;');
+    const adsHTML = (a.ads||[]).map(ad => {
+      return '<div class="ad-card">'
+        + '<div class="ad-card-header">'
+        + '<h4>' + safe(ad.title) + '</h4>'
+        + '<span class="ad-angle-tag" style="background:' + (bgMap[a.angleColor]||bgMap.accent) + ';color:' + (colorMap[a.angleColor]||colorMap.accent) + ';">' + safe(a.angleLabel).toUpperCase() + '</span>'
+        + '</div>'
+        + '<div class="ad-card-body">'
+        + '<div class="ad-field-label">Primary Text</div>'
+        + '<p>' + safe(ad.primaryText).replace(/\n/g,'<br>') + '</p>'
+        + '<div class="ad-field-label">Headline</div>'
+        + '<p class="headline">' + safe(ad.headline) + '</p>'
+        + '<div class="ad-field-label">Description</div>'
+        + '<p>' + safe(ad.description) + '</p>'
+        + '<div class="ad-field-label">CTA Button</div>'
+        + '<p>' + safe(ad.cta) + '</p>'
+        + '<button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>'
+        + '</div></div>';
+    }).join('');
+    return '<div class="tab-content' + (i===0?' active':'') + '" id="tab-angle' + i + '">'
+      + '<div class="ad-grid">' + adsHTML + '</div></div>';
+  }).join('');
 
   // Targeting
   const targetHTML = `
@@ -890,11 +890,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 
 <script>
 function switchTab(e, tabId) {
-  const container = e.target.closest('.tabs-wrapper');
-  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
+  // Scope to the parent tabs-wrapper
+  const btn = e.target.closest('.tab-btn') || e.target;
+  const wrapper = btn.closest('.tabs-wrapper');
+  if (wrapper) {
+    wrapper.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    wrapper.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  }
+  btn.classList.add('active');
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
 }
 function copyAd(btn) {
   const body = btn.closest('.ad-card-body');
