@@ -68,7 +68,7 @@ function callClaude(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
+      max_tokens: 7000,
       messages: [{ role: 'user', content: prompt }],
     });
 
@@ -310,7 +310,8 @@ DESIGN REQUIREMENTS:
 
 FOOTER: "Marketing Command Center — ${businessName} | Prepared by Astro A.I. Marketing | Generated ${generatedAt}"
 
-Output the complete HTML now. Start with <!DOCTYPE html> immediately.`;
+Output the complete HTML now. Start with <!DOCTYPE html> immediately.
+CRITICAL: You MUST close every HTML tag. The last line must be </html>. Never cut off mid-tag or mid-section. If you are running low on space, skip sections but always close the document properly with </body></html>.`;
 }
 
 // ── Build prompt from onboarding data ─────────────────────
