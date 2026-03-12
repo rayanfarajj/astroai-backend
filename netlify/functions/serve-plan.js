@@ -1,80 +1,43 @@
 // netlify/functions/serve-plan.js
+// Serves marketing plan HTML pages stored in GitHub repo public/ folder
+
 const https = require('https');
 
-function httpsGet(url) {
+function fetchFromGitHub(slug) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
-        console.log('Redirect to:', res.headers.location.slice(0, 100));
-        return httpsGet(res.headers.location).then(resolve).catch(reject);
-      }
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        console.log('Fetch status:', res.statusCode, 'length:', data.length);
-        resolve({ status: res.statusCode, body: data });
-      });
-    }).on('error', reject);
-  });
-}
+    const token = process.env.GITHUB_TOKEN;
+    const repo  = 'rayanfarajj/astroai-backend';
+    const path  = `public/${slug}.html`;
 
-function fetchBlob(slug) {
-  return new Promise((resolve, reject) => {
-    const siteId = process.env.NETLIFY_SITE_ID;
-    const token  = process.env.NETLIFY_TOKEN;
-
-    console.log('Fetching blob, slug:', slug, 'siteId:', siteId ? siteId.slice(0,8)+'...' : 'MISSING');
+    console.log('Fetching from GitHub:', path);
 
     const options = {
-      hostname: 'api.netlify.com',
-      path:     `/api/v1/sites/${siteId}/blobs/marketing-plans%3A${encodeURIComponent(slug)}?visibility=public`,
+      hostname: 'api.github.com',
+      path:     `/repos/${repo}/contents/${path}`,
       method:   'GET',
       headers:  {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'text/html,application/octet-stream,*/*',
+        'User-Agent':    'astroai-bots',
+        'Accept':        'application/vnd.github+json',
       },
     };
 
     const req = https.request(options, (res) => {
-      // Netlify Blobs may redirect directly to S3
-      if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
-        console.log('Blob API redirecting to S3...');
-        return httpsGet(res.headers.location)
-          .then(r => resolve(r.status === 200 ? r.body : null))
-          .catch(reject);
-      }
-
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', async () => {
-        console.log('Blob API status:', res.statusCode, 'content-type:', res.headers['content-type'], 'length:', data.length);
-
+      res.on('end', () => {
+        console.log('GitHub API status:', res.statusCode, 'length:', data.length);
         if (res.statusCode === 404) return resolve(null);
-        if (res.statusCode !== 200) return reject(new Error(`Blob API ${res.statusCode}: ${data.slice(0,200)}`));
-
-        // If response is JSON with a url field, fetch that URL
-        const trimmed = data.trim();
-        if (trimmed.startsWith('{')) {
-          try {
-            const json = JSON.parse(trimmed);
-            if (json.url) {
-              console.log('Got presigned URL, fetching HTML from S3 directly...');
-              // Fetch with no-cache to avoid expired signature issues
-              const result = await httpsGet(json.url);
-              if (result.status === 200) return resolve(result.body);
-              // If S3 URL expired (403/404), try fetching blob content directly
-              console.log('S3 URL expired or failed, status:', result.status);
-              return resolve(null);
-            }
-          } catch(e) { /* not JSON */ }
+        if (res.statusCode !== 200) return reject(new Error(`GitHub API ${res.statusCode}: ${data.slice(0,200)}`));
+        try {
+          const json = JSON.parse(data);
+          // Content is base64 encoded
+          const html = Buffer.from(json.content.replace(/\n/g, ''), 'base64').toString('utf8');
+          console.log('HTML decoded, length:', html.length);
+          resolve(html);
+        } catch(e) {
+          reject(new Error('Failed to parse GitHub response: ' + e.message));
         }
-
-        // Raw HTML returned directly
-        if (trimmed.startsWith('<!') || trimmed.startsWith('<html')) {
-          return resolve(data);
-        }
-
-        resolve(null);
       });
     });
     req.on('error', reject);
@@ -90,20 +53,21 @@ exports.handler = async (event) => {
   }
 
   slug = slug.replace(/^\/+/, '').trim();
-  console.log('serve-plan — path:', event.path, 'slug:', slug);
+  console.log('serve-plan — slug:', slug);
 
   if (!slug) {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html' },
-      body: `<!DOCTYPE html><html><head><title>Astro A.I. Marketing</title>
-      <style>body{background:#0a0a0f;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;}h1{color:#f97316;}</style>
+      body: `<!DOCTYPE html><html>
+      <head><title>Astro A.I. Marketing</title>
+      <style>body{background:#0a0a0f;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:1rem;}h1{color:#f97316;}</style>
       </head><body><h1>Astro A.I. Marketing</h1><p>Marketing Command Center</p></body></html>`,
     };
   }
 
   try {
-    const html = await fetchBlob(slug);
+    const html = await fetchFromGitHub(slug);
 
     if (!html) {
       return {
