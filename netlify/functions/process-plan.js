@@ -13,7 +13,7 @@ function callGPT(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: 'gpt-4o',
-      max_tokens: 3000,
+      max_tokens: 1500,
       temperature: 0.7,
       messages: [
         {
@@ -59,22 +59,25 @@ Never use generic filler. Every recommendation must be tailored to THIS client.`
 
 // ── Claude API call for Marketing Command Center HTML ─────
 function callClaude(prompt) {
+  // Using gpt-4o-mini for speed — generates dashboard JSON in ~3s vs ~35s for Claude
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }],
+      model:      'gpt-4o-mini',
+      max_tokens: 2000,
+      messages:   [
+        { role: 'system', content: 'You are a marketing strategist. Always respond with valid JSON only. No markdown, no backticks, no explanation.' },
+        { role: 'user',   content: prompt },
+      ],
     });
 
     const options = {
-      hostname: 'api.anthropic.com',
-      path:     '/v1/messages',
+      hostname: 'api.openai.com',
+      path:     '/v1/chat/completions',
       method:   'POST',
       headers:  {
-        'Content-Type':      'application/json',
-        'x-api-key':         process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'Content-Length':    Buffer.byteLength(body),
+        'Content-Type':   'application/json',
+        'Authorization':  `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Length': Buffer.byteLength(body),
       },
     };
 
@@ -85,7 +88,7 @@ function callClaude(prompt) {
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) return reject(new Error(parsed.error.message));
-          resolve(parsed.content[0].text);
+          resolve(parsed.choices[0].message.content);
         } catch (e) { reject(e); }
       });
     });
@@ -1434,10 +1437,7 @@ exports.handler = async (event) => {
   try {
     console.log('[process-plan] Starting for:', businessName);
 
-    const planText = await callGPT(buildPrompt(data));
-    console.log('[process-plan] Plan generated, length:', planText.length);
-
-    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
+    const rawJSON = await callClaude(buildDashboardPrompt(data, ''));
     console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
     let dashboardJSON = {};
@@ -1457,11 +1457,7 @@ exports.handler = async (event) => {
     await saveToGitHub(slug, dashboardHTML);
     console.log('[process-plan] Saved to GitHub:', dashboardUrl);
 
-    const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
-    const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
-    const planPDFBase64 = planPDFBuffer.toString('base64');
-    const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
-    console.log('[process-plan] PDF built, size:', planPDFBuffer.length);
+    const generatedAt = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -1470,18 +1466,16 @@ exports.handler = async (event) => {
 
     await Promise.all([
       transporter.sendMail({
-        from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
-        to:          'info@astroaibots.com',
-        subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
-        html:        `<p>Plan generated for <b>${clientName}</b> at <b>${businessName}</b>.</p><p><b>Dashboard:</b> <a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Generated: ${generatedAt}</p>`,
-        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+        from:    `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
+        to:      'info@astroaibots.com',
+        subject: `Marketing Plan Ready — ${clientName} (${businessName})`,
+        html:    `<p>Plan generated for <b>${clientName}</b> at <b>${businessName}</b>.</p><p><b>Dashboard:</b> <a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Generated: ${generatedAt}</p>`,
       }),
       transporter.sendMail({
-        from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
-        to:          clientEmail,
-        subject:     `Your Marketing Command Center is Ready — ${businessName}`,
-        html:        buildClientEmail(clientName, businessName, dashboardUrl),
-        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
+        from:    `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
+        to:      clientEmail,
+        subject: `Your Marketing Command Center is Ready — ${businessName}`,
+        html:    buildClientEmail(clientName, businessName, dashboardUrl),
       }),
     ]);
 
