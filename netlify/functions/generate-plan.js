@@ -1419,78 +1419,6 @@ function buildClientEmail(clientName, businessName, dashboardUrl) {
 </html>`.trim();
 }
 
-// ── Background processor ──────────────────────────────────
-async function processInBackground(data) {
-  const clientName   = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.authSignerName || 'Client';
-  const businessName = data.businessName || data.authSignerBusiness || 'Your Business';
-  const clientEmail  = data.email;
-
-  try {
-    // ── Step 1: Generate marketing plan text via GPT-4o ───
-    console.log('Generating marketing plan for:', businessName);
-    const planText = await callGPT(buildPrompt(data));
-    console.log('Plan generated, length:', planText.length);
-
-    // ── Step 2: Generate Marketing Command Center JSON via Claude ──
-    console.log('Generating Marketing Command Center JSON...');
-    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
-    console.log('Claude JSON raw length:', rawJSON.length);
-
-    let dashboardJSON = {};
-    try {
-      const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-      dashboardJSON = JSON.parse(cleaned);
-      console.log('Dashboard JSON parsed OK, keys:', Object.keys(dashboardJSON).join(', '));
-    } catch(e) {
-      console.error('JSON parse error:', e.message, 'Raw:', rawJSON.slice(0,300));
-    }
-
-    const dashboardHTML = buildDashboardHTML(dashboardJSON, data);
-    console.log('Dashboard HTML assembled, length:', dashboardHTML.length);
-
-    // ── Step 3: Save to GitHub ────────────────────────────
-    const slug         = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
-    const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
-    await saveToGitHub(slug, dashboardHTML);
-    console.log('Dashboard saved at:', dashboardUrl);
-
-    // ── Step 4: Build PDF ─────────────────────────────────
-    const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
-    const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
-    const planPDFBase64 = planPDFBuffer.toString('base64');
-    const planFilename  = `AstroAI_MarketingPlan_${businessName.replace(/\s+/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
-    console.log('PDF built, size:', planPDFBuffer.length);
-
-    // ── Step 5: Send emails ───────────────────────────────
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-    });
-
-    await Promise.all([
-      transporter.sendMail({
-        from:        `"Astro A.I. Onboarding" <${process.env.GMAIL_USER}>`,
-        to:          'info@astroaibots.com',
-        subject:     `Marketing Plan Ready — ${clientName} (${businessName})`,
-        html:        `<p>Marketing plan and command center generated for <b>${clientName}</b> at <b>${businessName}</b>.</p><p><b>Dashboard:</b> <a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Generated: ${generatedAt}</p>`,
-        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
-      }),
-      transporter.sendMail({
-        from:        `"Astro A.I. Marketing" <${process.env.GMAIL_USER}>`,
-        to:          clientEmail,
-        subject:     `Your Marketing Command Center is Ready — ${businessName}`,
-        html:        buildClientEmail(clientName, businessName, dashboardUrl),
-        attachments: [{ filename: planFilename, content: planPDFBase64, encoding: 'base64', contentType: 'application/pdf' }],
-      }),
-    ]);
-
-    console.log('All done — emails sent to:', clientEmail, '| Dashboard:', dashboardUrl);
-
-  } catch (err) {
-    console.error('Background processing error:', err.message, err.stack);
-  }
-}
-
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
@@ -1506,9 +1434,30 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
   }
 
-  // ── Respond immediately — process everything in background ──
-  console.log('Request received for:', businessName, '— starting background processing');
-  processInBackground(data); // fire and forget — no await
+  // ── Call process-plan function asynchronously via HTTP ──
+  console.log('Received request for:', businessName, '— handing off to process-plan');
+
+  const body = JSON.stringify(data);
+  const processUrl = `https://marketingplan.astroaibots.com/.netlify/functions/process-plan`;
+
+  const processOptions = {
+    hostname: 'marketingplan.astroaibots.com',
+    path:     '/.netlify/functions/process-plan',
+    method:   'POST',
+    headers:  {
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(body),
+      'x-internal-key': process.env.INTERNAL_KEY || 'astroai-internal',
+    },
+  };
+
+  // Fire the request to process-plan — don't await it
+  const req = https.request(processOptions);
+  req.on('error', e => console.error('process-plan trigger error:', e.message));
+  req.write(body);
+  req.end();
+
+  console.log('process-plan triggered for:', businessName);
 
   return {
     statusCode: 202,
@@ -1518,9 +1467,4 @@ exports.handler = async (event) => {
       message: `Got it! Your Marketing Command Center for ${businessName} is being generated. Check your email in 2-3 minutes.`,
     }),
   };
-
-  // dead code placeholder to satisfy linter
-  if (false) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'unreachable' }) };
-  }
 };
