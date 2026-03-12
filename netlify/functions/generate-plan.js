@@ -13,7 +13,7 @@ function callGPT(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: 'gpt-4o',
-      max_tokens: 3000,
+      max_tokens: 1500,
       temperature: 0.7,
       messages: [
         {
@@ -62,7 +62,7 @@ function callClaude(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
+      max_tokens: 3000,
       messages: [{ role: 'user', content: prompt }],
     });
 
@@ -1434,10 +1434,7 @@ exports.handler = async (event) => {
   try {
     console.log('[process-plan] Starting for:', businessName);
 
-    const planText = await callGPT(buildPrompt(data));
-    console.log('[process-plan] Plan generated, length:', planText.length);
-
-    const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
+    const rawJSON = await callClaude(buildDashboardPrompt(data, ''));
     console.log('[process-plan] Claude JSON length:', rawJSON.length);
 
     let dashboardJSON = {};
