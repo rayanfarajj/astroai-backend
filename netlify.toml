@@ -8,12 +8,6 @@
   timeout = 120
 
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/*"
   to = "/.netlify/functions/serve-plan?slug=:splat"
   status = 200
