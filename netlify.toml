@@ -7,6 +7,12 @@
 [functions."generate-plan"]
   timeout = 120
 
+[[redirects]]
+  from = "/:slug"
+  to = "/.netlify/functions/serve-plan?slug=:slug"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
