@@ -230,10 +230,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
   </div>
   <div class="profile-grid">
     <div class="avatar-card">
-      <div class="avatar-ring"><div class="avatar-inner">MG</div></div>
-      <div class="avatar-name">Ideal Client</div>
-      <div class="avatar-role">Residential Cleaning Customer</div>
-      <div class="avatar-tags"></div>
+      <div class="avatar-ring"><div class="avatar-inner">SB</div></div>
+      <div class="avatar-name">Sarah</div>
+      <div class="avatar-role">Busy Professional</div>
+      <div class="avatar-tags"><span class="tag accent">Busy Professional</span><span class="tag green">Dual Income</span><span class="tag ">Homeowner</span><span class="tag ">San Antonio TX</span><span class="tag accent">Time-Strapped Parent</span></div>
     </div>
     <div class="profile-details">
       <div class="detail-item"><div class="label">Business</div><div class="value">Gonzalez House Cleaning</div></div>
@@ -249,16 +249,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
   <div style="margin-top:2rem;">
     <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;">🎯 Dream Client Avatar</h3>
     <div class="profile-details" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));">
-      <div class="detail-item"><div class="label">Who They Are</div><div class="value"></div></div>
-      <div class="detail-item"><div class="label">Pain Points</div><div class="value"></div></div>
-      <div class="detail-item"><div class="label">What They Want</div><div class="value"></div></div>
+      <div class="detail-item"><div class="label">Who They Are</div><div class="value">Sarah is a 38-year-old dual-income professional with a 2000+ sq ft home in San Antonio. She values her time with family but struggles to keep her home clean.</div></div>
+      <div class="detail-item"><div class="label">Pain Points</div><div class="value">She's exhausted from balancing work and home responsibilities, frustrated by unreliable cleaners, and worried about strangers in her home. Cleaning takes away from time with her kids and partner.</div></div>
+      <div class="detail-item"><div class="label">What They Want</div><div class="value">Sarah wants a consistent, trustworthy cleaning service with the same cleaner every visit and fully transparent communication. She seeks peace of mind knowing her home is cared for by insured, background-checked professionals.</div></div>
       <div class="detail-item">
         <div class="label">Qualifiers ✅</div>
-        <div class="value" style="margin-top:0.4rem;"></div>
+        <div class="value" style="margin-top:0.4rem;"><span class="tag green">✓ Homeowner with 1500+ sq ft house</span><span class="tag green">✓ Wants recurring weekly or biweekly service</span><span class="tag green">✓ Values quality and reliability</span><span class="tag green">✓ Budget for professional cleaning</span></div>
       </div>
       <div class="detail-item">
         <div class="label">Disqualifiers ❌</div>
-        <div class="value" style="margin-top:0.4rem;"></div>
+        <div class="value" style="margin-top:0.4rem;"><span class="tag coral">✗ Renting without landlord approval</span><span class="tag coral">✗ Seeking one-time deep clean only</span><span class="tag coral">✗ Wants to provide own supplies</span></div>
       </div>
     </div>
   </div>
@@ -274,8 +274,43 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
   <div class="chart-wrap">
     <canvas id="funnelChart"></canvas>
   </div>
-  <div class="funnel-visual"></div>
-  <div class="grid3" style="margin-top:2rem;"></div>
+  <div class="funnel-visual">
+    <div class="funnel-stage" style="background:linear-gradient(135deg,var(--accent),#8b5cf6);width:90%;max-width:700px;border-radius:var(--radius) var(--radius) 0 0;clip-path:polygon(2% 0,98% 0,95% 100%,5% 100%);">
+      Stage 1
+    </div><div class="funnel-arrow">↓</div>
+    <div class="funnel-stage" style="background:linear-gradient(135deg,#7c3aed,var(--blue));width:75%;max-width:600px;clip-path:polygon(3% 0,97% 0,94% 100%,6% 100%);">
+      Stage 2
+    </div><div class="funnel-arrow">↓</div>
+    <div class="funnel-stage" style="background:linear-gradient(135deg,var(--blue),var(--green));width:60%;max-width:500px;clip-path:polygon(4% 0,96% 0,93% 100%,7% 100%);">
+      Stage 3
+    </div><div class="funnel-arrow">↓</div>
+    <div class="funnel-stage" style="background:linear-gradient(135deg,var(--green),#10b981);width:45%;max-width:400px;clip-path:polygon(5% 0,95% 0,92% 100%,8% 100%);">
+      Stage 4
+    </div><div class="funnel-arrow">↓</div>
+    <div class="funnel-stage" style="background:linear-gradient(135deg,#10b981,var(--amber));width:30%;max-width:300px;border-radius:0 0 var(--radius) var(--radius);clip-path:polygon(6% 0,94% 0,91% 100%,9% 100%);">
+      Stage 5
+    </div></div>
+  <div class="grid3" style="margin-top:2rem;">
+    <div class="card">
+      <div class="badge badge-accent" style="margin-bottom:0.75rem;">ATTRACT</div>
+      <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;">Cold Traffic</h4>
+      <p style="font-size:0.8rem;color:var(--text);line-height:1.6;">Target busy homeowners 30-55 with ads highlighting time-saving benefits and stress relief. Show relatable content about work-life balance struggles.</p>
+    </div>
+    <div class="card">
+      <div class="badge badge-green" style="margin-bottom:0.75rem;">CAPTURE</div>
+      <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;">Lead Capture</h4>
+      <p style="font-size:0.8rem;color:var(--text);line-height:1.6;">Use lead forms and Messenger to collect contact info from interested homeowners. Offer free estimate or consultation as lead magnet.</p>
+    </div>
+    <div class="card">
+      <div class="badge badge-amber" style="margin-bottom:0.75rem;">NURTURE</div>
+      <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;">Build Trust</h4>
+      <p style="font-size:0.8rem;color:var(--text);line-height:1.6;">Send emails about our 5-year track record, fully insured staff, 24-hour re-clean guarantee, and same-cleaner commitment. Share customer testimonials.</p>
+    </div>
+    <div class="card">
+      <div class="badge badge-coral" style="margin-bottom:0.75rem;">CONVERT</div>
+      <h4 style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;">Close the Sale</h4>
+      <p style="font-size:0.8rem;color:var(--text);line-height:1.6;">Sales team qualifies leads, discusses recurring service options, and closes recurring contracts. Use urgency and scarcity messaging.</p>
+    </div></div>
 </section>
 
 <!-- 03 AD COPY -->
@@ -285,8 +320,169 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="section-title">Ready-to-Deploy Ad Creatives</div>
     <div class="section-desc">Multiple angles for Gonzalez House Cleaning. Test all, kill losers after 72 hours, scale the winners.</div>
   </div>
-  <div class="tabs"></div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(event,'tab-angle0')">Empathy</button><button class="tab-btn" onclick="switchTab(event,'tab-angle1')">Pain Points</button><button class="tab-btn" onclick="switchTab(event,'tab-angle2')">Proof</button><button class="tab-btn" onclick="switchTab(event,'tab-angle3')">Curiosity</button><button class="tab-btn" onclick="switchTab(event,'tab-angle4')">Retargeting</button></div>
   
+    <div class="tab-content active" id="tab-angle0">
+      <div class="ad-grid">
+        
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version A</h4>
+            <span class="ad-angle-tag" style="background:rgba(108,92,231,0.12);color:var(--accent);">EMPATHY</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>You work hard to provide for your family. Shouldn't someone help you maintain your home? Gonzalez House Cleaning takes that burden off your shoulders so you can focus on what matters. Same trusted cleaner every visit, fully insured, all supplies included.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Stop Stressing About Your Home</p>
+            <div class="ad-field-label">Description</div>
+            <p>Recurring cleaning for busy San Antonio families</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Get Your Free Estimate</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version B</h4>
+            <span class="ad-angle-tag" style="background:rgba(108,92,231,0.12);color:var(--accent);">EMPATHY</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>Tired of cleaning taking up your weekends? Our recurring service gives you back your time with family. Trusted by San Antonio homeowners for 5 years.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Reclaim Your Weekends</p>
+            <div class="ad-field-label">Description</div>
+            <p>Professional cleaning on your schedule</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Learn More</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-angle1">
+      <div class="ad-grid">
+        
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version A</h4>
+            <span class="ad-angle-tag" style="background:rgba(0,210,160,0.12);color:var(--green);">PAIN POINTS</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>Unreliable cleaners? Worried about strangers in your home? We eliminate those concerns with background-checked, fully insured staff and the same cleaner every visit. You'll know exactly who's coming and when. Our 24-hour re-clean guarantee ensures perfection every time.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Never Worry About Your Home Again</p>
+            <div class="ad-field-label">Description</div>
+            <p>Trusted professionals, same cleaner always</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Schedule Your First Clean</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version B</h4>
+            <span class="ad-angle-tag" style="background:rgba(0,210,160,0.12);color:var(--green);">PAIN POINTS</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>Juggling work, kids, and a messy home is exhausting. Stop wasting precious weekends on chores. Our recurring weekly or biweekly service keeps your home spotless while you enjoy your life with family. Fully insured, background-checked staff, all supplies included.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Stop the Cleaning Cycle</p>
+            <div class="ad-field-label">Description</div>
+            <p>More free time, less stress</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Book a Free Consultation</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-angle2">
+      <div class="ad-grid">
+        
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version A</h4>
+            <span class="ad-angle-tag" style="background:rgba(251,191,36,0.12);color:var(--amber);">PROOF</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>5 years in business, fully insured, 100+ happy families in San Antonio. Our clients love the consistency of the same cleaner every visit and the peace of mind our 24-hour re-clean guarantee provides. Join the families who've reclaimed their time.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">San Antonio's Most Trusted Cleaning Service</p>
+            <div class="ad-field-label">Description</div>
+            <p>5 years, fully insured, 24-hour guarantee</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Read Customer Reviews</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-angle3">
+      <div class="ad-grid">
+        
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Version A</h4>
+            <span class="ad-angle-tag" style="background:rgba(79,172,254,0.12);color:var(--blue);">CURIOSITY</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>What if you never had to think about cleaning again? Recurring service means one less thing on your to-do list every week. Gonzalez House Cleaning handles it—same cleaner, same day, same excellence. Discover why busy San Antonio families won't use anyone else.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">What 100+ San Antonio Families Know</p>
+            <div class="ad-field-label">Description</div>
+            <p>The secret to a stress-free home</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>See What's Included</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-angle4">
+      <div class="ad-grid">
+        
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Warm Lead</h4>
+            <span class="ad-angle-tag" style="background:rgba(255,107,107,0.12);color:var(--coral);">RETARGETING</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>Ready to get back those 6+ hours per month? Schedule your first recurring clean with Gonzalez House Cleaning. Same trusted cleaner, fully insured, 24-hour guarantee. Call today for instant booking.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Your Free Estimate Awaits</p>
+            <div class="ad-field-label">Description</div>
+            <p>Join 100+ happy San Antonio families</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Book Now</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h4>Last Chance</h4>
+            <span class="ad-angle-tag" style="background:rgba(255,107,107,0.12);color:var(--coral);">RETARGETING</span>
+          </div>
+          <div class="ad-card-body">
+            <div class="ad-field-label">Primary Text</div>
+            <p>This month's special: First clean 50% off when you commit to recurring service. Spots filling fast. Fully insured, background-checked, same cleaner every visit. Don't miss out.</p>
+            <div class="ad-field-label">Headline</div>
+            <p class="headline">Limited Offer Ends This Month</p>
+            <div class="ad-field-label">Description</div>
+            <p>First clean 50% off recurring contracts</p>
+            <div class="ad-field-label">CTA Button</div>
+            <p>Claim Your Discount</p>
+            <button class="copy-btn" onclick="copyAd(this)">📋 Copy Ad Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </section>
 
 <!-- 04 TARGETING -->
@@ -299,27 +495,27 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
   <div class="target-grid">
     <div class="target-card">
       <h4>🧬 Demographics</h4>
-      <ul class="target-list"></ul>
+      <ul class="target-list"><li>Age 30-55</li><li>Homeowners in San Antonio TX</li><li>Dual-income households</li><li>Household income $75K+</li></ul>
     </div>
     <div class="target-card">
-      <h4>🎯 Interest Stack 1</h4>
-      <ul class="target-list"></ul>
+      <h4>🎯 Primary Interests</h4>
+      <ul class="target-list"><li>Home organization</li><li>Interior design</li><li>Real estate</li><li>Busy lifestyle</li><li>Parenting</li></ul>
     </div>
     <div class="target-card">
-      <h4>🎯 Interest Stack 2</h4>
-      <ul class="target-list"></ul>
+      <h4>🎯 Secondary Interests</h4>
+      <ul class="target-list"><li>Time management</li><li>Work-life balance</li><li>Family activities</li><li>Home improvement</li></ul>
     </div>
     <div class="target-card">
       <h4>📱 Behaviors</h4>
-      <ul class="target-list"></ul>
+      <ul class="target-list"><li>Recently searched home cleaning services</li><li>Engaged with home/lifestyle content</li><li>High purchase intent indicators</li><li>Located within 20 miles of San Antonio</li></ul>
     </div>
     <div class="target-card">
       <h4>🔄 Custom Audiences</h4>
-      <ul class="target-list"></ul>
+      <ul class="target-list"><li>Facebook/Instagram users active evenings/weekends</li><li>Engaged with home decor content in past 30 days</li><li>Visited local home service websites</li><li>Interacted with time-saving product ads</li></ul>
     </div>
     <div class="target-card">
       <h4>👯 Lookalike Audiences</h4>
-      <ul class="target-list"></ul>
+      <ul class="target-list"><li>Existing customer lookalikes</li><li>Website visitor lookalikes</li><li>Lead form lookalikes</li></ul>
     </div></div>
   <div class="chart-wrap" style="margin-top:1.5rem;">
     <canvas id="budgetChart"></canvas>
@@ -333,7 +529,37 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="section-title">Phase-by-Phase Execution Plan</div>
     <div class="section-desc">Week-by-week actions to hit: 25 new recurring cleaning contracts generating at least $5000 per month in recurring revenue within 90 days</div>
   </div>
-  <div class="timeline"></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-week">Week 1</div>
+      <h4>Foundation</h4>
+      <p>Set up Facebook/Instagram ads, create lead capture form, build email sequences. Test two ad angles with small daily budget.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">Week 2</div>
+      <h4>Launch</h4>
+      <p>Launch empathy and pain-point ad angles with $20/day budget across both platforms. Begin collecting leads and initial data.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">Week 3</div>
+      <h4>Optimize</h4>
+      <p>Analyze performance, pause underperforming ads, increase budget on top performers. Begin sales qualification calls on incoming leads.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">Week 4</div>
+      <h4>Retarget</h4>
+      <p>Launch retargeting campaigns to website visitors and lead form abandoners with proof and curiosity angles. Increase conversion messaging.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">Weeks 5-6</div>
+      <h4>Scale</h4>
+      <p>Double daily budget to winning angles, expand targeting geographically within 20-mile radius. Continue optimization based on conversion data.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">Weeks 7-8</div>
+      <h4>Systemize</h4>
+      <p>Implement automation workflows for lead nurturing, sales team processes, and customer onboarding. Document winning ad creative and targeting for ongoing use.</p>
+    </div></div>
 </section>
 
 <!-- 06 RETARGETING -->
@@ -343,7 +569,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="section-title">Warm Audience Conversion Plan</div>
     <div class="section-desc">Targeting people who've already engaged but haven't converted yet.</div>
   </div>
-  <div class="retarget-flow"></div>
+  <div class="retarget-flow">
+    <div class="retarget-node">
+      <div class="rn-label">Day 0-3</div>
+      <div class="rn-title">First Contact</div>
+      <div class="rn-desc">Prospect sees ad, clicks, and completes lead form. Welcome email confirms receipt and offers free estimate or consultation. SMS reminder sent within 2 hours.</div>
+    </div>
+    <div class="retarget-node">
+      <div class="rn-label">Day 3-7</div>
+      <div class="rn-title">Value Delivery</div>
+      <div class="rn-desc">Send email with customer testimonials, service details, and our 24-hour re-clean guarantee. Retarget with social proof ads showing happy families.</div>
+    </div>
+    <div class="retarget-node">
+      <div class="rn-label">Day 7-14</div>
+      <div class="rn-title">Authority</div>
+      <div class="rn-desc">Educational email about our 5-year track record, full insurance, background-checked staff, and same-cleaner commitment. Share before/after photos and client success stories.</div>
+    </div>
+    <div class="retarget-node">
+      <div class="rn-label">Day 14-21</div>
+      <div class="rn-title">Direct Pitch</div>
+      <div class="rn-desc">Sales team calls to qualify and discuss recurring service options. Email with pricing, package details, and offer specific proposal. Retarget with direct offer ads.</div>
+    </div>
+    <div class="retarget-node">
+      <div class="rn-label">Day 21-30</div>
+      <div class="rn-title">Last Chance</div>
+      <div class="rn-desc">Final email emphasizing limited spots and monthly special (50% first clean). SMS with urgent call-to-action. Retarget with 'closing this week' messaging and discount offer.</div>
+    </div></div>
   <div class="chart-wrap" style="margin-top:1.5rem;">
     <canvas id="retargetChart"></canvas>
   </div>
@@ -362,7 +613,95 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="legend-item"><span style="width:10px;height:10px;border-radius:50%;background:var(--amber);display:inline-block;"></span> Voicemail Drop</div>
     <div class="legend-item"><span style="width:10px;height:10px;border-radius:50%;background:var(--coral);display:inline-block;"></span> Retarget Ad Active</div>
   </div>
-  <div class="auto-grid"></div>
+  <div class="auto-grid">
+    <div class="auto-week">
+      <div class="auto-week-header" style="background:linear-gradient(135deg,rgba(108,92,231,0.12),transparent);">Week 1 — Welcome</div>
+      
+      <div class="auto-day">
+        <div class="day-label">Day 0</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Welcome + free estimate offer + service overview</div>
+        <div class="action"><span class="action-dot dot-sms"></span> Quick reply SMS confirming lead receipt</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 2</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Why families choose recurring cleaning</div>
+        <div class="action"><span class="action-dot dot-retarget"></span> Social proof ad with testimonials</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 4</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Quick read: 24-hour re-clean guarantee explained</div>
+        <div class="action"><span class="action-dot dot-sms"></span> Service details + booking link</div>
+      </div>
+    </div>
+    <div class="auto-week">
+      <div class="auto-week-header" style="background:linear-gradient(135deg,rgba(0,210,160,0.12),transparent);">Week 2 — Educate</div>
+      
+      <div class="auto-day">
+        <div class="day-label">Day 7</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> 5-year track record + insurance/background check details</div>
+        <div class="action"><span class="action-dot dot-retarget"></span> Authority ad featuring customer testimonials</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 9</div>
+        
+        <div class="action"><span class="action-dot dot-sms"></span> Quick tip: Time saved with recurring service</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 11</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Before/after gallery + customer success stories</div>
+        <div class="action"><span class="action-dot dot-vm"></span> Personal message from Maria about service quality</div>
+      </div>
+    </div>
+    <div class="auto-week">
+      <div class="auto-week-header" style="background:linear-gradient(135deg,rgba(251,191,36,0.12),transparent);">Week 3 — Proof</div>
+      
+      <div class="auto-day">
+        <div class="day-label">Day 14</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Detailed testimonial email from long-term customers</div>
+        <div class="action"><span class="action-dot dot-retarget"></span> Video testimonial ad</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 16</div>
+        
+        <div class="action"><span class="action-dot dot-sms"></span> Special offer preview for this month</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 18</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Recurring service packages + pricing options</div>
+        <div class="action"><span class="action-dot dot-vm"></span> Maria's personal invitation to book first clean</div>
+      </div>
+    </div>
+    <div class="auto-week">
+      <div class="auto-week-header" style="background:linear-gradient(135deg,rgba(255,107,107,0.12),transparent);">Week 4 — Convert</div>
+      
+      <div class="auto-day">
+        <div class="day-label">Day 21</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Service enrollment open + 50% first-clean offer</div>
+        <div class="action"><span class="action-dot dot-sms"></span> Monthly special launch + limited spots</div>
+        <div class="action"><span class="action-dot dot-retarget"></span> Direct offer ad with discount code</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 24</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Pain of inaction: time you'll keep wasting</div>
+        <div class="action"><span class="action-dot dot-sms"></span> Scarcity message: only 3 spots left this month</div>
+      </div>
+      <div class="auto-day">
+        <div class="day-label">Day 27</div>
+        
+        <div class="action"><span class="action-dot dot-email"></span> Final call: offer closes this week</div>
+        <div class="action"><span class="action-dot dot-sms"></span> Last chance: claim 50% off today</div>
+        <div class="action"><span class="action-dot dot-retarget"></span> Red-hot urgency ad</div>
+      </div>
+    </div></div>
   <div style="margin-top:2rem;overflow-x:auto;">
     <table class="data-table">
       <thead><tr><th>Channel</th><th>Total Touches</th><th>Purpose</th><th>Tone Progression</th></tr></thead>
@@ -386,18 +725,55 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div>
       <div class="script-box">
         <div class="script-heading">Opening</div>
-        <div class="script-text"></div>
+        <div class="script-text">Hi! Thanks for your interest in Gonzalez House Cleaning. I'd love to learn about your home and cleaning needs to see if we're a perfect fit for you. Do you have about 5 minutes?</div>
       </div>
       <div class="script-heading" style="margin:1.5rem 0 0.75rem;font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Qualifying Questions</div>
       
+    <div class="script-q">
+      <div class="q-num">Q1</div>
+      <div class="q-text">How many square feet is your home, and how many bedrooms/bathrooms?</div>
+      <div class="q-why">Why: Determines service scope and pricing; filters renters and small properties</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q2</div>
+      <div class="q-text">Are you looking for weekly, biweekly, or occasional cleaning?</div>
+      <div class="q-why">Why: Qualifies for recurring contract goal; one-time services don't fit our model</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q3</div>
+      <div class="q-text">What matters most to you in a cleaning service?</div>
+      <div class="q-why">Why: Identifies if reliability, consistency, and professionalism resonate with their values</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q4</div>
+      <div class="q-text">Have you used professional cleaning before, and if so, what was your experience?</div>
+      <div class="q-why">Why: Reveals pain points with past cleaners and confidence level in professional services</div>
+    </div>
+    <div class="script-q">
+      <div class="q-num">Q5</div>
+      <div class="q-text">When would you ideally like to start your recurring service?</div>
+      <div class="q-why">Why: Measures buying urgency and commitment to move forward</div>
+    </div>
       <div class="script-box" style="margin-top:1rem;">
         <div class="script-heading">Transition to Close</div>
-        <div class="script-text"></div>
+        <div class="script-text">Based on what you've shared, it sounds like you'd be a great fit for our recurring cleaning service. We specialize in giving busy families back their time with the same trusted cleaner every visit.</div>
       </div>
     </div>
     <div>
       <div class="script-heading" style="margin-bottom:0.75rem;font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Objection Handling</div>
       
+    <div class="objection">
+      <div class="obj-text">❌ "I'm worried about strangers in my home."</div>
+      <div class="obj-response">✅ That's completely understandable. We do background checks on every team member, provide full insurance, and—here's the key—you always get the same cleaner. You'll build a relationship with them, and they'll know your home and preferences.</div>
+    </div>
+    <div class="objection">
+      <div class="obj-text">❌ "What if I'm not satisfied with the cleaning?"</div>
+      <div class="obj-response">✅ Our 24-hour re-clean guarantee means if anything isn't perfect, we come back at no charge. Our customers love this because it takes the risk completely off their shoulders.</div>
+    </div>
+    <div class="objection">
+      <div class="obj-text">❌ "I want to think about it / compare other companies."</div>
+      <div class="obj-response">✅ I totally get that. Here's what makes us different: 5 years in business, fully insured, same cleaner always, all supplies included, and that 24-hour guarantee. Why don't we get you scheduled for your first clean at 50% off this month, and you'll see the difference immediately.</div>
+    </div>
     </div>
   </div>
 </section>
@@ -408,7 +784,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
     <div class="section-label">09 / Competitor Positioning</div>
     <div class="section-title">5 Ways to Stand Above the Competition</div>
   </div>
-  <div class="fp-grid"></div>
+  <div class="fp-grid">
+    <div class="fp-card">
+      <div class="fp-num">01</div>
+      <h4>Lead with time, not cleaning</h4>
+      <p>Frame the benefit as reclaimed time with family, not a clean house. Busy families buy time freedom, not spotlessness.</p>
+    </div>
+    <div class="fp-card">
+      <div class="fp-num">02</div>
+      <h4>Own the 'same cleaner' advantage</h4>
+      <p>Emphasize this repeatedly as unique. Competitors rotate staff; we build relationships. This is trust differentiation.</p>
+    </div>
+    <div class="fp-card">
+      <div class="fp-num">03</div>
+      <h4>Guarantee removes all risk</h4>
+      <p>Lead every close with 24-hour re-clean guarantee. This eliminates the biggest objection (quality worry) before it's spoken.</p>
+    </div>
+    <div class="fp-card">
+      <div class="fp-num">04</div>
+      <h4>Focus on recurring, not one-time</h4>
+      <p>Always steer toward weekly/biweekly contracts. Mention 'ongoing peace of mind' rather than individual cleaning appointments.</p>
+    </div>
+    <div class="fp-card">
+      <div class="fp-num">05</div>
+      <h4>Highlight peace of mind, not price</h4>
+      <p>Never lead with cost. Lead with fully insured, background-checked, reliable—then price becomes reasonable for the confidence gained.</p>
+    </div></div>
 </section>
 
 <!-- NEXT STEPS -->
@@ -421,7 +822,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:
 </section>
 
 <footer class="footer">
-  <p>Gonzalez House Cleaning — Marketing Command Center &nbsp;|&nbsp; Prepared by Astro A.I. Marketing &nbsp;|&nbsp; Generated March 12, 2026 at 8:55 AM</p>
+  <p>Gonzalez House Cleaning — Marketing Command Center &nbsp;|&nbsp; Prepared by Astro A.I. Marketing &nbsp;|&nbsp; Generated March 12, 2026 at 8:59 AM</p>
 </footer>
 
 <script>
