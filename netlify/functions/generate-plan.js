@@ -1438,10 +1438,10 @@ exports.handler = async (event) => {
   console.log('Received request for:', businessName, '— handing off to process-plan');
 
   const body = JSON.stringify(data);
-  const processUrl = `https://marketingplan.astroaibots.com/.netlify/functions/process-plan`;
 
+  // Use direct Netlify URL — custom domain redirect would intercept /.netlify/functions/*
   const processOptions = {
-    hostname: 'marketingplan.astroaibots.com',
+    hostname: 'celebrated-baklava-e035d6.netlify.app',
     path:     '/.netlify/functions/process-plan',
     method:   'POST',
     headers:  {
