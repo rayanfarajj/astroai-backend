@@ -1419,21 +1419,11 @@ function buildClientEmail(clientName, businessName, dashboardUrl) {
 </html>`.trim();
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
-  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
-
-  let data;
-  try { data = JSON.parse(event.body); }
-  catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
-
+// ── Background processor ──────────────────────────────────
+async function processInBackground(data) {
   const clientName   = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.authSignerName || 'Client';
   const businessName = data.businessName || data.authSignerBusiness || 'Your Business';
   const clientEmail  = data.email;
-
-  if (!clientEmail) {
-    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
-  }
 
   try {
     // ── Step 1: Generate marketing plan text via GPT-4o ───
@@ -1441,7 +1431,7 @@ exports.handler = async (event) => {
     const planText = await callGPT(buildPrompt(data));
     console.log('Plan generated, length:', planText.length);
 
-    // ── Step 2: Generate Marketing Command Center content via Claude ──
+    // ── Step 2: Generate Marketing Command Center JSON via Claude ──
     console.log('Generating Marketing Command Center JSON...');
     const rawJSON = await callClaude(buildDashboardPrompt(data, planText));
     console.log('Claude JSON raw length:', rawJSON.length);
@@ -1458,13 +1448,13 @@ exports.handler = async (event) => {
     const dashboardHTML = buildDashboardHTML(dashboardJSON, data);
     console.log('Dashboard HTML assembled, length:', dashboardHTML.length);
 
-    // ── Step 3: Save dashboard to Netlify Blobs ───────────
-    const slug        = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    // ── Step 3: Save to GitHub ────────────────────────────
+    const slug         = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
     const dashboardUrl = `https://marketingplan.astroaibots.com/${slug}`;
     await saveToGitHub(slug, dashboardHTML);
     console.log('Dashboard saved at:', dashboardUrl);
 
-    // ── Step 4: Build marketing plan PDF ─────────────────
+    // ── Step 4: Build PDF ─────────────────────────────────
     const generatedAt   = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
     const planPDFBuffer = await buildPlanPDF(planText, clientName, businessName, generatedAt);
     const planPDFBase64 = planPDFBuffer.toString('base64');
@@ -1494,19 +1484,43 @@ exports.handler = async (event) => {
       }),
     ]);
 
-    console.log('Both emails sent successfully to:', clientEmail);
-    return {
-      statusCode: 200,
-      headers: CORS,
-      body: JSON.stringify({ success: true, message: 'Marketing plan and command center generated and emailed' }),
-    };
+    console.log('All done — emails sent to:', clientEmail, '| Dashboard:', dashboardUrl);
 
   } catch (err) {
-    console.error('generate-plan error:', err.message, err.stack);
-    return {
-      statusCode: 500,
-      headers: CORS,
-      body: JSON.stringify({ error: 'Failed to generate plan', details: err.message }),
-    };
+    console.error('Background processing error:', err.message, err.stack);
+  }
+}
+
+exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
+  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
+
+  let data;
+  try { data = JSON.parse(event.body); }
+  catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+
+  const clientEmail  = data.email;
+  const businessName = data.businessName || data.authSignerBusiness || 'Your Business';
+
+  if (!clientEmail) {
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
+  }
+
+  // ── Respond immediately — process everything in background ──
+  console.log('Request received for:', businessName, '— starting background processing');
+  processInBackground(data); // fire and forget — no await
+
+  return {
+    statusCode: 202,
+    headers: CORS,
+    body: JSON.stringify({
+      success: true,
+      message: `Got it! Your Marketing Command Center for ${businessName} is being generated. Check your email in 2-3 minutes.`,
+    }),
+  };
+
+  // dead code placeholder to satisfy linter
+  if (false) {
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'unreachable' }) };
   }
 };
