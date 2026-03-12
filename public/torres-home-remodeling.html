@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Command Center - Torres Home Remodeling</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f97316;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #f97316;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        section {
+            padding: 4rem 0;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f97316;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #12121a;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(249, 115, 22, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0f1a 100%);
+            padding: 6rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(18, 18, 26, 0.8);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        .stat-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f97316;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .profile-section h3 {
+            color: #f97316;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-item {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(249, 115, 22, 0.05);
+            border-radius: 8px;
+        }
+
+        .profile-label {
+            font-weight: 600;
+            color: #f97316;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: #f97316;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #12121a;
+            border-radius: 12px;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 1.5rem;
+            width: 12px;
+            height: 12px;
+            background: #f97316;
+            border-radius: 50%;
+        }
+
+        .timeline-phase {
+            color: #f97316;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .ad-copy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .ad-card {
+            background: #12121a;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .ad-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, #ea580c);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .ad-headline {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f97316;
+            margin-bottom: 1rem;
+        }
+
+        .ad-text {
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #f97316;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+        }
+
+        .qualification-script {
+            background: #12121a;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .script-section {
+            margin-bottom: 2rem;
+        }
+
+        .script-section h4 {
+            color: #f97316;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 2rem 0;
+        }
+
+        .funnel-step {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
+            padding: 1rem 2rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .targeting-item {
+            background: rgba(249, 115, 22, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .targeting-label {
+            font-weight: 600;
+            color: #f97316;
+            margin-bottom: 0.5rem;
+        }
+
+        .competitor-tip {
+            background: #12121a;
+            border-left: 4px solid #f97316;
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 1rem;
+        }
+
+        .competitor-tip h4 {
+            color: #f97316;
+            margin-bottom: 0.5rem;
+        }
+
+        .next-steps-card {
+            text-align: center;
+            background: linear-gradient(135deg, #12121a 0%, #1a0f1a 100%);
+            border: 2px solid #f97316;
+            border-radius: 20px;
+            padding: 3rem;
+        }
+
+        .cta-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(249, 115, 22, 0.4);
+        }
+
+        footer {
+            background: #12121a;
+            border-top: 1px solid rgba(249, 115, 22, 0.1);
+            padding: 2rem 0;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <div class="nav-logo">Torres Command Center</div>
+            <ul class="nav-links">
+                <li><a href="#profile">Profile</a></li>
+                <li><a href="#funnel">Funnel</a></li>
+                <li><a href="#ads">Ad Copy</a></li>
+                <li><a href="#targeting">Targeting</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="#qualification">Qualification</a></li>
+                <li><a href="#positioning">Positioning</a></li>
+                <li><a href="#next-steps">Next Steps</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Torres Home Remodeling</h1>
+                <p class="hero-subtitle">Marketing Command Center for Mike Torres</p>
+                <p style="color: #94a3b8; margin-bottom: 2rem;">Generated March 12, 2026 at 7:12 AM</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">$25</div>
+                        <div class="stat-label">Daily Ad Budget</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Platforms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">$18,000</div>
+                        <div class="stat-label">Avg Customer Value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">30 mi</div>
+                        <div class="stat-label">Service Radius</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="profile">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Client Profile</h2>
+                    <p class="section-subtitle">Complete business overview and ideal customer avatar</p>
+                </div>
+
+                <div class="profile-grid">
+                    <div class="card">
+                        <div class="profile-section">
+                            <h3>Business Details</h3>
+                            <div class="profile-item">
+                                <div class="profile-label">Business Name</div>
+                                <div>Torres Home Remodeling</div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-label">Owner</div>
+                                <div>Mike Torres</div>
+                            
