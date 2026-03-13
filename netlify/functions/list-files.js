@@ -25,9 +25,8 @@ export default async (req) => {
           key:        blob.key,
           name:       m.originalName || blob.key.split('/').pop(),
           fileType:   m.fileType || '',
-          size:       m.fileSize || 0,
+          size:       parseInt(m.fileSize || '0'),
           uploadedAt: m.uploadedAt || '',
-          // Generate a signed-ish URL via our own endpoint
           url: `https://marketingplan.astroaibots.com/api/get-file?key=${encodeURIComponent(blob.key)}`,
         };
       } catch(e) {
@@ -35,7 +34,6 @@ export default async (req) => {
       }
     }));
 
-    // Sort newest first
     files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
     return new Response(JSON.stringify({ success: true, files }), {
