@@ -54,18 +54,18 @@ function firestoreGet(token, collection, docId) {
   });
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
-  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
+export default async (req) => {
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+  if (req.method !== 'POST')    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
   let body;
-  try { body = JSON.parse(event.body); }
-  catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+  try { body = await req.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }); }
 
   const { referrerSlug, referrerName, referrerBusiness, refereeName, refereeEmail, refereePhone, refereeBusinessName, refereeNote } = body;
 
   if (!referrerSlug || !refereeEmail) {
-    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'referrerSlug and refereeEmail required' }) };
+    return new Response(JSON.stringify({ error: 'referrerSlug and refereeEmail required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   const referralId = referrerSlug + '-ref-' + Date.now().toString(36);
@@ -130,9 +130,13 @@ exports.handler = async (event) => {
         </div>`,
     });
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, referralId }) };
+    return new Response(JSON.stringify({ success: true, referralId }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
   } catch(e) {
     console.error('[submit-referral] Error:', e.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
   }
+};
+
+export const config = {
+  path: '/api/submit-referral',
 };
