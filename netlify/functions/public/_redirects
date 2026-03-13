@@ -1,0 +1,6 @@
+# Static HTML files - serve directly, never redirect
+/agency-dashboard.html  /agency-dashboard.html  200
+/client-portal.html     /client-portal.html     200
+
+# Everything else goes through serve-plan
+/*  /.netlify/functions/serve-plan?slug=:splat  200
