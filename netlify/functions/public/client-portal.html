@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Portal — Astro AI Marketing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0f1f3d; --blue:#1e3a5f; --orange:#f97316; --orange-light:#fff7ed;
+  --green:#10b981; --green-light:#ecfdf5; --red:#ef4444;
+  --bg:#f0f4f8; --card:#fff; --border:#e2e8f0;
+  --text:#1a202c; --text-dim:#64748b; --text-muted:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── HEADER ── */
+.header {
+  background:var(--navy);
+  padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between;
+  height:60px; position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 16px rgba(0,0,0,.2);
+}
+.header-logo { display:flex; align-items:center; gap:10px; }
+.header-logo-icon { width:32px; height:32px; background:var(--orange); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+.header-logo-text { color:#fff; font-size:.95rem; font-weight:700; letter-spacing:-.01em; }
+.header-slug { color:rgba(255,255,255,.4); font-size:.75rem; }
+
+/* ── LAYOUT ── */
+.main { max-width:720px; margin:0 auto; padding:24px 16px 80px; }
+
+/* ── SPECIAL OFFER BANNER ── */
+.offer-banner {
+  background:linear-gradient(135deg, #f97316, #ea580c);
+  border-radius:var(--radius); padding:20px 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  margin-bottom:20px; box-shadow:0 4px 20px rgba(249,115,22,.35);
+  animation: offerPulse 3s ease-in-out infinite;
+  flex-wrap:wrap;
+}
+@keyframes offerPulse {
+  0%,100% { box-shadow:0 4px 20px rgba(249,115,22,.35); }
+  50% { box-shadow:0 4px 32px rgba(249,115,22,.6); }
+}
+.offer-badge { background:rgba(255,255,255,.2); color:#fff; font-size:.65rem; font-weight:700; padding:3px 8px; border-radius:20px; letter-spacing:.05em; margin-bottom:4px; display:inline-block; }
+.offer-title { color:#fff; font-size:1.05rem; font-weight:700; margin-bottom:4px; }
+.offer-desc { color:rgba(255,255,255,.85); font-size:.82rem; line-height:1.5; }
+.offer-expires { color:rgba(255,255,255,.6); font-size:.72rem; margin-top:4px; }
+.offer-cta-btn {
+  background:#fff; color:var(--orange); border:none; border-radius:10px;
+  padding:12px 22px; font-size:.85rem; font-weight:700; cursor:pointer;
+  white-space:nowrap; transition:all .2s; text-decoration:none; display:inline-block;
+  flex-shrink:0;
+}
+.offer-cta-btn:hover { background:#fff7ed; transform:translateY(-1px); }
+
+/* ── CARDS ── */
+.card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:16px; overflow:hidden; }
+.card-header {
+  padding:18px 20px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.card-icon { font-size:1.1rem; }
+.card-title { font-size:.9rem; font-weight:700; color:var(--navy); }
+.card-body { padding:20px; }
+
+/* ── STATUS SECTION ── */
+.status-hero {
+  background:linear-gradient(135deg, var(--navy), var(--blue));
+  border-radius:var(--radius); padding:24px; margin-bottom:16px;
+  color:#fff;
+}
+.status-business { font-size:1.3rem; font-weight:800; margin-bottom:4px; letter-spacing:-.02em; }
+.status-name { color:rgba(255,255,255,.6); font-size:.82rem; margin-bottom:20px; }
+.status-pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  border-radius:30px; padding:8px 16px; font-size:.82rem; font-weight:600;
+  margin-bottom:16px;
+}
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+.status-updated { color:rgba(255,255,255,.45); font-size:.72rem; }
+
+/* ── PROGRESS TIMELINE ── */
+.timeline { padding:4px 0; }
+.timeline-step {
+  display:flex; gap:14px; align-items:flex-start; padding:10px 0;
+  position:relative;
+}
+.timeline-step:not(:last-child)::before {
+  content:''; position:absolute; left:15px; top:36px;
+  width:2px; height:calc(100% - 10px);
+  background:var(--border);
+}
+.timeline-step.done::before { background:var(--green); }
+.step-icon {
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; border:2px solid var(--border);
+  background:var(--bg); z-index:1;
+}
+.timeline-step.done .step-icon { background:var(--green-light); border-color:var(--green); }
+.timeline-step.current .step-icon { background:#eff6ff; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+.step-content { flex:1; padding-top:4px; }
+.step-label { font-size:.82rem; font-weight:600; color:var(--text); }
+.timeline-step.pending .step-label { color:var(--text-muted); }
+.step-desc { font-size:.74rem; color:var(--text-dim); margin-top:2px; line-height:1.4; }
+
+/* ── INFO GRID ── */
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:480px) { .info-grid { grid-template-columns:1fr; } }
+.info-item { background:var(--bg); border-radius:10px; padding:12px 14px; }
+.info-label { font-size:.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.info-value { font-size:.85rem; font-weight:600; color:var(--text); }
+
+/* ── PLATFORM ACCESS ── */
+.platform-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.ptab { padding:7px 14px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); font-size:.78rem; font-weight:600; cursor:pointer; transition:all .2s; color:var(--text-dim); }
+.ptab.active { background:var(--navy); border-color:var(--navy); color:#fff; }
+.platform-content { display:none; }
+.platform-content.active { display:block; }
+.access-steps { list-style:none; padding:0; }
+.access-steps li {
+  display:flex; gap:12px; align-items:flex-start;
+  padding:10px 0; border-bottom:1px solid var(--border);
+  font-size:.82rem; color:var(--text-dim); line-height:1.5;
+}
+.access-steps li:last-child { border-bottom:none; }
+.step-num {
+  min-width:24px; height:24px; border-radius:50%;
+  background:var(--navy); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.68rem; font-weight:700; flex-shrink:0; margin-top:1px;
+}
+.access-note { background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 14px; font-size:.78rem; color:#92400e; line-height:1.5; margin-top:12px; }
+
+/* ── REFERRAL ── */
+.refer-intro { font-size:.85rem; color:var(--text-dim); line-height:1.6; margin-bottom:16px; }
+.refer-perks { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+.perk-chip { background:var(--green-light); color:#065f46; border:1px solid #a7f3d0; border-radius:20px; padding:5px 12px; font-size:.75rem; font-weight:600; }
+.form-group { margin-bottom:14px; }
+.form-label { font-size:.75rem; font-weight:600; color:var(--text-dim); margin-bottom:6px; display:block; }
+.form-input {
+  width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px;
+  font-size:.85rem; font-family:'Inter',sans-serif; color:var(--text);
+  background:#fff; transition:border-color .2s; outline:none;
+}
+.form-input:focus { border-color:var(--orange); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:480px) { .form-row { grid-template-columns:1fr; } }
+.form-hint { font-size:.72rem; color:var(--text-muted); margin-top:4px; }
+.submit-btn {
+  width:100%; padding:13px; background:var(--orange); color:#fff; border:none;
+  border-radius:10px; font-size:.9rem; font-weight:700; cursor:pointer;
+  font-family:'Inter',sans-serif; transition:all .2s; margin-top:4px;
+}
+.submit-btn:hover { background:#ea580c; transform:translateY(-1px); }
+.submit-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+.referral-counter { background:linear-gradient(135deg,#1e3a5f,#2d5282); border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.counter-label { color:rgba(255,255,255,.7); font-size:.78rem; }
+.counter-num { color:#fff; font-size:1.6rem; font-weight:800; }
+.success-msg { background:var(--green-light); border:1px solid #a7f3d0; border-radius:10px; padding:16px; text-align:center; display:none; }
+.success-msg.show { display:block; }
+.success-msg h3 { color:#065f46; margin-bottom:6px; font-size:.95rem; }
+.success-msg p { color:#047857; font-size:.82rem; }
+
+/* ── DASHBOARD LINK ── */
+.dash-link-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:13px; background:var(--navy); color:#fff; border:none;
+  border-radius:10px; font-size:.88rem; font-weight:600; cursor:pointer;
+  font-family:'Inter',sans-serif; text-decoration:none; transition:all .2s;
+}
+.dash-link-btn:hover { background:var(--blue); }
+
+/* ── LOADING / ERROR ── */
+.loader { text-align:center; padding:60px 20px; color:var(--text-dim); font-size:.9rem; }
+.loader-spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.error-state { text-align:center; padding:60px 20px; }
+.error-state h2 { color:var(--text); margin-bottom:8px; font-size:1.1rem; }
+.error-state p { color:var(--text-dim); font-size:.85rem; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:#1a202c; color:#fff; padding:12px 20px; border-radius:10px; font-size:.82rem; font-weight:500; opacity:0; transition:all .3s; z-index:9999; pointer-events:none; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon">🚀</div>
+    <div>
+      <div class="header-logo-text">Astro AI Marketing</div>
+    </div>
+  </div>
+  <div class="header-slug" id="header-slug"></div>
+</div>
+
+<div class="main" id="main">
+  <div class="loader">
+    <div class="loader-spinner"></div>
+    Loading your portal...
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://marketingplan.astroaibots.com/api';
+const slug = new URLSearchParams(location.search).get('s') || location.pathname.split('/').pop();
+
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+function statusToStep(status) {
+  const map = { new:0, active:1, launched:2, paused:2, completed:3 };
+  return map[status] ?? 0;
+}
+
+const STEPS = [
+  { label:'Onboarding Complete',    desc:'Your info has been received and your plan is being prepared.',         icon:'✅' },
+  { label:'Marketing Plan Ready',   desc:'Your AI strategy, ad copy, and targeting plan are finalized.',         icon:'📋' },
+  { label:'Campaign Live',          desc:'Your ads are running across your selected platforms.',                  icon:'🚀' },
+  { label:'Campaign Complete',      desc:'Your campaign cycle is wrapped up. Ready to scale? Let\'s talk!',      icon:'🎉' },
+];
+
+function buildTimeline(status) {
+  const currentStep = statusToStep(status);
+  return STEPS.map((s,i) => {
+    const state = i < currentStep ? 'done' : i === currentStep ? 'current' : 'pending';
+    return `<div class="timeline-step ${state}">
+      <div class="step-icon">${i < currentStep ? '✓' : s.icon}</div>
+      <div class="step-content">
+        <div class="step-label">${s.label}</div>
+        <div class="step-desc">${s.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildAccessTab(platform, steps, note) {
+  return `<div class="platform-content" id="ptab-${platform}">
+    <ul class="access-steps">
+      ${steps.map((s,i)=>`<li><div class="step-num">${i+1}</div><div>${s}</div></li>`).join('')}
+    </ul>
+    ${note ? `<div class="access-note">💡 ${note}</div>` : ''}
+  </div>`;
+}
+
+const META_STEPS = [
+  'Go to <strong><a href="https://business.facebook.com" target="_blank">business.facebook.com</a></strong> and log in.',
+  'Click the <strong>grid icon (⊞)</strong> at the top left → select your Business Account.',
+  'Go to <strong>Settings (⚙️)</strong> in the left sidebar.',
+  'Click <strong>Users → Partners</strong>.',
+  'Click <strong>"Add Partner"</strong> and enter our Partner Business ID when prompted.',
+  'Grant access to <strong>Manage Campaigns</strong> on your Ad Account.',
+  'Click <strong>Save</strong>. We\'ll get notified and begin setup within 24 hours.',
+];
+
+const GOOGLE_STEPS = [
+  'Sign in to <strong><a href="https://ads.google.com" target="_blank">ads.google.com</a></strong>.',
+  'Click the <strong>tools icon (⚙️)</strong> in the top right → <strong>Setup → Account Access</strong>.',
+  'Click the blue <strong>"+"</strong> button → <strong>Invite Users</strong>.',
+  'Enter our email: <strong>ads@astroaibots.com</strong>.',
+  'Set the access level to <strong>"Standard"</strong>.',
+  'Click <strong>Send Invitation</strong>. We\'ll accept and begin setup within 24 hours.',
+];
+
+const TIKTOK_STEPS = [
+  'Go to <strong><a href="https://ads.tiktok.com" target="_blank">ads.tiktok.com</a></strong> and log in.',
+  'Click your <strong>account name</strong> at the top right → <strong>Account Settings</strong>.',
+  'Go to <strong>User Management → Users</strong>.',
+  'Click <strong>"Assign Role"</strong>.',
+  'Enter our email: <strong>ads@astroaibots.com</strong> and assign <strong>Operator</strong> role.',
+  'Click <strong>Confirm</strong>.',
+];
+
+function buildPlatformSection(adPlatforms) {
+  const p = (adPlatforms||'').toLowerCase();
+  const hasMeta   = p.includes('facebook') || p.includes('meta') || p.includes('instagram') || p === '';
+  const hasGoogle = p.includes('google');
+  const hasTikTok = p.includes('tiktok');
+
+  const tabs = [];
+  const contents = [];
+
+  if (hasMeta || (!hasGoogle && !hasTikTok)) {
+    tabs.push(`<button class="ptab active" onclick="switchPTab('meta')">📘 Meta</button>`);
+    contents.push(buildAccessTab('meta', META_STEPS, 'Need help? Reply to your welcome email or message us and we\'ll walk you through it live.'));
+  }
+  if (hasGoogle) {
+    tabs.push(`<button class="ptab" onclick="switchPTab('google')">🔵 Google</button>`);
+    contents.push(buildAccessTab('google', GOOGLE_STEPS, 'Make sure you\'re logged into the correct Google account linked to your Ads account.'));
+  }
+  if (hasTikTok) {
+    tabs.push(`<button class="ptab" onclick="switchPTab('tiktok')">⚫ TikTok</button>`);
+    contents.push(buildAccessTab('tiktok', TIKTOK_STEPS, 'Ensure your TikTok Ads account is a Business account, not a personal one.'));
+  }
+
+  return `<div class="platform-tabs">${tabs.join('')}</div>${contents.join('')}`;
+}
+
+function switchPTab(id) {
+  document.querySelectorAll('.ptab').forEach((t,i)=>{
+    t.classList.toggle('active', t.textContent.toLowerCase().includes(id));
+  });
+  document.querySelectorAll('.platform-content').forEach(c=>{
+    c.classList.toggle('active', c.id === 'ptab-'+id);
+  });
+  // make first tab content active after switch
+  const first = document.querySelector('.platform-content');
+  if (first && !document.querySelector('.platform-content.active')) first.classList.add('active');
+}
+
+// Make first platform tab active on load
+function activateFirstTab() {
+  const firstTab = document.querySelector('.ptab');
+  const firstContent = document.querySelector('.platform-content');
+  if (firstTab) firstTab.classList.add('active');
+  if (firstContent) firstContent.classList.add('active');
+}
+
+async function submitReferral(e, slug, clientName, businessName) {
+  e.preventDefault();
+  const btn = document.getElementById('refer-btn');
+  const name  = document.getElementById('ref-name').value.trim();
+  const biz   = document.getElementById('ref-biz').value.trim();
+  const email = document.getElementById('ref-email').value.trim();
+  const phone = document.getElementById('ref-phone').value.trim();
+  const note  = document.getElementById('ref-note').value.trim();
+
+  if (!email) { showToast('❌ Please enter the referral email'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Submitting...';
+  try {
+    const res = await fetch(API + '/submit-referral', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        referrerSlug: slug, referrerName: clientName, referrerBusiness: businessName,
+        refereeName: name, refereeBusinessName: biz, refereeEmail: email,
+        refereePhone: phone, refereeNote: note,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('refer-form').style.display = 'none';
+      document.getElementById('refer-success').classList.add('show');
+      // Update counter
+      const counter = document.getElementById('referral-count');
+      if (counter) counter.textContent = parseInt(counter.textContent||'0') + 1;
+    } else { showToast('❌ ' + (data.error || 'Submission failed')); }
+  } catch(err) { showToast('❌ ' + err.message); }
+  finally { btn.disabled = false; btn.textContent = '🤝 Submit Referral'; }
+}
+
+async function init() {
+  if (!slug) {
+    document.getElementById('main').innerHTML = `<div class="error-state"><h2>No portal found</h2><p>This link doesn't appear to be valid.</p></div>`;
+    return;
+  }
+  document.getElementById('header-slug').textContent = slug;
+
+  try {
+    const res  = await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}`);
+    const data = await res.json();
+    if (!data.client) throw new Error(data.error || 'Client not found');
+
+    const c = data.client;
+    const offer = data.offer;
+
+    const statusUpdatedStr = c.statusUpdated
+      ? 'Updated ' + new Date(c.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      : '';
+
+    document.getElementById('main').innerHTML = `
+
+      ${offer ? `
+      <div class="offer-banner">
+        <div>
+          <div class="offer-badge">🎁 SPECIAL OFFER</div>
+          <div class="offer-title">${offer.title}</div>
+          ${offer.description ? `<div class="offer-desc">${offer.description}</div>` : ''}
+          ${offer.expiresAt ? `<div class="offer-expires">⏰ Expires: ${new Date(offer.expiresAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>` : ''}
+        </div>
+        <a href="${offer.ctaUrl}" target="_blank" class="offer-cta-btn">${offer.ctaText}</a>
+      </div>` : ''}
+
+      <!-- STATUS HERO -->
+      <div class="status-hero">
+        <div class="status-business">${c.businessName}</div>
+        <div class="status-name">Hi ${c.clientName} 👋</div>
+        <div class="status-pill">
+          <div class="status-dot"></div>
+          ${c.statusLabel}
+        </div>
+        ${statusUpdatedStr ? `<div class="status-updated">${statusUpdatedStr}</div>` : ''}
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📊</div><div class="card-title">Campaign Progress</div></div>
+        <div class="card-body">
+          <div class="timeline">${buildTimeline(c.status)}</div>
+        </div>
+      </div>
+
+      <!-- CAMPAIGN INFO -->
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📋</div><div class="card-title">Your Campaign Details</div></div>
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Business</div><div class="info-value">${c.businessName||'—'}</div></div>
+            <div class="info-item"><div class="info-label">Industry</div><div class="info-value">${c.industry||'—'}</div></div>
+            <div class="info-item"><div class="info-label">Ad Platforms</div><div class="info-value">${c.adPlatforms||'—'}</div></div>
+            <div class="info-item"><div class="info-label">Monthly Budget</div><div class="info-value">${c.adBudget||'—'}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="info-label">90-Day Goal</div><div class="info-value">${c.goal90||'—'}</div></div>
+          </div>
+          ${c.dashboardUrl ? `<a href="${c.dashboardUrl}" target="_blank" class="dash-link-btn" style="margin-top:16px">📈 View Full Marketing Plan →</a>` : ''}
+        </div>
+      </div>
+
+      <!-- PLATFORM ACCESS -->
+      <div class="card">
+        <div class="card-header"><div class="card-icon">🔐</div><div class="card-title">Grant Ad Account Access</div></div>
+        <div class="card-body">
+          <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">To launch your campaigns we need access to your ad accounts. Follow the steps below for each platform.</p>
+          ${buildPlatformSection(c.adPlatforms)}
+        </div>
+      </div>
+
+      <!-- REFERRAL -->
+      <div class="card">
+        <div class="card-header"><div class="card-icon">🤝</div><div class="card-title">Refer a Friend</div></div>
+        <div class="card-body">
+          <div class="referral-counter">
+            <div><div class="counter-label">Your Referrals Sent</div><div class="counter-num" id="referral-count">${c.referralCount||'0'}</div></div>
+            <div style="font-size:2rem">🏆</div>
+          </div>
+          <p class="refer-intro">Know a business owner who could use AI-powered marketing? Refer them to Astro AI and we'll take care of the rest — and take care of you!</p>
+          <div class="refer-perks">
+            <span class="perk-chip">💰 Referral Rewards</span>
+            <span class="perk-chip">🚀 Fast Onboarding</span>
+            <span class="perk-chip">❤️ Help a Friend Grow</span>
+          </div>
+
+          <div id="refer-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Their Name</label>
+                <input class="form-input" type="text" id="ref-name" placeholder="John Smith">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Their Business Name</label>
+                <input class="form-input" type="text" id="ref-biz" placeholder="Smith Plumbing Co.">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Their Email <span style="color:var(--red)">*</span></label>
+                <input class="form-input" type="email" id="ref-email" placeholder="john@business.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Their Phone</label>
+                <input class="form-input" type="tel" id="ref-phone" placeholder="(512) 555-0000">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quick Note (optional)</label>
+              <input class="form-input" type="text" id="ref-note" placeholder="They run a local HVAC company and want more leads...">
+              <div class="form-hint">Help us know what they need so we can personalize the outreach.</div>
+            </div>
+            <button class="submit-btn" id="refer-btn" onclick="submitReferral(event,'${c.id}','${c.clientName.replace(/'/g,"\\'")}','${c.businessName.replace(/'/g,"\\'")}')">🤝 Submit Referral</button>
+          </div>
+
+          <div class="success-msg" id="refer-success">
+            <h3>🎉 Referral Submitted!</h3>
+            <p>We'll reach out to them soon. Thank you for spreading the word — we appreciate you!</p>
+          </div>
+        </div>
+      </div>
+
+    `;
+
+    // Activate first platform tab
+    activateFirstTab();
+
+  } catch(e) {
+    document.getElementById('main').innerHTML = `<div class="error-state"><h2>Portal not found</h2><p>${e.message}</p></div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
