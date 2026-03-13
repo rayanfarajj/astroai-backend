@@ -42,21 +42,21 @@ function firestoreSet(token, docPath, fields) {
   });
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
-  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
-  if (event.headers['x-internal-key'] !== process.env.INTERNAL_KEY) {
-    return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
+export default async (req) => {
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+  if (req.method !== 'POST')    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...CORS, 'Content-Type': 'application/json' } });
+  if (req.headers.get('x-internal-key') !== process.env.INTERNAL_KEY) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   let body;
-  try { body = JSON.parse(event.body); }
-  catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+  try { body = await req.json(); }
+  catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }); }
 
   const { title, description, ctaText, ctaUrl, expiresAt, targetSlug, active } = body;
 
   if (!title || !ctaUrl) {
-    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'title and ctaUrl required' }) };
+    return new Response(JSON.stringify({ error: 'title and ctaUrl required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 
   try {
@@ -75,9 +75,13 @@ exports.handler = async (event) => {
       updatedAt:   { stringValue: new Date().toISOString() },
     });
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true }) };
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
   } catch(e) {
     console.error('[set-offer] Error:', e.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
   }
+};
+
+export const config = {
+  path: '/api/set-offer',
 };
