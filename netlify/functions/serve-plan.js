@@ -3,6 +3,34 @@
 
 const https = require('https');
 
+function fetchStaticFile(filename) {
+  return new Promise((resolve, reject) => {
+    const token = process.env.GITHUB_TOKEN;
+    const repo  = 'rayanfarajj/astroai-backend';
+    const path  = `public/${filename}`;
+    const options = {
+      hostname: 'api.github.com',
+      path:     `/repos/${repo}/contents/${path}`,
+      method:   'GET',
+      headers:  { 'Authorization': `Bearer ${token}`, 'User-Agent': 'astroai-bots', 'Accept': 'application/vnd.github+json' },
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode === 404) return resolve(null);
+        if (res.statusCode !== 200) return reject(new Error(`GitHub ${res.statusCode}`));
+        try {
+          const json = JSON.parse(data);
+          resolve(Buffer.from(json.content.replace(/\n/g, ''), 'base64').toString('utf8'));
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 function fetchFromGitHub(slug) {
   return new Promise((resolve, reject) => {
     const token = process.env.GITHUB_TOKEN;
@@ -54,6 +82,15 @@ exports.handler = async (event) => {
 
   slug = slug.replace(/^\/+/, '').trim();
   console.log('serve-plan — slug:', slug);
+
+  // Serve static HTML files directly from GitHub (not as plan slugs)
+  const staticFiles = ['client-portal.html', 'agency-dashboard.html', 'index.html'];
+  if (staticFiles.includes(slug)) {
+    try {
+      const html = await fetchStaticFile(slug);
+      if (html) return { statusCode: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' }, body: html };
+    } catch(e) { console.error('Static file fetch error:', e.message); }
+  }
 
   if (!slug) {
     return {
