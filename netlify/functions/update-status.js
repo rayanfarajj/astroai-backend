@@ -241,7 +241,8 @@ export default async (req) => {
   }
 
   try {
-    const { slug, status, notify } = await req.json();
+    const body = await req.json();
+    const { slug, status, notify, notes, customMessage, customSubject, messageType, sendAccessInstructions } = body;
     if (!slug || !status) return new Response(JSON.stringify({ error: 'slug and status required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
     if (!STATUS_CONFIG[status]) return new Response(JSON.stringify({ error: 'Invalid status' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
@@ -261,21 +262,91 @@ export default async (req) => {
       dashboardUrl: get('dashboardUrl'),
     };
 
-    // Update Firestore
-    await firestorePatch(token, slug, {
+    // Build Firestore patch — always update status, optionally notes
+    const patch = {
       status,
       statusLabel:   STATUS_CONFIG[status].label,
       statusUpdated: new Date().toISOString(),
-    });
+    };
+    if (notes !== undefined) patch.notes = notes;
+    await firestorePatch(token, slug, patch);
     console.log(`[update-status] Firestore updated: ${slug} → ${status}`);
 
     const results = { firestoreUpdated: true, emailSent: false, smsSent: false };
 
-    // Fire notifications if requested
+    // ── Platform access instructions email ────────────────────────────────────
+    if (sendAccessInstructions && client.clientEmail) {
+      try {
+        const subject = `Action Required: Grant Ad Account Access — ${client.businessName}`;
+        const html = `<div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:32px;">
+          <div style="background:#1e3a5f;border-radius:12px;padding:28px 32px;margin-bottom:24px;text-align:center;">
+            <h1 style="color:#fff;font-size:1.2rem;margin:0;">🔐 Grant Ad Account Access</h1>
+            <p style="color:rgba(255,255,255,0.65);font-size:0.85rem;margin:8px 0 0;">Follow the steps below to get your campaigns live</p>
+          </div>
+          <div style="background:#fff;border-radius:12px;padding:28px 32px;border:1px solid #e5e7eb;">
+            <p>Hi <strong>${client.clientName}</strong>,</p>
+            <p style="color:#4b5563;line-height:1.7;">To launch your campaigns, we need access to your ad accounts. Please follow the steps below:</p>
+            <h3 style="color:#1e3a5f;margin:20px 0 8px;">📘 Meta (Facebook/Instagram)</h3>
+            <ol style="color:#4b5563;line-height:2;">
+              <li>Go to <a href="https://business.facebook.com">business.facebook.com</a></li>
+              <li>Click your Business → Settings (gear icon)</li>
+              <li>Go to: Users → Partners</li>
+              <li>Click "Add Partner"</li>
+              <li>Enter our Partner Business ID and grant "Manage Campaigns" access</li>
+            </ol>
+            <h3 style="color:#1e3a5f;margin:20px 0 8px;">🔵 Google Ads</h3>
+            <ol style="color:#4b5563;line-height:2;">
+              <li>Sign in to <a href="https://ads.google.com">ads.google.com</a></li>
+              <li>Click the tools icon (⚙️) → Account Access</li>
+              <li>Click "+" → Invite Users</li>
+              <li>Enter: <strong>ads@astroaibots.com</strong></li>
+              <li>Select "Standard" access level and send the invitation</li>
+            </ol>
+            <p style="color:#4b5563;margin-top:20px;">Reply to this email if you need help and we'll walk you through it live.</p>
+            <p style="color:#4b5563;">— <strong>The Astro AI Team</strong></p>
+          </div>
+        </div>`;
+        await sendEmail(client.clientEmail, subject, html);
+        results.emailSent = true;
+        console.log(`[update-status] Access instructions sent to ${client.clientEmail}`);
+      } catch(e) { console.error('[update-status] Access email failed:', e.message); }
+      return new Response(JSON.stringify({ success: true, ...results }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    // ── Custom blast message ───────────────────────────────────────────────────
+    if (customMessage) {
+      const sendSms   = messageType === 'sms'   || messageType === 'both';
+      const sendEmail_ = messageType === 'email' || messageType === 'both';
+      if (sendEmail_ && client.clientEmail) {
+        try {
+          const subj = customSubject || `Message from Astro AI — ${client.businessName}`;
+          const html = `<div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
+            <div style="background:#1e3a5f;border-radius:12px;padding:24px;margin-bottom:20px;text-align:center;">
+              <h1 style="color:#fff;font-size:1.1rem;margin:0;">Astro AI Marketing</h1>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #e5e7eb;">
+              <p>Hi <strong>${client.clientName}</strong>,</p>
+              <p style="white-space:pre-wrap;color:#4b5563;line-height:1.7;">${customMessage}</p>
+              <p>— <strong>The Astro AI Team</strong></p>
+            </div>
+          </div>`;
+          await sendEmail(client.clientEmail, subj, html);
+          results.emailSent = true;
+        } catch(e) { console.error('[update-status] Blast email failed:', e.message); }
+      }
+      if (sendSms && client.phone) {
+        try {
+          await sendHL_SMS(client.phone, customMessage, client);
+          results.smsSent = true;
+        } catch(e) { console.error('[update-status] Blast SMS failed:', e.message); }
+      }
+      return new Response(JSON.stringify({ success: true, ...results }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    // ── Standard status-change notifications ──────────────────────────────────
     if (notify !== false) {
       const cfg = STATUS_CONFIG[status];
 
-      // Email
       if (client.clientEmail) {
         try {
           await sendEmail(client.clientEmail, cfg.emailSubject(client), cfg.emailBody(client));
@@ -284,7 +355,6 @@ export default async (req) => {
         } catch(e) { console.error('[update-status] Email failed:', e.message); }
       }
 
-      // SMS via HighLevel
       if (client.phone) {
         try {
           await sendHL_SMS(client.phone, cfg.sms(client), client);
