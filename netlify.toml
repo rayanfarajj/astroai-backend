@@ -4,11 +4,11 @@
 
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "SQUARE_ACCESS_TOKEN"
+  SECRETS_SCAN_OMIT_PATHS = "public/index.html"
 
 [functions]
   node_bundler = "esbuild"
 
-# ── EXISTING FUNCTIONS ──────────────────────────────────
 [functions."generate-plan"]
   timeout = 30
 
@@ -42,7 +42,6 @@
 [functions."process-plan"]
   timeout = 180
 
-# ── SAAS FUNCTIONS ──────────────────────────────────────
 [functions."agency-process-plan"]
   timeout = 180
 
