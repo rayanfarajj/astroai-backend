@@ -171,20 +171,20 @@ function firestorePatch(token, slug, fields) {
   });
 }
 
-// ── HighLevel SMS ──────────────────────────────────────────────────────────────
 function hlRequest(method, path, body) {
   return new Promise((resolve, reject) => {
     const bodyStr = body ? JSON.stringify(body) : null;
     const headers = {
       'Authorization': 'Bearer ' + process.env.HL_API_KEY,
-      'Version':       '2021-07-28',
       'Accept':        'application/json',
     };
     if (bodyStr) {
       headers['Content-Type']   = 'application/json';
       headers['Content-Length'] = Buffer.byteLength(bodyStr);
     }
-    const req = https.request({ hostname: 'services.leadconnectorhq.com', path, method, headers }, res => {
+    // Use rest.gohighlevel.com for LeadConnector API keys (AC... format)
+    const hostname = 'rest.gohighlevel.com';
+    const req = https.request({ hostname, path, method, headers }, res => {
       let d = ''; res.on('data', c => d += c);
       res.on('end', () => {
         console.log('[HL] ' + method + ' ' + path + ' => HTTP ' + res.statusCode + ' | ' + d.slice(0,300));
@@ -199,33 +199,29 @@ function hlRequest(method, path, body) {
 }
 
 async function sendHL_SMS(toPhone, message) {
-  // Normalize to E.164
   let p = (toPhone || '').replace(/[\s\-().]/g, '');
   if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
   console.log('[HL SMS] normalized phone:', p);
 
-  // Look up contact by phone
-  let search = await hlRequest('GET', '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
+  // GHL v1 contact search
+  let search = await hlRequest('GET', '/v1/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
   let contacts = (search.body && search.body.contacts) ? search.body.contacts : [];
   console.log('[HL SMS] contact search count:', contacts.length);
 
-  // Fallback: try without country code
   if (!contacts.length) {
     const bare = p.replace('+1', '');
-    const search2 = await hlRequest('GET', '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(bare));
+    const search2 = await hlRequest('GET', '/v1/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(bare));
     contacts = (search2.body && search2.body.contacts) ? search2.body.contacts : [];
     console.log('[HL SMS] fallback search count:', contacts.length);
   }
 
-  if (!contacts.length) {
-    throw new Error('No HL contact found for phone: ' + p);
-  }
+  if (!contacts.length) throw new Error('No HL contact found for phone: ' + p);
 
   const contactId = contacts[0].id;
   console.log('[HL SMS] contactId:', contactId);
 
-  // Send SMS
-  const smsResp = await hlRequest('POST', '/conversations/messages', {
+  // GHL v1 SMS
+  const smsResp = await hlRequest('POST', '/v1/conversations/messages', {
     type: 'SMS',
     contactId,
     message,
@@ -233,6 +229,10 @@ async function sendHL_SMS(toPhone, message) {
 
   if (smsResp.status >= 400) {
     throw new Error('HL SMS failed HTTP ' + smsResp.status + ': ' + JSON.stringify(smsResp.body).slice(0, 200));
+  }
+  return smsResp.body;
+}
+
   }
   return smsResp.body;
 }
