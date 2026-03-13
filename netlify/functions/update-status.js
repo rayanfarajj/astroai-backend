@@ -175,15 +175,14 @@ function hlRequest(method, path, body) {
   return new Promise((resolve, reject) => {
     const bodyStr = body ? JSON.stringify(body) : null;
     const headers = {
-      'Authorization': process.env.HL_API_KEY,  // LeadConnector key — no "Bearer" prefix
+      'Authorization': process.env.HL_API_KEY,
       'Accept':        'application/json',
-      'Version':       '2021-07-28',
     };
     if (bodyStr) {
       headers['Content-Type']   = 'application/json';
       headers['Content-Length'] = Buffer.byteLength(bodyStr);
     }
-    const req = https.request({ hostname: 'services.leadconnectorhq.com', path, method, headers }, res => {
+    const req = https.request({ hostname: 'rest.gohighlevel.com', path, method, headers }, res => {
       let d = ''; res.on('data', c => d += c);
       res.on('end', () => {
         console.log('[HL] ' + method + ' ' + path + ' => HTTP ' + res.statusCode + ' | ' + d.slice(0,400));
@@ -202,41 +201,35 @@ async function sendHL_SMS(toPhone, message) {
   if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
   console.log('[HL SMS] sending to:', p);
 
-  // Search for contact
-  const search = await hlRequest('GET', '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
+  // Search contact — GHL v1 API
+  const search = await hlRequest('GET', '/v1/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
   let contacts = search.body?.contacts || [];
   console.log('[HL SMS] contacts found:', contacts.length, '| HTTP:', search.status);
 
-  // Auto-create contact if not found
+  // Auto-create if not found
   if (!contacts.length) {
-    console.log('[HL SMS] creating contact on the fly');
-    const created = await hlRequest('POST', '/contacts/', {
+    console.log('[HL SMS] creating contact');
+    const created = await hlRequest('POST', '/v1/contacts/', {
       locationId: process.env.HL_LOCATION_ID,
       phone: p,
-      tags: ['astroai-client'],
     });
-    console.log('[HL SMS] create contact HTTP:', created.status);
-    if (created.body?.contact?.id) {
-      contacts = [created.body.contact];
-    } else {
-      throw new Error('Could not find or create HL contact for: ' + p);
-    }
+    console.log('[HL SMS] create HTTP:', created.status, JSON.stringify(created.body).slice(0,200));
+    if (created.body?.contact?.id) contacts = [created.body.contact];
+    else throw new Error('Could not find or create contact for: ' + p);
   }
 
   const contactId = contacts[0].id;
   console.log('[HL SMS] contactId:', contactId);
 
-  // Send SMS
-  const smsResp = await hlRequest('POST', '/conversations/messages', {
-    type: 'SMS',
+  // Send SMS — GHL v1
+  const smsResp = await hlRequest('POST', '/v1/conversations/messages/outbound', {
+    type:      'SMS',
     contactId,
     message,
   });
 
-  console.log('[HL SMS] send result HTTP:', smsResp.status);
-  if (smsResp.status >= 400) {
-    throw new Error('HL SMS failed HTTP ' + smsResp.status + ': ' + JSON.stringify(smsResp.body).slice(0, 200));
-  }
+  console.log('[HL SMS] send HTTP:', smsResp.status);
+  if (smsResp.status >= 400) throw new Error('SMS failed ' + smsResp.status + ': ' + JSON.stringify(smsResp.body).slice(0,200));
   return smsResp.body;
 }
 
