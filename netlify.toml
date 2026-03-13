@@ -10,6 +10,12 @@
 [functions."generate-plan"]
   timeout = 30
 
+[functions."generate-image"]
+  timeout = 30
+
+[functions."generate-prompt"]
+  timeout = 30
+
 [functions."process-plan"]
   timeout = 180
 
