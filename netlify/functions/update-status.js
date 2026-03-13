@@ -233,12 +233,6 @@ async function sendHL_SMS(toPhone, message) {
   return smsResp.body;
 }
 
-  }
-  return smsResp.body;
-}
-
-
-// ── Email ─────────────────────────────────────────────────────────────────────
 function sendEmail(to, subject, html) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
