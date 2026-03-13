@@ -1,5 +1,4 @@
 // netlify/functions/get-file.js
-// Serves a stored blob as a downloadable file
 import { getStore } from '@netlify/blobs';
 
 const CORS = {
@@ -29,10 +28,10 @@ export default async (req) => {
     return new Response(result.data, {
       status: 200,
       headers: {
+        ...CORS,
         'Content-Type': fileType,
         'Content-Disposition': `attachment; filename="${fileName}"`,
         'Cache-Control': 'private, max-age=3600',
-        ...CORS,
       }
     });
 
