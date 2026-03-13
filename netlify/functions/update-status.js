@@ -171,7 +171,7 @@ function firestorePatch(token, slug, fields) {
   });
 }
 
-function sendHL_SMS(toPhone, message) {
+function sendHL_SMS(toPhone, message, client) {
   return new Promise((resolve, reject) => {
     const webhookUrl = process.env.HL_WEBHOOK_URL;
     if (!webhookUrl) return reject(new Error('HL_WEBHOOK_URL not set'));
@@ -179,7 +179,18 @@ function sendHL_SMS(toPhone, message) {
     let p = (toPhone || '').replace(/[\s\-().]/g, '');
     if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
 
-    const bodyStr = JSON.stringify({ phone: p, message });
+    const nameParts = (client?.clientName||"").split(" ");
+    const firstName = nameParts[0]||"";
+    const lastName = nameParts.slice(1).join(" ")||"";
+    const bodyStr = JSON.stringify({
+      phone: p,
+      message,
+      firstName,
+      lastName,
+      email:        client?.clientEmail || "",
+      businessName: client?.businessName || "",
+      full_name:    client?.clientName || "",
+    });
     const url = new URL(webhookUrl);
     const req = https.request({
       hostname: url.hostname,
@@ -276,7 +287,7 @@ export default async (req) => {
       // SMS via HighLevel
       if (client.phone) {
         try {
-          await sendHL_SMS(client.phone, cfg.sms(client));
+          await sendHL_SMS(client.phone, cfg.sms(client), client);
           results.smsSent = true;
           console.log(`[update-status] SMS sent to ${client.phone}`);
         } catch(e) { console.error('[update-status] SMS failed:', e.message); }
