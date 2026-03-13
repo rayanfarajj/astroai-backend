@@ -1,6 +1,9 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SQUARE_ACCESS_TOKEN"
+
 [functions]
   node_bundler = "esbuild"
 
