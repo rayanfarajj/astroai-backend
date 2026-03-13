@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const STATUS_CONFIG = {
   new: {
     label: '🆕 New',
-    sms: (c) => `Hi ${c.clientName}! Welcome to Astro AI Marketing 🚀 We've received your onboarding for ${c.businessName}. Your Marketing Command Center is ready: ${c.dashboardUrl} — Your coordinator will be in touch shortly!`,
+    sms: (c) => `Hi ${c.clientName}! Welcome to Astro AI Marketing 🚀 Your onboarding for ${c.businessName} is complete! Access your Client Portal here: ${c.portalUrl} — Your coordinator will be in touch shortly!`,
     emailSubject: (c) => `Welcome to Astro AI — ${c.businessName} is officially onboarded!`,
     emailBody: (c) => `
       <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:32px;">
@@ -19,7 +19,12 @@ const STATUS_CONFIG = {
           <p style="font-size:1rem;color:#1a1d2e;">Hi <strong>${c.clientName}</strong>,</p>
           <p style="color:#4b5563;line-height:1.7;">We've officially onboarded <strong>${c.businessName}</strong> into the Astro AI Marketing system. Your personalized Marketing Command Center has been generated and is ready for you to explore.</p>
           <div style="text-align:center;margin:28px 0;">
-            <a href="${c.dashboardUrl}" style="background:#f97316;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;">View Your Dashboard →</a>
+            <a href="${c.dashboardUrl}" style="background:#f97316;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;">View Your Marketing Plan →</a>
+          </div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:20px 24px;margin:0 0 24px;text-align:center;">
+            <p style="color:#1e3a5f;font-size:0.85rem;font-weight:700;margin:0 0 6px;">🎛 Your Client Portal</p>
+            <p style="color:#4b5563;font-size:0.8rem;margin:0 0 14px;line-height:1.6;">Track your campaign status, grant ad account access, refer friends, and more — all in one place.</p>
+            <a href="${c.portalUrl}" style="background:#1e3a5f;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;">Open Your Client Portal →</a>
           </div>
           <p style="color:#4b5563;line-height:1.7;">Your dedicated coordinator will reach out shortly to walk you through your strategy and get your first campaign launched.</p>
           <p style="color:#4b5563;">Talk soon,<br><strong>The Astro AI Team</strong></p>
@@ -260,6 +265,7 @@ export default async (req) => {
       phone:        get('phone'),
       adPlatforms:  get('adPlatforms'),
       dashboardUrl: get('dashboardUrl'),
+      portalUrl:    `https://marketingplan.astroaibots.com/client-portal.html?s=${slug}`,
     };
 
     // Build Firestore patch — always update status, optionally notes
