@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,234 +6,83 @@
 <title>Astro AI — AI Marketing Plans for Agencies</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#050810;
-  --surface:#0d1117;
-  --surface2:#141a24;
-  --border:rgba(255,255,255,.08);
-  --teal:#00d9a3;
-  --teal2:#00ffbf;
-  --text:#eef2f7;
-  --muted:#6b7a99;
-  --dim:#2a3347;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+:root{--bg:#050810;--surface:#0d1117;--surface2:#141a24;--border:rgba(255,255,255,.08);--teal:#00d9a3;--teal2:#00ffbf;--text:#eef2f7;--muted:#6b7a99;--dim:#2a3347}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-
-/* Grid bg */
-body::before{
-content:’’;position:fixed;inset:0;
-background-image:linear-gradient(rgba(0,217,163,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,217,163,.04) 1px,transparent 1px);
-background-size:60px 60px;pointer-events:none;z-index:0;
-}
-
-/* NAV */
-nav{
-position:fixed;top:0;left:0;right:0;z-index:100;
-display:flex;align-items:center;justify-content:space-between;
-padding:0 40px;height:64px;
-background:rgba(5,8,16,.85);
-border-bottom:1px solid var(–border);
-backdrop-filter:blur(20px);
-}
-.nav-brand{display:flex;align-items:center;gap:10px;font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.1rem}
-.nav-icon{width:34px;height:34px;background:var(–teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;box-shadow:0 0 16px rgba(0,217,163,.4)}
-.nav-links{display:flex;gap:32px}
-.nav-links a{color:var(–muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s}
-.nav-links a:hover{color:var(–text)}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,217,163,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,217,163,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(5,8,16,.85);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem}
+.nav-icon{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;box-shadow:0 0 16px rgba(0,217,163,.4)}
+.nav-links{display:flex;gap:32px}.nav-links a{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s}.nav-links a:hover{color:var(--text)}
 .nav-cta{display:flex;gap:10px;align-items:center}
-
-/* BUTTONS */
-.btn{padding:9px 20px;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer;border:none;font-family:‘DM Sans’,sans-serif;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-.btn-teal{background:var(–teal);color:#0a1628}
-.btn-teal:hover{background:var(–teal2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,217,163,.3)}
-.btn-ghost{background:transparent;color:var(–text);border:1px solid var(–border)}
-.btn-ghost:hover{border-color:var(–teal);color:var(–teal)}
+.btn{padding:9px 20px;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-teal{background:var(--teal);color:#0a1628}.btn-teal:hover{background:var(--teal2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,217,163,.3)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
 .btn-lg{padding:14px 32px;font-size:.95rem;border-radius:10px}
-
-/* HERO */
-.hero{
-position:relative;z-index:1;
-min-height:100vh;display:flex;flex-direction:column;
-align-items:center;justify-content:center;
-padding:100px 24px 60px;text-align:center;
-}
-.hero-badge{
-display:inline-flex;align-items:center;gap:8px;
-background:rgba(0,217,163,.08);border:1px solid rgba(0,217,163,.2);
-border-radius:20px;padding:6px 16px;
-font-size:.75rem;font-weight:600;color:var(–teal);
-margin-bottom:28px;
-}
-.badge-dot{width:6px;height:6px;background:var(–teal);border-radius:50%;animation:pulse 2s infinite}
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 24px 60px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,217,163,.08);border:1px solid rgba(0,217,163,.2);border-radius:20px;padding:6px 16px;font-size:.75rem;font-weight:600;color:var(--teal);margin-bottom:28px}
+.badge-dot{width:6px;height:6px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero h1{
-font-family:‘Syne’,sans-serif;font-size:clamp(2.4rem,6vw,4.2rem);
-font-weight:800;line-height:1.08;letter-spacing:-.03em;
-margin-bottom:24px;max-width:800px;
-}
-.hero h1 span{color:var(–teal)}
-.hero p{font-size:1.1rem;color:var(–muted);max-width:520px;line-height:1.7;margin-bottom:40px}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;line-height:1.08;letter-spacing:-.03em;margin-bottom:24px;max-width:800px}
+.hero h1 span{color:var(--teal)}.hero p{font-size:1.1rem;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:40px}
 .hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:60px}
-.hero-stats{
-display:flex;gap:48px;flex-wrap:wrap;justify-content:center;
-border-top:1px solid var(–border);padding-top:40px;
-}
-.stat{text-align:center}
-.stat-num{font-family:‘Syne’,sans-serif;font-size:2rem;font-weight:800;color:var(–teal)}
-.stat-lbl{font-size:.75rem;color:var(–muted);margin-top:4px}
-
-/* HOW IT WORKS */
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;border-top:1px solid var(--border);padding-top:40px}
+.stat{text-align:center}.stat-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--teal)}.stat-lbl{font-size:.75rem;color:var(--muted);margin-top:4px}
 .section{position:relative;z-index:1;padding:80px 24px;max-width:1100px;margin:0 auto}
-.section-badge{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(–teal);margin-bottom:12px}
-.section h2{font-family:‘Syne’,sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em;margin-bottom:16px;line-height:1.15}
-.section p.lead{color:var(–muted);font-size:1rem;max-width:520px;line-height:1.7;margin-bottom:48px}
-
+.section-badge{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:12px}
+.section h2{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em;margin-bottom:16px;line-height:1.15}
+.section p.lead{color:var(--muted);font-size:1rem;max-width:520px;line-height:1.7;margin-bottom:48px}
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.step{
-background:var(–surface);border:1px solid var(–border);
-border-radius:12px;padding:28px;position:relative;overflow:hidden;
-}
-.step::before{
-content:’’;position:absolute;top:0;left:0;right:0;height:2px;
-background:linear-gradient(90deg,transparent,var(–teal),transparent);
-opacity:0;transition:opacity .3s;
-}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative;overflow:hidden}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:0;transition:opacity .3s}
 .step:hover::before{opacity:1}
-.step-num{
-width:36px;height:36px;border-radius:8px;
-background:var(–teal);color:#0a1628;
-display:flex;align-items:center;justify-content:center;
-font-family:‘Syne’,sans-serif;font-weight:800;font-size:.9rem;
-margin-bottom:16px;
-}
-.step h3{font-family:‘Syne’,sans-serif;font-size:1rem;font-weight:700;margin-bottom:8px}
-.step p{font-size:.83rem;color:var(–muted);line-height:1.6}
-
-/* FEATURES */
+.step-num{width:36px;height:36px;border-radius:8px;background:var(--teal);color:#0a1628;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;margin-bottom:16px}
+.step h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:8px}.step p{font-size:.83rem;color:var(--muted);line-height:1.6}
 .features{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:48px}
-.feat{
-background:var(–surface);border:1px solid var(–border);
-border-radius:12px;padding:24px;display:flex;gap:16px;align-items:flex-start;
-transition:border-color .2s;
-}
-.feat:hover{border-color:rgba(0,217,163,.3)}
-.feat-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px}
-.feat h3{font-weight:700;font-size:.9rem;margin-bottom:4px}
-.feat p{font-size:.8rem;color:var(–muted);line-height:1.6}
-
-/* PRICING */
+.feat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;display:flex;gap:16px;align-items:flex-start;transition:border-color .2s}
+.feat:hover{border-color:rgba(0,217,163,.3)}.feat-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px}
+.feat h3{font-weight:700;font-size:.9rem;margin-bottom:4px}.feat p{font-size:.8rem;color:var(--muted);line-height:1.6}
 .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
-.price-card{
-background:var(–surface);border:1px solid var(–border);
-border-radius:14px;padding:28px;
-}
-.price-card.featured{
-background:linear-gradient(135deg,rgba(0,217,163,.08),rgba(0,217,163,.03));
-border-color:rgba(0,217,163,.3);position:relative;
-}
-.featured-badge{
-position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-background:var(–teal);color:#0a1628;padding:4px 14px;border-radius:20px;
-font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
-white-space:nowrap;
-}
-.price-name{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(–muted);margin-bottom:8px}
-.price-amount{font-family:‘Syne’,sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
-.price-amount span{font-size:1rem;font-weight:400;color:var(–muted)}
-.price-desc{font-size:.8rem;color:var(–muted);margin-bottom:20px;line-height:1.5}
+.price-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px}
+.price-card.featured{background:linear-gradient(135deg,rgba(0,217,163,.08),rgba(0,217,163,.03));border-color:rgba(0,217,163,.3);position:relative}
+.featured-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--teal);color:#0a1628;padding:4px 14px;border-radius:20px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.price-name{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.price-amount{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.price-amount span{font-size:1rem;font-weight:400;color:var(--muted)}
+.price-desc{font-size:.8rem;color:var(--muted);margin-bottom:20px;line-height:1.5}
 .price-feats{list-style:none;margin-bottom:24px}
-.price-feats li{font-size:.8rem;color:var(–muted);padding:5px 0;border-bottom:1px solid var(–border);display:flex;gap:8px}
-.price-feats li::before{content:‘✓’;color:var(–teal);font-weight:700;flex-shrink:0}
-
-/* SIGNUP MODAL */
-.modal-bg{
-display:none;position:fixed;inset:0;
-background:rgba(0,0,0,.8);z-index:1000;
-align-items:center;justify-content:center;
-backdrop-filter:blur(8px);padding:20px;
-}
+.price-feats li{font-size:.8rem;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px}
+.price-feats li::before{content:'✓';color:var(--teal);font-weight:700;flex-shrink:0}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px}
 .modal-bg.open{display:flex}
-.modal{
-background:var(–surface);border:1px solid var(–border);
-border-radius:16px;width:min(540px,100%);
-max-height:90vh;overflow-y:auto;
-padding:36px;
-animation:modalIn .25s cubic-bezier(.4,0,.2,1);
-}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:min(540px,100%);max-height:90vh;overflow-y:auto;padding:36px;animation:modalIn .25s cubic-bezier(.4,0,.2,1)}
 @keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-.modal h2{font-family:‘Syne’,sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:6px}
-.modal p{font-size:.83rem;color:var(–muted);margin-bottom:24px}
+.modal h2{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.modal p{font-size:.83rem;color:var(--muted);margin-bottom:24px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(–muted);margin-bottom:5px}
-.field input,.field select{
-width:100%;padding:10px 13px;
-background:var(–surface2);border:1px solid var(–border);
-border-radius:8px;color:var(–text);font-size:.85rem;
-font-family:‘DM Sans’,sans-serif;outline:none;
-}
-.field input:focus,.field select:focus{border-color:var(–teal)}
-.field input::placeholder{color:var(–muted)}
+.field{margin-bottom:12px}.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px}
+.field input,.field select{width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none}
+.field input:focus,.field select:focus{border-color:var(--teal)}.field input::placeholder{color:var(--muted)}
 .form-footer{margin-top:20px;display:flex;flex-direction:column;gap:10px}
-.form-note{font-size:.72rem;color:var(–muted);text-align:center}
+.form-note{font-size:.72rem;color:var(--muted);text-align:center}
 .form-err{color:#f87171;font-size:.78rem;margin-top:6px;display:none}
-
-/* SUCCESS */
-.success-box{
-background:rgba(0,217,163,.06);border:1px solid rgba(0,217,163,.2);
-border-radius:12px;padding:24px;text-align:center;display:none;
-}
-.success-box h3{font-family:‘Syne’,sans-serif;color:var(–teal);font-size:1.2rem;margin-bottom:8px}
-.success-link{
-display:block;background:var(–surface2);border:1px solid var(–border);
-border-radius:8px;padding:10px 14px;font-size:.78rem;color:var(–text);
-text-decoration:none;margin-top:10px;word-break:break-all;
-transition:border-color .2s;
-}
-.success-link:hover{border-color:var(–teal)}
-
-/* FOOTER */
-footer{
-position:relative;z-index:1;
-border-top:1px solid var(–border);padding:40px 24px;
-text-align:center;color:var(–muted);font-size:.78rem;
-}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-nav{padding:0 16px}
-.nav-links{display:none}
-.steps,.features,.pricing{grid-template-columns:1fr}
-.form-row{grid-template-columns:1fr}
-.hero-stats{gap:24px}
-}
+.success-box{background:rgba(0,217,163,.06);border:1px solid rgba(0,217,163,.2);border-radius:12px;padding:24px;text-align:center;display:none}
+.success-box h3{font-family:'Syne',sans-serif;color:var(--teal);font-size:1.2rem;margin-bottom:8px}
+.success-link{display:block;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.78rem;color:var(--text);text-decoration:none;margin-top:10px;word-break:break-all;transition:border-color .2s}
+.success-link:hover{border-color:var(--teal)}
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:40px 24px;text-align:center;color:var(--muted);font-size:.78rem}
+@media(max-width:768px){nav{padding:0 16px}.nav-links{display:none}.steps,.features,.pricing{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.hero-stats{gap:24px}}
 </style>
-
 </head>
 <body>
-
-<!-- NAV -->
-
 <nav>
-  <div class="nav-brand">
-    <div class="nav-icon">🚀</div>
-    Astro AI
-  </div>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#features">Features</a>
-    <a href="#pricing">Pricing</a>
-  </div>
+  <div class="nav-brand"><div class="nav-icon">🚀</div>Astro AI</div>
+  <div class="nav-links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a></div>
   <div class="nav-cta">
     <a class="btn btn-ghost" href="#" onclick="openLoginPrompt()">Agency Login</a>
     <button class="btn btn-teal" onclick="openSignup()">Start Free →</button>
   </div>
 </nav>
-
-<!-- HERO -->
-
 <section class="hero">
   <div class="hero-badge"><span class="badge-dot"></span> Now in public beta — free to start</div>
   <h1>Give Every Client a <span>Custom AI<br>Marketing Plan</span> in Minutes</h1>
@@ -250,111 +98,60 @@ nav{padding:0 16px}
     <div class="stat"><div class="stat-num">∞</div><div class="stat-lbl">Clients on Pro plan</div></div>
   </div>
 </section>
-
-<!-- HOW IT WORKS -->
-
 <section class="section" id="how">
-  <div>
-    <div class="section-badge">How it works</div>
-    <h2>Live in 3 steps.<br>Seriously.</h2>
-    <p class="lead">No developers, no setup fees, no waiting. You're live the moment you sign up.</p>
-  </div>
+  <div class="section-badge">How it works</div>
+  <h2>Live in 3 steps.<br>Seriously.</h2>
+  <p class="lead">No developers, no setup fees, no waiting. You're live the moment you sign up.</p>
   <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <h3>Register Your Agency</h3>
-      <p>Fill out a short form. Your branded onboarding link and dashboard are created instantly.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h3>Share Your Onboarding Link</h3>
-      <p>Send clients to your custom link (e.g. <code style="color:var(--teal);font-size:.78rem">astroai.com/onboard/your-agency</code>). They fill in their info.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <h3>AI Builds the Plan</h3>
-      <p>Claude generates a full marketing plan — ad copy, targeting, roadmap, script — in ~2 minutes. Client gets it by email.</p>
-    </div>
+    <div class="step"><div class="step-num">1</div><h3>Register Your Agency</h3><p>Fill out a short form. Your branded onboarding link and dashboard are created instantly.</p></div>
+    <div class="step"><div class="step-num">2</div><h3>Share Your Onboarding Link</h3><p>Send clients to your custom link. They fill in their info and get their plan automatically.</p></div>
+    <div class="step"><div class="step-num">3</div><h3>AI Builds the Plan</h3><p>Claude generates a full marketing plan — ad copy, targeting, roadmap, script — in ~2 minutes.</p></div>
   </div>
 </section>
-
-<!-- FEATURES -->
-
 <section class="section" id="features">
-  <div>
-    <div class="section-badge">Features</div>
-    <h2>Everything your<br>agency needs.</h2>
-    <p class="lead">Built specifically for marketing agencies who want to scale their onboarding without scaling headcount.</p>
-  </div>
+  <div class="section-badge">Features</div>
+  <h2>Everything your<br>agency needs.</h2>
+  <p class="lead">Built for marketing agencies who want to scale onboarding without scaling headcount.</p>
   <div class="features">
     <div class="feat"><div class="feat-icon">🎨</div><div><h3>Your Brand, Your Colors</h3><p>Set your agency name, logo, and brand color. Every client sees your brand, not ours.</p></div></div>
     <div class="feat"><div class="feat-icon">📋</div><div><h3>Custom Onboarding Form</h3><p>Your clients fill out your branded form. Your terms of service. Your welcome message.</p></div></div>
-    <div class="feat"><div class="feat-icon">🤖</div><div><h3>AI Plan Generation</h3><p>Claude generates ad copy (5 angles × 2 variations), audience targeting, 90-day roadmap, and qualification scripts.</p></div></div>
+    <div class="feat"><div class="feat-icon">🤖</div><div><h3>AI Plan Generation</h3><p>Claude generates ad copy, audience targeting, 90-day roadmap, and qualification scripts.</p></div></div>
     <div class="feat"><div class="feat-icon">👤</div><div><h3>Client Portal</h3><p>Each client gets their own portal to view their plan, upload files, and communicate with your agency.</p></div></div>
-    <div class="feat"><div class="feat-icon">📊</div><div><h3>Agency Dashboard</h3><p>Manage all clients from one view. Update status, add notes, send messages, run special offers.</p></div></div>
-    <div class="feat"><div class="feat-icon">📧</div><div><h3>Automated Emails & SMS</h3><p>Clients are notified automatically when their plan is ready and when campaign status changes.</p></div></div>
-    <div class="feat"><div class="feat-icon">📁</div><div><h3>File Management</h3><p>Clients can upload creative assets, contracts, and documents directly in their portal.</p></div></div>
+    <div class="feat"><div class="feat-icon">📊</div><div><h3>Agency Dashboard</h3><p>Manage all clients from one view. Update status, add notes, send messages.</p></div></div>
+    <div class="feat"><div class="feat-icon">📧</div><div><h3>Automated Emails & SMS</h3><p>Clients are notified automatically when their plan is ready and when status changes.</p></div></div>
+    <div class="feat"><div class="feat-icon">📁</div><div><h3>File Management</h3><p>Clients can upload creative assets and documents directly in their portal.</p></div></div>
     <div class="feat"><div class="feat-icon">🎯</div><div><h3>Special Offers</h3><p>Run limited-time offers and promotions for specific clients or your whole client base.</p></div></div>
   </div>
 </section>
-
-<!-- PRICING -->
-
 <section class="section" id="pricing">
-  <div>
-    <div class="section-badge">Pricing</div>
-    <h2>Simple, transparent<br>pricing.</h2>
-    <p class="lead">Start free, upgrade when you're ready to scale. No hidden fees, no per-client charges on Pro.</p>
-  </div>
+  <div class="section-badge">Pricing</div>
+  <h2>Simple, transparent<br>pricing.</h2>
+  <p class="lead">Start free, upgrade when you're ready to scale.</p>
   <div class="pricing">
     <div class="price-card">
       <div class="price-name">Starter</div>
       <div class="price-amount">$0 <span>/mo</span></div>
-      <div class="price-desc">Perfect for testing the platform with your first clients.</div>
-      <ul class="price-feats">
-        <li>5 clients/month</li>
-        <li>Full AI plan generation</li>
-        <li>Client portal</li>
-        <li>Agency dashboard</li>
-        <li>Shared AI keys</li>
-        <li>Astro AI branding</li>
-      </ul>
+      <div class="price-desc">Perfect for testing the platform.</div>
+      <ul class="price-feats"><li>5 clients/month</li><li>Full AI plan generation</li><li>Client portal</li><li>Agency dashboard</li></ul>
       <button class="btn btn-ghost" style="width:100%" onclick="openSignup()">Get Started Free</button>
     </div>
     <div class="price-card featured">
       <div class="featured-badge">Most Popular</div>
       <div class="price-name">Pro</div>
       <div class="price-amount">$97 <span>/mo</span></div>
-      <div class="price-desc">For growing agencies ready to scale client onboarding.</div>
-      <ul class="price-feats">
-        <li>Unlimited clients</li>
-        <li>Your brand & logo</li>
-        <li>Custom welcome message</li>
-        <li>Custom terms of service</li>
-        <li>Email & SMS automation</li>
-        <li>Priority support</li>
-      </ul>
+      <div class="price-desc">For growing agencies ready to scale.</div>
+      <ul class="price-feats"><li>Unlimited clients</li><li>Your brand & logo</li><li>Custom terms of service</li><li>Email & SMS automation</li><li>Priority support</li></ul>
       <button class="btn btn-teal" style="width:100%" onclick="openSignup()">Start Pro Free →</button>
     </div>
     <div class="price-card">
       <div class="price-name">White Label</div>
       <div class="price-amount">$297 <span>/mo</span></div>
-      <div class="price-desc">Full white-label with your own domain and zero Astro AI branding.</div>
-      <ul class="price-feats">
-        <li>Everything in Pro</li>
-        <li>Custom domain</li>
-        <li>Remove all Astro AI branding</li>
-        <li>Bring your own API keys</li>
-        <li>Dedicated support</li>
-        <li>Early access to features</li>
-      </ul>
+      <div class="price-desc">Full white-label with your own domain.</div>
+      <ul class="price-feats"><li>Everything in Pro</li><li>Custom domain</li><li>Remove all Astro AI branding</li><li>Bring your own API keys</li><li>Dedicated support</li></ul>
       <button class="btn btn-ghost" style="width:100%" onclick="openSignup()">Contact Sales</button>
     </div>
   </div>
 </section>
-
-<!-- FOOTER -->
-
 <footer>
   <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--text)">🚀 Astro AI</div>
   <p>AI marketing platform for agencies · Built by <a href="https://astroaibots.com" style="color:var(--teal);text-decoration:none">AstroAI Bots</a></p>
@@ -362,7 +159,6 @@ nav{padding:0 16px}
 </footer>
 
 <!-- SIGNUP MODAL -->
-
 <div class="modal-bg" id="signup-modal" onclick="if(event.target===this)closeSignup()">
   <div class="modal">
     <div id="signup-form-wrap">
@@ -381,13 +177,13 @@ nav{padding:0 16px}
       <div class="form-err" id="s-err"></div>
       <div class="form-footer">
         <button class="btn btn-teal btn-lg" style="width:100%" onclick="submitSignup()" id="s-btn">Create My Agency →</button>
-        <p class="form-note">No credit card required. By signing up you agree to our <a href="#" style="color:var(--teal)">Terms of Service</a>.</p>
+        <p class="form-note">No credit card required.</p>
       </div>
     </div>
     <div class="success-box" id="signup-success">
       <div style="font-size:2rem;margin-bottom:8px">🎉</div>
       <h3>Your Agency is Live!</h3>
-      <p style="font-size:.83rem;color:var(--muted);margin:8px 0 16px">Check your email for login details. Bookmark your links:</p>
+      <p style="font-size:.83rem;color:var(--muted);margin:8px 0 16px">Bookmark your links below:</p>
       <a class="success-link" id="succ-dashboard" href="#" target="_blank">📊 Agency Dashboard →</a>
       <a class="success-link" id="succ-onboard" href="#" target="_blank">📋 Client Onboarding Form →</a>
       <button class="btn btn-teal" style="margin-top:16px;width:100%" onclick="goToDashboard()">Open My Dashboard →</button>
@@ -395,13 +191,12 @@ nav{padding:0 16px}
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
-
+<!-- LOGIN MODAL — now uses email -->
 <div class="modal-bg" id="login-modal" onclick="if(event.target===this)closeLogin()">
   <div class="modal">
     <h2>🔐 Agency Login</h2>
-    <p>Enter your agency ID and password to access your dashboard.</p>
-    <div class="field"><label>Agency ID</label><input id="l-id" placeholder="your-agency-name-abc123"></div>
+    <p>Enter your email and password to access your dashboard.</p>
+    <div class="field"><label>Email Address</label><input id="l-email" type="email" placeholder="you@agency.com"></div>
     <div class="field"><label>Password</label><input id="l-pw" type="password" placeholder="••••••••"></div>
     <div class="form-err" id="l-err"></div>
     <div class="form-footer">
@@ -411,82 +206,52 @@ nav{padding:0 16px}
 </div>
 
 <script>
-const API = 'https://marketingplan.astroaibots.com/api';
-
-function openSignup()  { document.getElementById('signup-modal').classList.add('open'); }
-function closeSignup() { document.getElementById('signup-modal').classList.remove('open'); }
-function openLoginPrompt() { document.getElementById('login-modal').classList.add('open'); }
-function closeLogin()  { document.getElementById('login-modal').classList.remove('open'); }
-
-let createdDashUrl = '', createdOnbUrl = '', createdAgencyId = '';
-
-async function submitSignup() {
-  const agency = v('s-agency'), name = v('s-name'), email = v('s-email'), pw = v('s-pw');
-  const err = s => { const el = document.getElementById('s-err'); el.textContent = s; el.style.display = 'block'; };
-
-  if (!agency || !name || !email || !pw) return err('Please fill in all required fields.');
-  if (pw.length < 8) return err('Password must be at least 8 characters.');
-  if (!email.includes('@')) return err('Enter a valid email address.');
-
-  const btn = document.getElementById('s-btn');
-  btn.textContent = '⏳ Creating...'; btn.disabled = true;
-  document.getElementById('s-err').style.display = 'none';
-
-  try {
-    const res  = await fetch(API + '/agency/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agencyName: agency, ownerName: name, ownerEmail: email, password: pw, phone: v('s-phone'), website: v('s-site') }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.error || 'Registration failed');
-
-    createdDashUrl  = data.dashboardUrl;
-    createdOnbUrl   = data.onboardingUrl;
-    createdAgencyId = data.agencyId;
-
-    // Store token for redirect
-    sessionStorage.setItem('saas_agency_id', data.agencyId);
-
-    document.getElementById('signup-form-wrap').style.display = 'none';
-    document.getElementById('signup-success').style.display = 'block';
-    document.getElementById('succ-dashboard').href = createdDashUrl;
-    document.getElementById('succ-dashboard').textContent = '📊 Agency Dashboard → ' + createdDashUrl;
-    document.getElementById('succ-onboard').href = createdOnbUrl;
-    document.getElementById('succ-onboard').textContent = '📋 Onboarding Form → ' + createdOnbUrl;
-
-  } catch(e) {
-    err(e.message);
-    btn.textContent = 'Create My Agency →'; btn.disabled = false;
-  }
+const API='https://marketingplan.astroaibots.com/api';
+function openSignup(){document.getElementById('signup-modal').classList.add('open')}
+function closeSignup(){document.getElementById('signup-modal').classList.remove('open')}
+function openLoginPrompt(){document.getElementById('login-modal').classList.add('open')}
+function closeLogin(){document.getElementById('login-modal').classList.remove('open')}
+let createdDashUrl='',createdOnbUrl='';
+async function submitSignup(){
+  const agency=v('s-agency'),name=v('s-name'),email=v('s-email'),pw=v('s-pw');
+  const err=s=>{const el=document.getElementById('s-err');el.textContent=s;el.style.display='block'};
+  if(!agency||!name||!email||!pw)return err('Please fill in all required fields.');
+  if(pw.length<8)return err('Password must be at least 8 characters.');
+  if(!email.includes('@'))return err('Enter a valid email address.');
+  const btn=document.getElementById('s-btn');btn.textContent='⏳ Creating...';btn.disabled=true;
+  document.getElementById('s-err').style.display='none';
+  try{
+    const res=await fetch(API+'/agency/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyName:agency,ownerName:name,ownerEmail:email,password:pw,phone:v('s-phone'),website:v('s-site')})});
+    const data=await res.json();
+    if(!res.ok||!data.success)throw new Error(data.error||'Registration failed');
+    createdDashUrl=data.dashboardUrl;createdOnbUrl=data.onboardingUrl;
+    sessionStorage.setItem('saas_agency_id',data.agencyId);
+    document.getElementById('signup-form-wrap').style.display='none';
+    document.getElementById('signup-success').style.display='block';
+    document.getElementById('succ-dashboard').href=createdDashUrl;
+    document.getElementById('succ-dashboard').textContent='📊 '+createdDashUrl;
+    document.getElementById('succ-onboard').href=createdOnbUrl;
+    document.getElementById('succ-onboard').textContent='📋 '+createdOnbUrl;
+  }catch(e){err(e.message);btn.textContent='Create My Agency →';btn.disabled=false}
 }
-
-function goToDashboard() {
-  if (createdDashUrl) window.location.href = createdDashUrl;
+function goToDashboard(){if(createdDashUrl)window.location.href=createdDashUrl}
+async function submitLogin(){
+  const email=v('l-email'),pw=v('l-pw');
+  const err=s=>{const el=document.getElementById('l-err');el.textContent=s;el.style.display='block'};
+  if(!email||!pw)return err('Email and password required.');
+  const btn=document.getElementById('l-btn');btn.textContent='⏳...';btn.disabled=true;
+  document.getElementById('l-err').style.display='none';
+  try{
+    const res=await fetch(API+'/agency/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw})});
+    const data=await res.json();
+    if(!res.ok||!data.success)throw new Error(data.error||'Login failed');
+    sessionStorage.setItem('saas_token',data.token);
+    sessionStorage.setItem('saas_agency_id',data.agencyId);
+    window.location.href='https://marketingplan.astroaibots.com/saas-dashboard.html';
+  }catch(e){err(e.message);btn.textContent='Log In →';btn.disabled=false}
 }
-
-async function submitLogin() {
-  const id = v('l-id'), pw = v('l-pw');
-  const err = s => { const el = document.getElementById('l-err'); el.textContent = s; el.style.display = 'block'; };
-  if (!id || !pw) return err('Agency ID and password required.');
-  const btn = document.getElementById('l-btn');
-  btn.textContent = '⏳...'; btn.disabled = true;
-  try {
-    const res  = await fetch(API + '/agency/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agencyId: id, password: pw }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.error || 'Login failed');
-    sessionStorage.setItem('saas_token', data.token);
-    sessionStorage.setItem('saas_agency_id', data.agencyId);
-    window.location.href = `https://marketingplan.astroaibots.com/saas-dashboard.html`;
-  } catch(e) {
-    err(e.message); btn.textContent = 'Log In →'; btn.disabled = false;
-  }
-}
-
-function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+function v(id){return(document.getElementById(id)?.value||'').trim()}
 </script>
-
+</body>
+</html>
 </body>
