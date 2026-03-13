@@ -8,6 +8,23 @@ const CORS = {
   'Content-Type':                 'application/json',
 };
 
+// Fire HTTP request and wait until it's fully sent (but don't wait for response)
+function fireAndForget(options, body) {
+  return new Promise((resolve) => {
+    const req = https.request(options, (res) => {
+      // Drain the response so the socket closes cleanly
+      res.resume();
+      resolve();
+    });
+    req.on('error', (e) => {
+      console.error('process-plan trigger error:', e.message);
+      resolve(); // still resolve — don't block the 202
+    });
+    req.write(body);
+    req.end();
+  });
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
@@ -23,12 +40,13 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No client email provided' }) };
   }
 
-  // ── Hand off to process-plan asynchronously — don't await it ──
   console.log('Received request for:', businessName, '— handing off to process-plan');
 
   const body = JSON.stringify(data);
 
-  const processOptions = {
+  // AWAIT the fire — waits until request is sent + response starts, then moves on
+  // This prevents Netlify from killing the execution before the TCP call goes out
+  await fireAndForget({
     hostname: 'celebrated-baklava-e035d6.netlify.app',
     path:     '/.netlify/functions/process-plan',
     method:   'POST',
@@ -37,12 +55,7 @@ exports.handler = async (event) => {
       'Content-Length': Buffer.byteLength(body),
       'x-internal-key': process.env.INTERNAL_KEY || 'astroai-internal',
     },
-  };
-
-  const req = https.request(processOptions);
-  req.on('error', e => console.error('process-plan trigger error:', e.message));
-  req.write(body);
-  req.end();
+  }, body);
 
   console.log('process-plan triggered for:', businessName);
 
