@@ -13,6 +13,15 @@
 [functions."generate-image"]
   timeout = 30
 
+[functions."get-portal"]
+  timeout = 15
+
+[functions."submit-referral"]
+  timeout = 15
+
+[functions."set-offer"]
+  timeout = 15
+
 [functions."generate-prompt"]
   timeout = 30
 
