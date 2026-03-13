@@ -331,6 +331,27 @@ function activateFirstTab() {
   if (firstContent) firstContent.classList.add('active');
 }
 
+async function sendMessage(e, slug, clientName, businessName, clientEmail) {
+  e.preventDefault();
+  const btn     = document.getElementById('msg-btn');
+  const subject = document.getElementById('msg-subject').value.trim();
+  const body    = document.getElementById('msg-body').value.trim();
+  if (!body) { showToast('❌ Please enter a message'); return; }
+  btn.disabled = true; btn.textContent = '⏳ Sending...';
+  try {
+    const res = await fetch(API + '/send-message', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, clientName, businessName, clientEmail, subject, message: body }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('msg-form').style.display = 'none';
+      document.getElementById('msg-success').classList.add('show');
+    } else { showToast('❌ ' + (data.error || 'Failed to send')); }
+  } catch(err) { showToast('❌ ' + err.message); }
+  finally { btn.disabled = false; btn.textContent = '💬 Send Message'; }
+}
+
 async function submitReferral(e, slug, clientName, businessName) {
   e.preventDefault();
   const btn = document.getElementById('refer-btn');
@@ -393,7 +414,7 @@ async function init() {
           ${offer.description ? `<div class="offer-desc">${offer.description}</div>` : ''}
           ${offer.expiresAt ? `<div class="offer-expires">⏰ Expires: ${new Date(offer.expiresAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>` : ''}
         </div>
-        <a href="${offer.ctaUrl}" target="_blank" class="offer-cta-btn">${offer.ctaText}</a>
+        <a href="${offer.ctaUrl.startsWith('http')?offer.ctaUrl:'https://'+offer.ctaUrl}" target="_blank" class="offer-cta-btn">${offer.ctaText}</a>
       </div>` : ''}
 
       <!-- STATUS HERO -->
@@ -486,6 +507,29 @@ async function init() {
           <div class="success-msg" id="refer-success">
             <h3>🎉 Referral Submitted!</h3>
             <p>We'll reach out to them soon. Thank you for spreading the word — we appreciate you!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESSAGE US -->
+      <div class="card">
+        <div class="card-header"><div class="card-icon">💬</div><div class="card-title">Message Us</div></div>
+        <div class="card-body">
+          <p style="font-size:.82rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px;">Have a question, update, or need to reach your coordinator? Send us a message and we'll get back to you shortly.</p>
+          <div id="msg-form">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input class="form-input" type="text" id="msg-subject" placeholder="e.g. Question about my campaign...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message <span style="color:var(--red)">*</span></label>
+              <textarea class="form-input" id="msg-body" rows="4" placeholder="Type your message here..." style="resize:vertical;line-height:1.6"></textarea>
+            </div>
+            <button class="submit-btn" id="msg-btn" onclick="sendMessage(event,'${c.id}','${c.clientName.replace(/'/g,"\'")}','${c.businessName.replace(/'/g,"\'")}','${c.clientEmail}')">💬 Send Message</button>
+          </div>
+          <div class="success-msg" id="msg-success">
+            <h3>✅ Message Sent!</h3>
+            <p>We've received your message and will follow up with you soon.</p>
           </div>
         </div>
       </div>
