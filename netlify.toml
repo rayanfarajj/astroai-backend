@@ -16,6 +16,9 @@
 [functions."get-portal"]
   timeout = 15
 
+[functions."send-message"]
+  timeout = 15
+
 [functions."submit-referral"]
   timeout = 15
 
