@@ -28,24 +28,7 @@
 [functions."process-plan"]
   timeout = 180
 
-# Serve static HTML files directly
-[[redirects]]
-  from = "/agency-dashboard.html"
-  to = "/agency-dashboard.html"
-  status = 200
-  force = false
-
-[[redirects]]
-  from = "/client-portal.html"
-  to = "/client-portal.html"
-  status = 200
-  force = false
-
-# Catch-all: route everything else through serve-plan
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/serve-plan?slug=:splat"
-  status = 200
+# Redirects are handled by public/_redirects file
 
 [[headers]]
   for = "/.netlify/functions/*"
