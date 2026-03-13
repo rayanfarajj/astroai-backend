@@ -4,1054 +4,633 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Client Portal — Astro AI</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f5f4f0;
-  --surface: #ffffff;
-  --surface-2: #f0ede8;
-  --border: #e4e0d8;
-  --navy: #0d1f3c;
-  --navy-2: #1a3560;
-  --orange: #f4622a;
-  --orange-2: #ff8c5a;
-  --green: #1a9e6e;
-  --green-bg: #edf7f3;
-  --red: #e03c3c;
-  --text: #1a1a2e;
-  --text-dim: #6b6b7e;
-  --text-muted: #a0a0b0;
-  --shadow: 0 2px 8px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 20px rgba(0,0,0,.08);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
-  --radius: 16px;
-  --sidebar-w: 260px;
+  --bg:        #0a0e1a;
+  --surface:   #111827;
+  --surface-2: #1a2235;
+  --surface-3: #1f2d42;
+  --border:    rgba(255,255,255,.07);
+  --border-2:  rgba(255,255,255,.12);
+  --teal:      #00d9a3;
+  --teal-dim:  rgba(0,217,163,.12);
+  --teal-glow: rgba(0,217,163,.25);
+  --orange:    #f97316;
+  --orange-dim:rgba(249,115,22,.12);
+  --red:       #ef4444;
+  --blue:      #3b82f6;
+  --text:      #e2e8f0;
+  --text-dim:  #8892a4;
+  --text-muted:#4a5568;
+  --font:      'Plus Jakarta Sans', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+  --sidebar-w: 240px;
+  --radius:    10px;
 }
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px;line-height:1.5;}
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s .2s;}
+#loading.out{opacity:0;pointer-events:none;}
+.load-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.load-logo-icon{width:40px;height:40px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 20px var(--teal-glow);}
+.load-logo-text{font-size:1.2rem;font-weight:800;color:var(--text);letter-spacing:-.02em;}
+.load-logo-text span{color:var(--teal);}
+.load-track{width:180px;height:2px;background:var(--surface-2);border-radius:2px;overflow:hidden;}
+.load-bar{height:100%;background:var(--teal);border-radius:2px;animation:loadslide 1.4s ease-in-out infinite;}
+@keyframes loadslide{0%{width:0%;transform:translateX(0)}60%{width:70%}100%{width:100%;transform:translateX(100%)}}
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-}
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.sb-top{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.sb-brand{display:flex;align-items:center;gap:10px;margin-bottom:16px;text-decoration:none;}
+.sb-brand-icon{width:32px;height:32px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;box-shadow:0 0 12px var(--teal-glow);}
+.sb-brand-name{font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.02em;}
+.sb-brand-sub{font-size:.62rem;color:var(--text-muted);font-weight:400;}
+.sb-client{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.sb-client-name{font-weight:700;font-size:.82rem;color:var(--text);line-height:1.3;}
+.sb-client-biz{font-size:.72rem;color:var(--text-dim);margin-top:2px;}
 
-/* ── SIDEBAR ── */
-.sidebar {
-  width: var(--sidebar-w);
-  background: var(--navy);
-  min-height: 100vh;
-  position: fixed;
-  top: 0; left: 0;
-  display: flex;
-  flex-direction: column;
-  z-index: 200;
-  transition: transform .3s ease;
-}
+.sb-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+.sb-section{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);padding:12px 8px 6px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--text-dim);font-size:.82rem;font-weight:500;transition:all .15s;margin-bottom:1px;background:none;border:none;width:100%;text-align:left;font-family:var(--font);}
+.nav-item:hover{background:var(--surface-2);color:var(--text);}
+.nav-item.active{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);}
+.nav-icon{font-size:.9rem;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:20px;}
 
-.sidebar-logo {
-  padding: 28px 24px 20px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.logo-mark {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-}
-.logo-icon {
-  width: 36px; height: 36px;
-  background: var(--orange);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(244,98,42,.4);
-}
-.logo-text {
-  font-family: 'Syne', sans-serif;
-  font-size: .95rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -.01em;
-  line-height: 1.2;
-}
-.logo-sub { color: rgba(255,255,255,.35); font-size: .65rem; font-weight: 400; }
+.sb-foot{padding:12px 16px;border-top:1px solid var(--border);}
+.sb-status{display:flex;align-items:center;gap:7px;font-size:.75rem;color:var(--text-dim);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px var(--teal);animation:blink 2s ease-in-out infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-.client-chip {
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.client-chip-name { color: #fff; font-size: .82rem; font-weight: 600; line-height: 1.3; }
-.client-chip-biz { color: rgba(255,255,255,.45); font-size: .72rem; margin-top: 2px; }
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;backdrop-filter:blur(2px);}
+.overlay.on{display:block;}
 
-.sidebar-nav {
-  flex: 1;
-  padding: 16px 12px;
-  overflow-y: auto;
-}
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0;}
 
-.nav-section-label {
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  color: rgba(255,255,255,.3);
-  padding: 12px 12px 6px;
-  text-transform: uppercase;
-}
+/* TOPBAR */
+.topbar{height:52px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.hamburger{display:none;background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;padding:4px;}
+.topbar-title{font-weight:700;font-size:.88rem;color:var(--text);}
+.topbar-biz{font-size:.75rem;color:var(--text-muted);font-family:var(--mono);}
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  color: rgba(255,255,255,.55);
-  font-size: .85rem;
-  font-weight: 500;
-  transition: all .15s;
-  margin-bottom: 2px;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-}
-.nav-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
-.nav-item.active { background: rgba(244,98,42,.2); color: #fff; }
-.nav-item.active .nav-icon { color: var(--orange); }
-.nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-.nav-badge {
-  margin-left: auto;
-  background: var(--orange);
-  color: #fff;
-  font-size: .6rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 20px;
-}
+/* CONTENT */
+.content{flex:1;padding:28px;max-width:860px;}
+.section{display:none;animation:fadeup .2s ease both;}
+.section.active{display:block;}
+@keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-.sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.status-pill-sidebar {
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: .75rem;
-  color: rgba(255,255,255,.7);
-  display: flex; align-items: center; gap: 6px;
-}
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #1de9b6; box-shadow: 0 0 6px #1de9b6; animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* PAGE HEADER */
+.page-hd{margin-bottom:24px;}
+.page-hd h1{font-size:1.3rem;font-weight:800;color:var(--text);letter-spacing:-.02em;margin-bottom:3px;}
+.page-hd p{font-size:.82rem;color:var(--text-dim);line-height:1.6;}
 
-/* ── MAIN ── */
-.main {
-  margin-left: var(--sidebar-w);
-  flex: 1;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-hd-left{display:flex;align-items:center;gap:8px;}
+.card-icon{font-size:.9rem;}
+.card-title{font-size:.82rem;font-weight:700;color:var(--text);}
+.card-body{padding:18px;}
 
-/* ── TOP BAR ── */
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.topbar-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--navy);
-}
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-.menu-btn {
-  display: none;
-  background: none; border: none; cursor: pointer;
-  font-size: 1.3rem; color: var(--navy);
-}
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,var(--teal-glow) 0%,transparent 70%);pointer-events:none;}
+.hero-biz{font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:-.03em;margin-bottom:4px;}
+.hero-greet{font-size:.8rem;color:var(--text-dim);margin-bottom:18px;}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.25);border-radius:20px;padding:5px 12px;font-size:.75rem;font-weight:600;color:var(--teal);}
+.hero-updated{font-size:.7rem;color:var(--text-muted);margin-top:10px;font-family:var(--mono);}
 
-/* ── PAGE CONTENT ── */
-.page-content {
-  flex: 1;
-  padding: 32px;
-  max-width: 900px;
-}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.stat-n{font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-.03em;font-family:var(--mono);}
+.stat-l{font-size:.68rem;color:var(--text-muted);margin-top:2px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;}
 
-.section { display: none; }
-.section.active { display: block; }
+/* TIMELINE */
+.tl{padding:2px 0;}
+.tl-row{display:flex;gap:12px;padding:8px 0;position:relative;}
+.tl-row:not(:last-child)::before{content:'';position:absolute;left:13px;top:34px;width:1px;height:calc(100% - 10px);background:var(--border);}
+.tl-row.done::before{background:var(--teal);opacity:.4;}
+.tl-dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;z-index:1;border:1px solid var(--border);background:var(--surface-2);}
+.tl-row.done .tl-dot{background:var(--teal-dim);border-color:rgba(0,217,163,.4);color:var(--teal);}
+.tl-row.current .tl-dot{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.tl-info{flex:1;padding-top:4px;}
+.tl-label{font-size:.82rem;font-weight:600;color:var(--text);}
+.tl-row.pending .tl-label{color:var(--text-muted);}
+.tl-desc{font-size:.73rem;color:var(--text-dim);margin-top:1px;line-height:1.5;}
 
-/* ── OFFER BANNER ── */
-.offer-banner {
-  background: linear-gradient(135deg, var(--orange), #e04510);
-  border-radius: var(--radius);
-  padding: 20px 24px;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  margin-bottom: 28px;
-  box-shadow: 0 8px 24px rgba(244,98,42,.3);
-  flex-wrap: wrap;
-  animation: offerGlow 3s ease-in-out infinite;
-}
-@keyframes offerGlow {
-  0%,100% { box-shadow: 0 8px 24px rgba(244,98,42,.3); }
-  50% { box-shadow: 0 8px 36px rgba(244,98,42,.5); }
-}
-.offer-tag { background: rgba(255,255,255,.2); color: #fff; font-size: .65rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: .06em; margin-bottom: 5px; display: inline-block; }
-.offer-title { color: #fff; font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
-.offer-desc { color: rgba(255,255,255,.8); font-size: .82rem; line-height: 1.5; }
-.offer-expires { color: rgba(255,255,255,.55); font-size: .72rem; margin-top: 4px; }
-.offer-btn {
-  background: #fff; color: var(--orange); border: none; border-radius: 10px;
-  padding: 11px 22px; font-size: .85rem; font-weight: 700; cursor: pointer;
-  white-space: nowrap; font-family: 'DM Sans', sans-serif;
-  text-decoration: none; display: inline-block; flex-shrink: 0;
-  transition: transform .2s, box-shadow .2s;
-}
-.offer-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+/* INFO TABLE */
+.info-table{width:100%;border-collapse:collapse;}
+.info-table tr{border-bottom:1px solid var(--border);}
+.info-table tr:last-child{border:none;}
+.info-table td{padding:10px 0;font-size:.82rem;}
+.info-table td:first-child{color:var(--text-muted);width:140px;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.info-table td:last-child{color:var(--text);font-weight:500;}
 
-/* ── SECTION HEADER ── */
-.section-header { margin-bottom: 24px; }
-.section-header h1 { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
-.section-header p { color: var(--text-dim); font-size: .88rem; line-height: 1.6; }
+/* OFFER BANNER */
+.offer{background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(249,115,22,.05));border:1px solid rgba(249,115,22,.25);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.offer-tag{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:4px;}
+.offer-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.offer-desc{font-size:.78rem;color:var(--text-dim);line-height:1.5;}
+.offer-exp{font-size:.68rem;color:var(--text-muted);margin-top:4px;font-family:var(--mono);}
+.offer-btn{background:var(--orange);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font);text-decoration:none;display:inline-block;transition:opacity .15s;flex-shrink:0;}
+.offer-btn:hover{opacity:.85;}
 
-/* ── CARDS ── */
-.card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-.card-header {
-  padding: 18px 22px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
-}
-.card-icon { font-size: 1.1rem; }
-.card-title { font-size: .9rem; font-weight: 700; color: var(--navy); }
-.card-body { padding: 22px; }
+/* PLATFORM TABS */
+.ptabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;}
+.ptab{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);font-size:.76rem;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .15s;font-family:var(--font);}
+.ptab.active{background:var(--teal-dim);border-color:rgba(0,217,163,.3);color:var(--teal);}
+.ptab-pane{display:none;}
+.ptab-pane.active{display:block;}
+.step-list{list-style:none;}
+.step-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text-dim);line-height:1.6;}
+.step-item:last-child{border:none;}
+.step-n{min-width:22px;height:22px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border-2);color:var(--text-dim);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.step-item a{color:var(--teal);text-decoration:none;}
+.step-item a:hover{text-decoration:underline;}
+.access-note{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:7px;padding:10px 14px;font-size:.75rem;color:#fdba74;margin-top:12px;line-height:1.5;}
 
-/* ── STATUS HERO ── */
-.status-hero {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
-  border-radius: var(--radius);
-  padding: 28px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.status-hero::before {
-  content: '';
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 200px; height: 200px;
-  background: rgba(244,98,42,.12);
-  border-radius: 50%;
-}
-.status-hero::after {
-  content: '';
-  position: absolute;
-  bottom: -60px; left: 20px;
-  width: 150px; height: 150px;
-  background: rgba(255,255,255,.03);
-  border-radius: 50%;
-}
-.status-biz { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 4px; position: relative; z-index: 1; }
-.status-greeting { color: rgba(255,255,255,.55); font-size: .85rem; margin-bottom: 20px; position: relative; z-index: 1; }
-.status-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 24px; padding: 8px 16px;
-  font-size: .82rem; font-weight: 600; color: #fff;
-  position: relative; z-index: 1; margin-bottom: 12px;
-}
-.status-updated { color: rgba(255,255,255,.35); font-size: .72rem; position: relative; z-index: 1; }
+/* FORMS */
+.fgrp{margin-bottom:12px;}
+.flabel{font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.05em;}
+.finput{width:100%;padding:9px 12px;border:1px solid var(--border-2);border-radius:7px;font-size:.82rem;font-family:var(--font);color:var(--text);background:var(--surface-2);outline:none;transition:border-color .15s;}
+.finput:focus{border-color:var(--teal);}
+textarea.finput{resize:vertical;line-height:1.6;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fhint{font-size:.68rem;color:var(--text-muted);margin-top:4px;}
+.btn-primary{width:100%;padding:10px;background:var(--teal);color:#0a0e1a;border:none;border-radius:7px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:opacity .15s;margin-top:4px;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+.btn-navy{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;background:var(--surface-3);color:var(--text);border:1px solid var(--border-2);border-radius:7px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:var(--font);text-decoration:none;transition:background .15s;margin-top:12px;}
+.btn-navy:hover{background:var(--surface-2);}
 
-/* ── STATS ROW ── */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  text-align: center;
-}
-.stat-num { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--navy); }
-.stat-label { font-size: .72rem; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+/* REFERRAL */
+.ref-hero{background:linear-gradient(135deg,var(--surface-2),var(--surface-3));border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ref-n{font-size:2rem;font-weight:800;color:var(--teal);font-family:var(--mono);letter-spacing:-.04em;}
+.ref-l{font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+.perks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.perk{background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);color:var(--teal);border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:600;}
 
-/* ── TIMELINE ── */
-.timeline { padding: 4px 0; }
-.tl-step { display: flex; gap: 14px; padding: 10px 0; position: relative; }
-.tl-step:not(:last-child)::before {
-  content: ''; position: absolute; left: 15px; top: 38px;
-  width: 2px; height: calc(100% - 12px);
-  background: var(--border);
-}
-.tl-step.done::before { background: var(--green); }
-.tl-icon {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .82rem; font-weight: 700; z-index: 1;
-  border: 2px solid var(--border); background: var(--bg);
-}
-.tl-step.done .tl-icon { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-.tl-step.current .tl-icon { background: #eff6ff; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-.tl-body { flex: 1; padding-top: 5px; }
-.tl-label { font-size: .85rem; font-weight: 600; color: var(--text); }
-.tl-step.pending .tl-label { color: var(--text-muted); }
-.tl-desc { font-size: .76rem; color: var(--text-dim); margin-top: 2px; line-height: 1.5; }
+/* FILES */
+.upload-zone{border:1.5px dashed var(--border-2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface-2);position:relative;}
+.upload-zone:hover,.upload-zone.over{border-color:var(--teal);background:rgba(0,217,163,.04);}
+.upload-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.upload-icon{font-size:2rem;margin-bottom:8px;}
+.upload-t{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.upload-h{font-size:.76rem;color:var(--text-muted);}
+.upload-chips{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+.uchip{background:var(--surface-3);color:var(--text-muted);border-radius:5px;padding:2px 7px;font-size:.65rem;font-weight:600;font-family:var(--mono);}
+.flist{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.fitem{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;}
+.fitem-icon{font-size:1.1rem;flex-shrink:0;}
+.fitem-info{flex:1;min-width:0;}
+.fitem-name{font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fitem-meta{font-size:.68rem;color:var(--text-muted);margin-top:1px;font-family:var(--mono);}
+.fitem-st{font-size:.7rem;font-weight:700;flex-shrink:0;}
+.fitem-st.uploading{color:var(--orange);}
+.fitem-st.done{color:var(--teal);}
+.fitem-st.error{color:var(--red);}
+.dl-link{font-size:.72rem;font-weight:600;color:var(--teal);text-decoration:none;flex-shrink:0;padding:4px 8px;border:1px solid rgba(0,217,163,.25);border-radius:5px;transition:all .15s;}
+.dl-link:hover{background:var(--teal-dim);}
 
-/* ── INFO GRID ── */
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.info-cell { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
-.info-label { font-size: .67rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-.info-val { font-size: .85rem; font-weight: 600; color: var(--text); }
+/* SUCCESS */
+.success-box{background:rgba(0,217,163,.07);border:1px solid rgba(0,217,163,.2);border-radius:8px;padding:16px;text-align:center;display:none;}
+.success-box.on{display:block;}
+.success-box h3{color:var(--teal);font-size:.88rem;margin-bottom:4px;}
+.success-box p{color:var(--text-dim);font-size:.78rem;}
 
-/* ── PLATFORM TABS ── */
-.ptabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-.ptab {
-  padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border);
-  background: var(--bg); font-size: .78rem; font-weight: 600; cursor: pointer;
-  color: var(--text-dim); transition: all .15s; font-family: 'DM Sans', sans-serif;
-}
-.ptab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
-.ptab-content { display: none; }
-.ptab-content.active { display: block; }
-.access-list { list-style: none; }
-.access-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .83rem; color: var(--text-dim); line-height: 1.6; }
-.access-item:last-child { border-bottom: none; }
-.step-num { min-width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .67rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-.access-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: .78rem; color: #92400e; line-height: 1.5; margin-top: 12px; }
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface-3);border:1px solid var(--border-2);color:var(--text);padding:10px 18px;border-radius:8px;font-size:.78rem;font-weight:500;opacity:0;transition:all .2s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ── FORMS ── */
-.form-group { margin-bottom: 14px; }
-.form-label { font-size: .75rem; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; display: block; }
-.form-input {
-  width: 100%; padding: 11px 14px;
-  border: 1.5px solid var(--border); border-radius: 10px;
-  font-size: .85rem; font-family: 'DM Sans', sans-serif; color: var(--text);
-  background: var(--surface); outline: none; transition: border-color .15s;
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:none;}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .topbar{padding:0 16px;}
+  .content{padding:16px;}
+  .frow{grid-template-columns:1fr;}
+  .stats{grid-template-columns:1fr 1fr;}
 }
-.form-input:focus { border-color: var(--orange); }
-textarea.form-input { resize: vertical; line-height: 1.6; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-hint { font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
-.submit-btn {
-  width: 100%; padding: 12px; background: var(--orange); color: #fff;
-  border: none; border-radius: 10px; font-size: .88rem; font-weight: 700;
-  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s;
+@media(max-width:480px){
+  .stats{grid-template-columns:1fr;}
+  .offer{flex-direction:column;align-items:flex-start;}
 }
-.submit-btn:hover { background: #e04510; transform: translateY(-1px); }
-.submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-
-/* ── REFERRAL ── */
-.referral-banner {
-  background: linear-gradient(135deg, var(--navy), var(--navy-2));
-  border-radius: 14px; padding: 18px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 20px;
-}
-.ref-count { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; }
-.ref-count-label { color: rgba(255,255,255,.55); font-size: .75rem; }
-.perk-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-.perk { background: var(--green-bg); color: var(--green); border: 1px solid #a7f3d0; border-radius: 20px; padding: 4px 12px; font-size: .74rem; font-weight: 600; }
-
-/* ── FILE UPLOAD ── */
-.upload-zone {
-  border: 2px dashed var(--border);
-  border-radius: 14px;
-  padding: 36px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .2s;
-  background: var(--surface-2);
-  position: relative;
-}
-.upload-zone:hover, .upload-zone.dragover { border-color: var(--orange); background: #fff8f5; }
-.upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
-.upload-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: .95rem; }
-.upload-hint { font-size: .8rem; color: var(--text-muted); }
-.upload-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-.upload-types { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
-.type-chip { background: var(--border); color: var(--text-dim); border-radius: 6px; padding: 3px 8px; font-size: .68rem; font-weight: 600; }
-
-.files-list { margin-top: 16px; }
-.file-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; background: var(--surface-2);
-  border-radius: 10px; margin-bottom: 8px;
-  border: 1px solid var(--border);
-}
-.file-icon { font-size: 1.3rem; flex-shrink: 0; }
-.file-info { flex: 1; min-width: 0; }
-.file-name { font-size: .83rem; font-weight: 600; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-meta { font-size: .72rem; color: var(--text-muted); margin-top: 1px; }
-.file-status { font-size: .72rem; font-weight: 600; flex-shrink: 0; }
-.file-status.uploading { color: var(--orange); }
-.file-status.done { color: var(--green); }
-.file-status.error { color: var(--red); }
-
-/* ── SUCCESS MSG ── */
-.success-box { background: var(--green-bg); border: 1px solid #a7f3d0; border-radius: 12px; padding: 18px; text-align: center; display: none; }
-.success-box.show { display: block; }
-.success-box h3 { color: #065f46; margin-bottom: 6px; font-size: .95rem; }
-.success-box p { color: #047857; font-size: .83rem; }
-
-/* ── DASH LINK BTN ── */
-.dash-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 12px; background: var(--navy); color: #fff;
-  border: none; border-radius: 10px; font-size: .88rem; font-weight: 600;
-  cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none;
-  transition: background .2s; margin-top: 14px;
-}
-.dash-btn:hover { background: var(--navy-2); }
-
-/* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px);
-  background: var(--navy); color: #fff; padding: 12px 20px;
-  border-radius: 10px; font-size: .82rem; font-weight: 500;
-  opacity: 0; transition: all .25s; z-index: 9999; pointer-events: none; white-space: nowrap;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── MOBILE ── */
-.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 150; }
-
-@media(max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .sidebar-overlay.show { display: block; }
-  .main { margin-left: 0; }
-  .menu-btn { display: flex; }
-  .topbar { padding: 0 16px; }
-  .page-content { padding: 16px; }
-  .form-row { grid-template-columns: 1fr; }
-  .info-grid { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
-}
-@media(max-width: 480px) {
-  .stats-row { grid-template-columns: 1fr; }
-  .offer-banner { flex-direction: column; align-items: flex-start; }
-}
-
-/* ── LOADING ── */
-.loading-screen {
-  position: fixed; inset: 0; background: var(--navy);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 9999; transition: opacity .4s;
-}
-.loading-screen.hidden { opacity: 0; pointer-events: none; }
-.loading-logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 24px; }
-.loading-logo span { color: var(--orange); }
-.loading-bar { width: 160px; height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
-.loading-bar-fill { height: 100%; background: var(--orange); border-radius: 2px; animation: loadfill 1.2s ease-in-out infinite; }
-@keyframes loadfill { 0%{width:0;transform:translateX(0)} 50%{width:100%} 100%{width:100%;transform:translateX(100%)} }
 </style>
 </head>
 <body>
 
-<div class="loading-screen" id="loading">
-  <div class="loading-logo">Astro <span>AI</span></div>
-  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+<div id="loading">
+  <div class="load-logo">
+    <div class="load-logo-icon">🚀</div>
+    <div class="load-logo-text">Astro <span>AI</span></div>
+  </div>
+  <div class="load-track"><div class="load-bar"></div></div>
 </div>
 
-<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="overlay" id="overlay" onclick="closeSB()"></div>
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-mark">
-      <div class="logo-icon">🚀</div>
-      <div class="logo-text">Astro AI<div class="logo-sub">Client Portal</div></div>
-    </div>
-    <div class="client-chip">
-      <div class="client-chip-name" id="sb-name">Loading...</div>
-      <div class="client-chip-biz" id="sb-biz"></div>
+  <div class="sb-top">
+    <a class="sb-brand" href="#">
+      <div class="sb-brand-icon">🚀</div>
+      <div>
+        <div class="sb-brand-name">Astro AI</div>
+        <div class="sb-brand-sub">Client Portal</div>
+      </div>
+    </a>
+    <div class="sb-client">
+      <div class="sb-client-name" id="sb-name">—</div>
+      <div class="sb-client-biz" id="sb-biz">Loading...</div>
     </div>
   </div>
 
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Overview</div>
-    <button class="nav-item active" onclick="showSection('s-overview', this)">
-      <span class="nav-icon">📊</span> Dashboard
-    </button>
-    <button class="nav-item" onclick="showSection('s-plan', this)">
-      <span class="nav-icon">📋</span> My Plan
-    </button>
+  <nav class="sb-nav">
+    <div class="sb-section">Overview</div>
+    <button class="nav-item active" onclick="go('s-overview',this)"><span class="nav-icon">▣</span> Dashboard</button>
+    <button class="nav-item" onclick="go('s-plan',this)"><span class="nav-icon">◈</span> My Plan</button>
 
-    <div class="nav-section-label">Campaign</div>
-    <button class="nav-item" onclick="showSection('s-access', this)">
-      <span class="nav-icon">🔐</span> Ad Account Access
-    </button>
-    <button class="nav-item" onclick="showSection('s-files', this)">
-      <span class="nav-icon">📁</span> Files & Documents
-    </button>
+    <div class="sb-section">Campaign</div>
+    <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon">◉</span> Ad Account Access</button>
+    <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon">◫</span> Files & Documents</button>
 
-    <div class="nav-section-label">Community</div>
-    <button class="nav-item" onclick="showSection('s-refer', this)">
-      <span class="nav-icon">🤝</span> Refer a Friend
-      <span class="nav-badge" id="ref-badge" style="display:none">New</span>
-    </button>
-    <button class="nav-item" onclick="showSection('s-message', this)">
-      <span class="nav-icon">💬</span> Message Us
-    </button>
+    <div class="sb-section">Connect</div>
+    <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon">◎</span> Refer a Friend</button>
+    <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon">◷</span> Message Us</button>
   </nav>
 
-  <div class="sidebar-footer">
-    <div class="status-pill-sidebar">
-      <div class="live-dot"></div>
-      <span id="sb-status">Loading...</span>
-    </div>
+  <div class="sb-foot">
+    <div class="sb-status"><div class="dot"></div><span id="sb-status">Loading...</span></div>
   </div>
 </aside>
 
-<!-- MAIN -->
 <div class="main">
   <header class="topbar">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="menu-btn" onclick="openSidebar()">☰</button>
-      <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-left">
+      <button class="hamburger" onclick="openSB()">☰</button>
+      <span class="topbar-title" id="tb-title">Dashboard</span>
     </div>
-    <div class="topbar-right">
-      <span id="topbar-biz" style="font-size:.8rem;color:var(--text-dim)"></span>
-    </div>
+    <span class="topbar-biz" id="tb-biz"></span>
   </header>
 
-  <div class="page-content" id="page-content">
+  <div class="content">
 
     <!-- OVERVIEW -->
     <div class="section active" id="s-overview">
-      <div id="offer-container"></div>
-
-      <div class="status-hero" id="status-hero">
-        <div class="status-biz" id="hero-biz">Loading...</div>
-        <div class="status-greeting" id="hero-greeting"></div>
-        <div class="status-badge"><div class="live-dot"></div><span id="hero-status">—</span></div>
-        <div class="status-updated" id="hero-updated"></div>
+      <div id="offer-wrap"></div>
+      <div class="hero" id="hero">
+        <div class="hero-biz" id="h-biz">—</div>
+        <div class="hero-greet" id="h-greet"></div>
+        <div class="hero-badge"><div class="dot"></div><span id="h-status">—</span></div>
+        <div class="hero-updated" id="h-updated"></div>
       </div>
-
-      <div class="stats-row" id="stats-row">
-        <div class="stat-card"><div class="stat-num" id="stat-referrals">0</div><div class="stat-label">Referrals Sent</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-files">0</div><div class="stat-label">Files Uploaded</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-days">—</div><div class="stat-label">Days Active</div></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="st-refs">0</div><div class="stat-l">Referrals</div></div>
+        <div class="stat"><div class="stat-n" id="st-files">0</div><div class="stat-l">Files Uploaded</div></div>
+        <div class="stat"><div class="stat-n" id="st-days">—</div><div class="stat-l">Days Active</div></div>
       </div>
-
       <div class="card">
-        <div class="card-header"><div class="card-icon">🗺️</div><div class="card-title">Campaign Progress</div></div>
-        <div class="card-body">
-          <div class="timeline" id="timeline"></div>
-        </div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◈</span><span class="card-title">Campaign Progress</span></div></div>
+        <div class="card-body"><div class="tl" id="tl"></div></div>
       </div>
     </div>
 
-    <!-- MY PLAN -->
+    <!-- PLAN -->
     <div class="section" id="s-plan">
-      <div class="section-header">
-        <h1>My Marketing Plan</h1>
-        <p>Your campaign details and strategy overview.</p>
-      </div>
+      <div class="page-hd"><h1>My Marketing Plan</h1><p>Your campaign details and strategy overview.</p></div>
       <div class="card">
-        <div class="card-header"><div class="card-icon">📋</div><div class="card-title">Campaign Details</div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◈</span><span class="card-title">Campaign Details</span></div></div>
         <div class="card-body">
-          <div class="info-grid" id="info-grid"></div>
-          <a id="plan-link" href="#" target="_blank" class="dash-btn">📈 View Full Marketing Plan →</a>
+          <table class="info-table" id="info-tbl"></table>
+          <a id="plan-link" href="#" target="_blank" class="btn-navy">📈 View Full Marketing Plan →</a>
         </div>
       </div>
     </div>
 
-    <!-- AD ACCOUNT ACCESS -->
+    <!-- ACCESS -->
     <div class="section" id="s-access">
-      <div class="section-header">
-        <h1>Ad Account Access</h1>
-        <p>Follow the steps below to grant us access to your ad accounts so we can launch your campaigns.</p>
-      </div>
+      <div class="page-hd"><h1>Ad Account Access</h1><p>Grant us access to launch your campaigns.</p></div>
       <div class="card">
         <div class="card-body">
           <div class="ptabs" id="ptabs"></div>
-          <div id="ptab-contents"></div>
+          <div id="ptab-panes"></div>
         </div>
       </div>
     </div>
 
     <!-- FILES -->
     <div class="section" id="s-files">
-      <div class="section-header">
-        <h1>Files & Documents</h1>
-        <p>Upload contracts, logos, photos, or any files for your campaign. We'll have instant access.</p>
-      </div>
+      <div class="page-hd"><h1>Files & Documents</h1><p>Upload logos, contracts, photos, or any assets for your campaign.</p></div>
       <div class="card">
-        <div class="card-header"><div class="card-icon">⬆️</div><div class="card-title">Upload Files</div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">↑</span><span class="card-title">Upload Files</span></div></div>
         <div class="card-body">
-          <div class="upload-zone" id="upload-zone">
-            <input type="file" class="upload-input" id="file-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.mp4,.mov">
+          <div class="upload-zone" id="uz">
+            <input type="file" class="upload-input" id="file-in" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.mp4,.mov">
             <div class="upload-icon">📂</div>
-            <div class="upload-title">Drop files here or click to browse</div>
-            <div class="upload-hint">Max 10MB per file</div>
-            <div class="upload-types">
-              <span class="type-chip">PDF</span>
-              <span class="type-chip">Images</span>
-              <span class="type-chip">Docs</span>
-              <span class="type-chip">Video</span>
-              <span class="type-chip">Zip</span>
+            <div class="upload-t">Drop files here or click to browse</div>
+            <div class="upload-h">Max 10MB per file</div>
+            <div class="upload-chips">
+              <span class="uchip">PDF</span><span class="uchip">PNG</span><span class="uchip">JPG</span>
+              <span class="uchip">DOCX</span><span class="uchip">MP4</span><span class="uchip">ZIP</span>
             </div>
           </div>
-          <div class="files-list" id="upload-list"></div>
+          <div class="flist" id="up-list"></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-icon">📁</div><div class="card-title">Uploaded Files</div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◫</span><span class="card-title">Uploaded Files</span></div></div>
         <div class="card-body">
-          <div id="existing-files"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:16px">Loading files...</div></div>
+          <div class="flist" id="ex-files"><span style="color:var(--text-muted);font-size:.8rem">Loading...</span></div>
         </div>
       </div>
     </div>
 
     <!-- REFER -->
     <div class="section" id="s-refer">
-      <div class="section-header">
-        <h1>Refer a Friend</h1>
-        <p>Know a business that needs AI-powered marketing? Refer them and you both win.</p>
-      </div>
-      <div class="referral-banner">
-        <div>
-          <div class="ref-count-label" style="color:rgba(255,255,255,.5);font-size:.75rem;margin-bottom:2px">REFERRALS SENT</div>
-          <div class="ref-count" id="ref-count">0</div>
-        </div>
-        <div style="font-size:3rem">🏆</div>
+      <div class="page-hd"><h1>Refer a Friend</h1><p>Know a business that needs AI marketing? You both get 30% off when they sign up.</p></div>
+      <div class="ref-hero">
+        <div><div class="ref-l">Referrals Sent</div><div class="ref-n" id="ref-n">0</div></div>
+        <div style="font-size:2.5rem">🏆</div>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-icon">🎁</div><div class="card-title">Send a Referral</div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◎</span><span class="card-title">Send a Referral</span></div></div>
         <div class="card-body">
-          <div class="perk-chips">
+          <div class="perks">
             <span class="perk">💰 Both get 30% off</span>
             <span class="perk">🚀 Fast onboarding</span>
             <span class="perk">❤️ Help a friend grow</span>
           </div>
-          <div id="refer-form">
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Their Name</label><input class="form-input" id="ref-name" type="text" placeholder="Jane Smith"></div>
-              <div class="form-group"><label class="form-label">Their Business</label><input class="form-input" id="ref-biz" type="text" placeholder="Smith Cleaning Co."></div>
+          <div id="ref-form">
+            <div class="frow">
+              <div class="fgrp"><label class="flabel">Their Name</label><input class="finput" id="rn" type="text" placeholder="Jane Smith"></div>
+              <div class="fgrp"><label class="flabel">Their Business</label><input class="finput" id="rb" type="text" placeholder="Smith Co."></div>
             </div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Email <span style="color:var(--red)">*</span></label><input class="form-input" id="ref-email" type="email" placeholder="jane@business.com"></div>
-              <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ref-phone" type="tel" placeholder="(512) 555-0000"></div>
+            <div class="frow">
+              <div class="fgrp"><label class="flabel">Email *</label><input class="finput" id="re" type="email" placeholder="jane@business.com"></div>
+              <div class="fgrp"><label class="flabel">Phone</label><input class="finput" id="rp" type="tel" placeholder="(512) 555-0000"></div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Quick Note (optional)</label>
-              <input class="form-input" id="ref-note" type="text" placeholder="They run a roofing company and need more leads...">
-              <div class="form-hint">Helps us personalize their outreach.</div>
+            <div class="fgrp">
+              <label class="flabel">Quick Note</label>
+              <input class="finput" id="rnote" type="text" placeholder="They need more leads for their roofing company...">
+              <div class="fhint">Helps us personalize their outreach.</div>
             </div>
-            <button class="submit-btn" id="refer-btn">🤝 Submit Referral</button>
+            <button class="btn-primary" id="ref-btn">Submit Referral</button>
           </div>
-          <div class="success-box" id="refer-success">
-            <h3>🎉 Referral Submitted!</h3>
-            <p>We'll reach out to them right away. Thank you for spreading the word!</p>
-          </div>
+          <div class="success-box" id="ref-ok"><h3>🎉 Referral Submitted!</h3><p>We'll reach out to them right away. Thank you!</p></div>
         </div>
       </div>
     </div>
 
     <!-- MESSAGE -->
     <div class="section" id="s-message">
-      <div class="section-header">
-        <h1>Message Us</h1>
-        <p>Have a question or need to reach your coordinator? We'll get back to you fast.</p>
-      </div>
+      <div class="page-hd"><h1>Message Us</h1><p>Have a question? Send us a message and we'll follow up fast.</p></div>
       <div class="card">
-        <div class="card-header"><div class="card-icon">💬</div><div class="card-title">Send a Message</div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◷</span><span class="card-title">Send a Message</span></div></div>
         <div class="card-body">
           <div id="msg-form">
-            <div class="form-group"><label class="form-label">Subject</label><input class="form-input" id="msg-subject" type="text" placeholder="e.g. Question about my campaign..."></div>
-            <div class="form-group"><label class="form-label">Message <span style="color:var(--red)">*</span></label><textarea class="form-input" id="msg-body" rows="5" placeholder="Type your message here..."></textarea></div>
-            <button class="submit-btn" id="msg-btn">💬 Send Message</button>
+            <div class="fgrp"><label class="flabel">Subject</label><input class="finput" id="ms" type="text" placeholder="Question about my campaign..."></div>
+            <div class="fgrp"><label class="flabel">Message *</label><textarea class="finput" id="mb" rows="5" placeholder="Type your message here..."></textarea></div>
+            <button class="btn-primary" id="msg-btn">Send Message</button>
           </div>
-          <div class="success-box" id="msg-success">
-            <h3>✅ Message Sent!</h3>
-            <p>We've received your message and will follow up soon.</p>
-          </div>
+          <div class="success-box" id="msg-ok"><h3>✅ Message Sent!</h3><p>We've received your message and will follow up soon.</p></div>
         </div>
       </div>
     </div>
 
-  </div><!-- /page-content -->
-</div><!-- /main -->
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const API  = 'https://marketingplan.astroaibots.com/api';
 const slug = new URLSearchParams(location.search).get('s') || '';
-let CLIENT = null;
+let C = null;
 
-// ── UTILS ──────────────────────────────────────────────────────────────────────
-function showToast(msg, dur=3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
-}
-
-function showSection(id, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (btn) btn.classList.add('active');
-  const titles = {
-    's-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access',
-    's-files':'Files & Documents','s-refer':'Refer a Friend','s-message':'Message Us'
-  };
-  document.getElementById('topbar-title').textContent = titles[id] || '';
-  if (id === 's-files') loadFiles();
-  closeSidebar();
-}
-
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
-
-function statusToStep(status) {
-  return { new:0, active:1, launched:2, paused:2, completed:3 }[status] ?? 0;
-}
-
-const STEPS = [
-  { label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.',        icon:'✅' },
-  { label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.',        icon:'📋' },
-  { label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',                 icon:'🚀' },
-  { label:'Campaign Complete',    desc:'Campaign cycle wrapped up. Ready to scale? Let\'s talk!',             icon:'🎉' },
+const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-refer':'Refer a Friend','s-message':'Message Us'};
+const STEPS  = [
+  {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:'✓'},
+  {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:'◈'},
+  {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:'▶'},
+  {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:'★'},
 ];
+const PLATS = {
+  meta:{label:'Meta / Facebook',steps:['Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> and log in.','Click grid icon → select your Business Account.','Go to Settings → Users → Partners.','Click "Add Partner" and enter our Partner Business ID.','Grant Manage Campaigns access on your Ad Account.','Click Save. We\'ll begin setup within 24 hours.'],note:'Need help? Reply to your welcome email and we\'ll walk you through it.'},
+  google:{label:'Google Ads',steps:['Sign in to <a href="https://ads.google.com" target="_blank">ads.google.com</a>.','Click ⚙️ → Setup → Account Access.','Click "+" → Invite Users.','Enter: ads@astroaibots.com','Set access level to Standard.','Click Send Invitation. We\'ll accept within 24 hours.'],note:'Make sure you\'re logged into the Google account linked to your Ads account.'},
+  tiktok:{label:'TikTok Ads',steps:['Go to <a href="https://ads.tiktok.com" target="_blank">ads.tiktok.com</a> and log in.','Click your account name → Account Settings.','Go to User Management → Users.','Click "Assign Role".','Enter ads@astroaibots.com → assign Operator role.','Click Confirm.'],note:'Ensure your TikTok Ads account is a Business account.'},
+};
 
-function buildTimeline(status) {
-  const cur = statusToStep(status);
-  return STEPS.map((s,i) => {
-    const state = i < cur ? 'done' : i === cur ? 'current' : 'pending';
-    return `<div class="tl-step ${state}">
-      <div class="tl-icon">${i < cur ? '✓' : s.icon}</div>
-      <div class="tl-body"><div class="tl-label">${s.label}</div><div class="tl-desc">${s.desc}</div></div>
+function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),d);}
+function statusStep(s){return{new:0,active:1,launched:2,paused:2,completed:3}[s]??0;}
+function fmtBytes(b){b=parseInt(b)||0;if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
+function fIcon(n){const e=(n||'').split('.').pop().toLowerCase();if(['jpg','jpeg','png','gif','webp'].includes(e))return'🖼️';if(e==='pdf')return'📄';if(['doc','docx'].includes(e))return'📝';if(['xls','xlsx'].includes(e))return'📊';if(['mp4','mov','avi'].includes(e))return'🎬';if(e==='zip')return'📦';return'📎';}
+
+function go(id, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.getElementById('tb-title').textContent = TITLES[id]||'';
+  closeSB();
+}
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('on');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on');}
+
+function buildTL(status) {
+  const cur = statusStep(status);
+  return STEPS.map((s,i)=>{
+    const state = i<cur?'done':i===cur?'current':'pending';
+    return `<div class="tl-row ${state}">
+      <div class="tl-dot">${i<cur?'✓':s.icon}</div>
+      <div class="tl-info"><div class="tl-label">${s.label}</div><div class="tl-desc">${s.desc}</div></div>
     </div>`;
   }).join('');
 }
 
-function fileIcon(name) {
-  const ext = name.split('.').pop().toLowerCase();
-  if (['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼️';
-  if (ext === 'pdf') return '📄';
-  if (['doc','docx'].includes(ext)) return '📝';
-  if (['xls','xlsx'].includes(ext)) return '📊';
-  if (['mp4','mov','avi'].includes(ext)) return '🎬';
-  if (ext === 'zip') return '📦';
-  return '📎';
-}
-
-function formatBytes(b) {
-  if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-  return (b/1048576).toFixed(1) + ' MB';
-}
-
-// ── PLATFORM ACCESS ────────────────────────────────────────────────────────────
-const PLATFORMS = {
-  meta: {
-    label: '📘 Meta', note: 'Need help? Reply to your welcome email and we\'ll walk you through it live.',
-    steps: [
-      'Go to <strong><a href="https://business.facebook.com" target="_blank">business.facebook.com</a></strong> and log in.',
-      'Click the grid icon (⊞) → select your Business Account.',
-      'Go to <strong>Settings (⚙️)</strong> → <strong>Users → Partners</strong>.',
-      'Click <strong>"Add Partner"</strong> and enter our Partner Business ID.',
-      'Grant <strong>Manage Campaigns</strong> access on your Ad Account.',
-      'Click <strong>Save</strong>. We\'ll begin setup within 24 hours.',
-    ]
-  },
-  google: {
-    label: '🔵 Google', note: 'Make sure you\'re logged into the Google account linked to your Ads account.',
-    steps: [
-      'Sign in to <strong><a href="https://ads.google.com" target="_blank">ads.google.com</a></strong>.',
-      'Click the tools icon (⚙️) → <strong>Setup → Account Access</strong>.',
-      'Click the <strong>"+"</strong> → <strong>Invite Users</strong>.',
-      'Enter: <strong>ads@astroaibots.com</strong>',
-      'Set access level to <strong>"Standard"</strong>.',
-      'Click <strong>Send Invitation</strong>. We\'ll accept within 24 hours.',
-    ]
-  },
-  tiktok: {
-    label: '⚫ TikTok', note: 'Ensure your TikTok Ads account is a Business account.',
-    steps: [
-      'Go to <strong><a href="https://ads.tiktok.com" target="_blank">ads.tiktok.com</a></strong> and log in.',
-      'Click your account name (top right) → <strong>Account Settings</strong>.',
-      'Go to <strong>User Management → Users</strong>.',
-      'Click <strong>"Assign Role"</strong>.',
-      'Enter <strong>ads@astroaibots.com</strong> → assign <strong>Operator</strong> role.',
-      'Click <strong>Confirm</strong>.',
-    ]
-  }
-};
-
-function buildPlatformSection(adPlatforms) {
-  const p = (adPlatforms||'').toLowerCase();
-  const hasMeta   = p.includes('facebook') || p.includes('meta') || p.includes('instagram') || !p;
-  const hasGoogle = p.includes('google');
-  const hasTikTok = p.includes('tiktok');
-
-  const keys = [];
-  if (hasMeta || (!hasGoogle && !hasTikTok)) keys.push('meta');
-  if (hasGoogle) keys.push('google');
-  if (hasTikTok) keys.push('tiktok');
-
-  document.getElementById('ptabs').innerHTML = keys.map((k,i) =>
-    `<button class="ptab ${i===0?'active':''}" onclick="switchPTab('${k}',this)">${PLATFORMS[k].label}</button>`
-  ).join('');
-
-  document.getElementById('ptab-contents').innerHTML = keys.map((k,i) => {
-    const pl = PLATFORMS[k];
-    return `<div class="ptab-content ${i===0?'active':''}" id="ptc-${k}">
-      <ul class="access-list">
-        ${pl.steps.map((s,si) => `<li class="access-item"><div class="step-num">${si+1}</div><div>${s}</div></li>`).join('')}
-      </ul>
+function buildPlatforms(adPlatforms) {
+  const p=(adPlatforms||'').toLowerCase();
+  const keys=[];
+  if(p.includes('facebook')||p.includes('meta')||p.includes('instagram')||(!p.includes('google')&&!p.includes('tiktok'))) keys.push('meta');
+  if(p.includes('google')) keys.push('google');
+  if(p.includes('tiktok')) keys.push('tiktok');
+  if(!keys.length) keys.push('meta');
+  document.getElementById('ptabs').innerHTML = keys.map((k,i)=>`<button class="ptab ${i===0?'active':''}" onclick="switchPT('${k}',this)">${PLATS[k].label}</button>`).join('');
+  document.getElementById('ptab-panes').innerHTML = keys.map((k,i)=>{
+    const pl=PLATS[k];
+    return `<div class="ptab-pane ${i===0?'active':''}" id="ptp-${k}">
+      <ul class="step-list">${pl.steps.map((s,si)=>`<li class="step-item"><div class="step-n">${si+1}</div><div>${s}</div></li>`).join('')}</ul>
       <div class="access-note">💡 ${pl.note}</div>
     </div>`;
   }).join('');
 }
 
-function switchPTab(key, btn) {
-  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.ptab-content').forEach(c => c.classList.remove('active'));
+function switchPT(key,btn){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ptab-pane').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('ptc-'+key)?.classList.add('active');
+  document.getElementById('ptp-'+key)?.classList.add('active');
 }
 
-// ── FILE UPLOAD ────────────────────────────────────────────────────────────────
 async function uploadFile(file) {
-  if (file.size > 10 * 1024 * 1024) { showToast('❌ File too large (max 10MB)'); return; }
-
-  const itemId = 'f-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-  const list = document.getElementById('upload-list');
-  list.insertAdjacentHTML('beforeend', `
-    <div class="file-item" id="${itemId}">
-      <div class="file-icon">${fileIcon(file.name)}</div>
-      <div class="file-info">
-        <div class="file-name">${file.name}</div>
-        <div class="file-meta">${formatBytes(file.size)}</div>
-      </div>
-      <div class="file-status uploading" id="${itemId}-s">⏳ Uploading...</div>
+  if(file.size>10*1024*1024){toast('❌ File too large (max 10MB)');return;}
+  const id='up-'+Date.now()+Math.random().toString(36).slice(2);
+  document.getElementById('up-list').insertAdjacentHTML('beforeend',`
+    <div class="fitem" id="${id}">
+      <div class="fitem-icon">${fIcon(file.name)}</div>
+      <div class="fitem-info"><div class="fitem-name">${file.name}</div><div class="fitem-meta">${fmtBytes(file.size)}</div></div>
+      <div class="fitem-st uploading" id="${id}-s">⏳ Uploading...</div>
     </div>`);
-
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64 = e.target.result.split(',')[1];
-    try {
-      const res = await fetch(API + '/upload-file', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, fileName: file.name, fileBase64: base64, fileType: file.type, fileSize: file.size }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById(itemId+'-s').textContent = '✅ Saved';
-        document.getElementById(itemId+'-s').className = 'file-status done';
-        // update stat
-        const statEl = document.getElementById('stat-files');
-        statEl.textContent = parseInt(statEl.textContent||'0') + 1;
-        // refresh the uploaded files list below
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    const b64=e.target.result.split(',')[1];
+    try{
+      const res=await fetch(API+'/upload-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,fileName:file.name,fileBase64:b64,fileType:file.type,fileSize:file.size})});
+      const data=await res.json();
+      if(data.success){
+        document.getElementById(id+'-s').textContent='✅ Saved';
+        document.getElementById(id+'-s').className='fitem-st done';
+        const sf=document.getElementById('st-files');sf.textContent=parseInt(sf.textContent||'0')+1;
         loadFiles();
       } else {
-        document.getElementById(itemId+'-s').textContent = '❌ Failed';
-        document.getElementById(itemId+'-s').className = 'file-status error';
+        document.getElementById(id+'-s').textContent='❌ '+(data.error||'Failed');
+        document.getElementById(id+'-s').className='fitem-st error';
       }
-    } catch(err) {
-      document.getElementById(itemId+'-s').textContent = '❌ Error';
-      document.getElementById(itemId+'-s').className = 'file-status error';
+    }catch(err){
+      document.getElementById(id+'-s').textContent='❌ '+err.message;
+      document.getElementById(id+'-s').className='fitem-st error';
     }
   };
   reader.readAsDataURL(file);
 }
 
 async function loadFiles() {
-  const el = document.getElementById('existing-files');
-  el.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:16px">Loading...</div>';
-  try {
-    const res = await fetch(`${API}/list-files?slug=${encodeURIComponent(slug)}`);
-    const data = await res.json();
-    if (!data.files || data.files.length === 0) {
-      el.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:16px">No files uploaded yet.</div>';
-      return;
-    }
-    document.getElementById('stat-files').textContent = data.files.length;
-    el.innerHTML = data.files.map(f => `
-      <div class="file-item">
-        <div class="file-icon">${fileIcon(f.name)}</div>
-        <div class="file-info">
-          <div class="file-name">${f.name}</div>
-          <div class="file-meta">${formatBytes(f.size)} · ${new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-        </div>
-        ${f.url ? `<a href="${f.url}" target="_blank" style="color:var(--orange);font-size:.78rem;font-weight:600;text-decoration:none;flex-shrink:0">Download</a>` : ''}
+  const el=document.getElementById('ex-files');
+  el.innerHTML='<span style="color:var(--text-muted);font-size:.8rem">Loading...</span>';
+  try{
+    const res=await fetch(`${API}/list-files?slug=${encodeURIComponent(slug)}`);
+    const data=await res.json();
+    if(!data.files||!data.files.length){el.innerHTML='<span style="color:var(--text-muted);font-size:.8rem">No files uploaded yet.</span>';return;}
+    document.getElementById('st-files').textContent=data.files.length;
+    el.innerHTML=data.files.map(f=>`
+      <div class="fitem">
+        <div class="fitem-icon">${fIcon(f.name)}</div>
+        <div class="fitem-info"><div class="fitem-name">${f.name}</div><div class="fitem-meta">${fmtBytes(f.size)} · ${f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div></div>
+        ${f.url?`<a class="dl-link" href="${f.url}" target="_blank">↓ Download</a>`:''}
       </div>`).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:16px">Could not load files.</div>';
-  }
+  }catch(e){el.innerHTML=`<span style="color:var(--text-muted);font-size:.8rem">Could not load files.</span>`;}
 }
 
-// ── REFERRAL ───────────────────────────────────────────────────────────────────
-document.getElementById('refer-btn').addEventListener('click', async () => {
-  if (!CLIENT) return;
-  const btn   = document.getElementById('refer-btn');
-  const name  = document.getElementById('ref-name').value.trim();
-  const biz   = document.getElementById('ref-biz').value.trim();
-  const email = document.getElementById('ref-email').value.trim();
-  const phone = document.getElementById('ref-phone').value.trim();
-  const note  = document.getElementById('ref-note').value.trim();
-  if (!email) { showToast('❌ Please enter their email'); return; }
-  btn.disabled = true; btn.textContent = '⏳ Submitting...';
-  try {
-    const res = await fetch(API + '/submit-referral', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ referrerSlug: slug, referrerName: CLIENT.clientName, referrerBusiness: CLIENT.businessName, refereeName: name, refereeBusinessName: biz, refereeEmail: email, refereePhone: phone, refereeNote: note }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('refer-form').style.display = 'none';
-      document.getElementById('refer-success').classList.add('show');
-      const rc = document.getElementById('ref-count');
-      rc.textContent = parseInt(rc.textContent||'0') + 1;
-      document.getElementById('stat-referrals').textContent = parseInt(document.getElementById('stat-referrals').textContent||'0') + 1;
-    } else { showToast('❌ ' + (data.error || 'Failed')); }
-  } catch(e) { showToast('❌ ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = '🤝 Submit Referral'; }
+document.getElementById('file-in').addEventListener('change',e=>{[...e.target.files].forEach(uploadFile);e.target.value='';});
+const uz=document.getElementById('uz');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('over');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('over'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('over');[...e.dataTransfer.files].forEach(uploadFile);});
+
+document.getElementById('ref-btn').addEventListener('click',async()=>{
+  if(!C)return;
+  const btn=document.getElementById('ref-btn');
+  const email=document.getElementById('re').value.trim();
+  if(!email){toast('❌ Please enter their email');return;}
+  btn.disabled=true;btn.textContent='Submitting...';
+  try{
+    const res=await fetch(API+'/submit-referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({referrerSlug:slug,referrerName:C.clientName,referrerBusiness:C.businessName,refereeName:document.getElementById('rn').value.trim(),refereeBusinessName:document.getElementById('rb').value.trim(),refereeEmail:email,refereePhone:document.getElementById('rp').value.trim(),refereeNote:document.getElementById('rnote').value.trim()})});
+    const data=await res.json();
+    if(data.success){
+      document.getElementById('ref-form').style.display='none';
+      document.getElementById('ref-ok').classList.add('on');
+      const rn=document.getElementById('ref-n');rn.textContent=parseInt(rn.textContent||'0')+1;
+      const sr=document.getElementById('st-refs');sr.textContent=parseInt(sr.textContent||'0')+1;
+    }else toast('❌ '+(data.error||'Failed'));
+  }catch(e){toast('❌ '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Submit Referral';}
 });
 
-// ── MESSAGE ────────────────────────────────────────────────────────────────────
-document.getElementById('msg-btn').addEventListener('click', async () => {
-  if (!CLIENT) return;
-  const btn     = document.getElementById('msg-btn');
-  const subject = document.getElementById('msg-subject').value.trim();
-  const body    = document.getElementById('msg-body').value.trim();
-  if (!body) { showToast('❌ Please enter a message'); return; }
-  btn.disabled = true; btn.textContent = '⏳ Sending...';
-  try {
-    const res = await fetch(API + '/send-message', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, clientName: CLIENT.clientName, businessName: CLIENT.businessName, clientEmail: CLIENT.clientEmail, subject, message: body }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('msg-form').style.display = 'none';
-      document.getElementById('msg-success').classList.add('show');
-    } else { showToast('❌ ' + (data.error || 'Failed')); }
-  } catch(e) { showToast('❌ ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = '💬 Send Message'; }
+document.getElementById('msg-btn').addEventListener('click',async()=>{
+  if(!C)return;
+  const btn=document.getElementById('msg-btn');
+  const body=document.getElementById('mb').value.trim();
+  if(!body){toast('❌ Please enter a message');return;}
+  btn.disabled=true;btn.textContent='Sending...';
+  try{
+    const res=await fetch(API+'/send-message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,clientName:C.clientName,businessName:C.businessName,clientEmail:C.clientEmail,subject:document.getElementById('ms').value.trim(),message:body})});
+    const data=await res.json();
+    if(data.success){document.getElementById('msg-form').style.display='none';document.getElementById('msg-ok').classList.add('on');}
+    else toast('❌ '+(data.error||'Failed'));
+  }catch(e){toast('❌ '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Send Message';}
 });
 
-// ── FILE INPUT EVENTS ──────────────────────────────────────────────────────────
-document.getElementById('file-input').addEventListener('change', e => {
-  [...e.target.files].forEach(uploadFile);
-  e.target.value = '';
-});
-const zone = document.getElementById('upload-zone');
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-zone.addEventListener('drop', e => {
-  e.preventDefault(); zone.classList.remove('dragover');
-  [...e.dataTransfer.files].forEach(uploadFile);
-});
-
-// ── INIT ───────────────────────────────────────────────────────────────────────
 async function init() {
-  if (!slug) {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('s-overview').innerHTML = '<div style="text-align:center;padding:60px 20px"><h2 style="color:var(--navy);margin-bottom:8px">Portal Not Found</h2><p style="color:var(--text-dim)">This link doesn\'t appear to be valid.</p></div>';
-    return;
-  }
-  try {
-    const res  = await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}`);
-    const data = await res.json();
-    if (!data.client) throw new Error(data.error || 'Client not found');
+  if(!slug){document.getElementById('loading').classList.add('out');document.getElementById('h-biz').textContent='Portal not found';return;}
+  try{
+    const res=await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}`);
+    const data=await res.json();
+    if(!data.client)throw new Error(data.error||'Client not found');
+    C=data.client;
+    const offer=data.offer;
 
-    CLIENT = data.client;
-    const c = CLIENT;
-    const offer = data.offer;
-
-    // Sidebar
-    document.getElementById('sb-name').textContent = c.clientName;
-    document.getElementById('sb-biz').textContent  = c.businessName;
-    document.getElementById('sb-status').textContent = c.statusLabel;
-    document.getElementById('topbar-biz').textContent = c.businessName;
+    // Sidebar + topbar
+    document.getElementById('sb-name').textContent=C.clientName;
+    document.getElementById('sb-biz').textContent=C.businessName;
+    document.getElementById('sb-status').textContent=C.statusLabel||C.status||'Active';
+    document.getElementById('tb-biz').textContent=C.businessName;
 
     // Hero
-    document.getElementById('hero-biz').textContent = c.businessName;
-    document.getElementById('hero-greeting').textContent = `Welcome back, ${c.clientName} 👋`;
-    document.getElementById('hero-status').textContent = c.statusLabel;
-    if (c.statusUpdated) {
-      document.getElementById('hero-updated').textContent = 'Updated ' + new Date(c.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    }
+    document.getElementById('h-biz').textContent=C.businessName;
+    document.getElementById('h-greet').textContent=`Welcome back, ${C.clientName} 👋`;
+    document.getElementById('h-status').textContent=C.statusLabel||C.status||'Active';
+    if(C.statusUpdated) document.getElementById('h-updated').textContent='Updated '+new Date(C.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
     // Stats
-    document.getElementById('stat-referrals').textContent = c.referralCount || '0';
-    document.getElementById('ref-count').textContent = c.referralCount || '0';
-    if (c.createdAt) {
-      const days = Math.floor((Date.now() - new Date(c.createdAt)) / 86400000);
-      document.getElementById('stat-days').textContent = days;
-    }
+    document.getElementById('st-refs').textContent=C.referralCount||'0';
+    document.getElementById('ref-n').textContent=C.referralCount||'0';
+    if(C.createdAt) document.getElementById('st-days').textContent=Math.floor((Date.now()-new Date(C.createdAt))/86400000);
 
     // Timeline
-    document.getElementById('timeline').innerHTML = buildTimeline(c.status);
+    document.getElementById('tl').innerHTML=buildTL(C.status);
 
-    // Info grid
-    document.getElementById('info-grid').innerHTML = [
-      ['Business', c.businessName],
-      ['Industry', c.industry],
-      ['Ad Platforms', c.adPlatforms],
-      ['Monthly Budget', c.adBudget],
-      ['90-Day Goal', c.goal90],
-    ].map(([l,v]) => v ? `<div class="info-cell"><div class="info-label">${l}</div><div class="info-val">${v||'—'}</div></div>` : '').join('');
+    // Plan info
+    document.getElementById('info-tbl').innerHTML=[
+      ['Business',C.businessName],['Industry',C.industry],
+      ['Ad Platforms',C.adPlatforms],['Monthly Budget',C.adBudget],['90-Day Goal',C.goal90],
+    ].filter(([,v])=>v).map(([l,v])=>`<tr><td>${l}</td><td>${v}</td></tr>`).join('');
+    if(C.dashboardUrl) document.getElementById('plan-link').href=C.dashboardUrl;
 
-    if (c.dashboardUrl) {
-      document.getElementById('plan-link').href = c.dashboardUrl;
-    }
+    // Platforms
+    buildPlatforms(C.adPlatforms);
 
-    // Platform access
-    buildPlatformSection(c.adPlatforms);
-
-    // Offer banner
-    if (offer && offer.title && offer.ctaUrl) {
-      const safeUrl = offer.ctaUrl.startsWith('http') ? offer.ctaUrl : 'https://' + offer.ctaUrl;
-      document.getElementById('offer-container').innerHTML = `
-        <div class="offer-banner">
+    // Offer
+    if(offer&&offer.title&&offer.ctaUrl){
+      const url=offer.ctaUrl.startsWith('http')?offer.ctaUrl:'https://'+offer.ctaUrl;
+      document.getElementById('offer-wrap').innerHTML=`
+        <div class="offer">
           <div>
-            <div class="offer-tag">🎁 SPECIAL OFFER</div>
+            <div class="offer-tag">🎁 Special Offer</div>
             <div class="offer-title">${offer.title}</div>
-            ${offer.description ? `<div class="offer-desc">${offer.description}</div>` : ''}
-            ${offer.expiresAt ? `<div class="offer-expires">⏰ Expires ${new Date(offer.expiresAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>` : ''}
+            ${offer.description?`<div class="offer-desc">${offer.description}</div>`:''}
+            ${offer.expiresAt?`<div class="offer-exp">Expires ${new Date(offer.expiresAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`:''}
           </div>
-          <a href="${safeUrl}" target="_blank" class="offer-btn">${offer.ctaText||'Claim Offer'}</a>
+          <a href="${url}" target="_blank" class="offer-btn">${offer.ctaText||'Claim Offer'}</a>
         </div>`;
     }
 
-    // Hide loading
-    document.getElementById('loading').classList.add('hidden');
-
-  } catch(e) {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('s-overview').innerHTML = `<div style="text-align:center;padding:60px 20px"><h2 style="color:var(--navy);margin-bottom:8px">Portal Not Found</h2><p style="color:var(--text-dim)">${e.message}</p></div>`;
+    document.getElementById('loading').classList.add('out');
+  }catch(e){
+    document.getElementById('loading').classList.add('out');
+    document.getElementById('h-biz').textContent='Portal not found';
+    document.getElementById('h-greet').textContent=e.message;
   }
 }
-
 init();
 </script>
 </body>
