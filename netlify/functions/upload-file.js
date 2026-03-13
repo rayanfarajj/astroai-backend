@@ -28,18 +28,16 @@ export default async (req) => {
   try {
     const store = getStore('client-files');
 
-    // Convert base64 to buffer
     const buffer = Buffer.from(fileBase64, 'base64');
-
-    // Key: slug/timestamp-filename
     const safeFileName = fileName.replace(/[^a-zA-Z0-9._\-]/g, '_');
     const key = `${slug}/${Date.now()}-${safeFileName}`;
 
+    // store.set signature: (key, value, options) where options = { metadata: {...} }
     await store.set(key, buffer, {
       metadata: {
         originalName: fileName,
         fileType:     fileType || 'application/octet-stream',
-        fileSize:     fileSize || buffer.length,
+        fileSize:     String(fileSize || buffer.length),
         uploadedAt:   new Date().toISOString(),
         slug,
       }
@@ -51,7 +49,7 @@ export default async (req) => {
     });
 
   } catch(e) {
-    console.error('[upload-file] Error:', e.message);
+    console.error('[upload-file] Error:', e.message, e.stack);
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
   }
 };
