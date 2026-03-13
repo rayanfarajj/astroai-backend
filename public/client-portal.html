@@ -869,6 +869,8 @@ async function uploadFile(file) {
         // update stat
         const statEl = document.getElementById('stat-files');
         statEl.textContent = parseInt(statEl.textContent||'0') + 1;
+        // refresh the uploaded files list below
+        loadFiles();
       } else {
         document.getElementById(itemId+'-s').textContent = '❌ Failed';
         document.getElementById(itemId+'-s').className = 'file-status error';
