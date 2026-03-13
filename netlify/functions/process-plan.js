@@ -2,12 +2,56 @@
 const nodemailer = require('nodemailer');
 const https      = require('https');
 
+// ── HighLevel — create or update contact ──────────────────────
+function createHLContact({ firstName, lastName, email, phone, businessName, industry, source }) {
+  return new Promise((resolve, reject) => {
+    // Normalize phone
+    let p = (phone || '').replace(/[\s\-().]/g, '');
+    if (p && !p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
+
+    const payload = JSON.stringify({
+      firstName:   firstName  || '',
+      lastName:    lastName   || '',
+      email:       email      || '',
+      phone:       p          || '',
+      companyName: businessName || '',
+      tags:        ['astroai-onboarding', industry || ''].filter(Boolean),
+      source:      source || 'AstroAI Onboarding',
+      locationId:  process.env.HL_LOCATION_ID,
+    });
+
+    const req = https.request({
+      hostname: 'services.leadconnectorhq.com',
+      path:     '/contacts/',
+      method:   'POST',
+      headers:  {
+        'Authorization': 'Bearer ' + process.env.HL_API_KEY,
+        'Version':       '2021-07-28',
+        'Content-Type':  'application/json',
+        'Accept':        'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { reject(e); } });
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 // ── Firebase Firestore save ────────────────────────────────
 function saveToFirestore(clientRecord) {
   return new Promise((resolve, reject) => {
     const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+    const rawKey = (process.env.FIREBASE_PRIVATE_KEY || '');
+    const privateKey = rawKey
+      .replace(/^Value:\s*/i, '')
+      .replace(/\\\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+      .trim();
 
     // Get a JWT token for Firebase
     function base64url(str) {
@@ -1957,6 +2001,26 @@ exports.handler = async (event) => {
         html:    buildClientEmail(clientName, businessName, dashboardUrl),
       }),
     ]);
+
+    // Create/update contact in HighLevel
+    try {
+      const nameParts = clientName.trim().split(' ');
+      const hlFirst   = nameParts[0] || clientName;
+      const hlLast    = nameParts.slice(1).join(' ') || '';
+      const hlResult  = await createHLContact({
+        firstName:    hlFirst,
+        lastName:     hlLast,
+        email:        clientEmail,
+        phone:        data.phone || '',
+        businessName: businessName,
+        industry:     data.industry || '',
+        source:       'AstroAI Onboarding',
+      });
+      const hlId = hlResult?.contact?.id || hlResult?.id || 'unknown';
+      console.log('[process-plan] HL contact created/updated:', hlId);
+    } catch(hle) {
+      console.error('[process-plan] HL contact creation failed (non-fatal):', hle.message);
+    }
 
     console.log('[process-plan] All done — emails sent to:', clientEmail);
 
