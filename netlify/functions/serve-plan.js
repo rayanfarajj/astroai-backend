@@ -1,41 +1,10 @@
 // netlify/functions/serve-plan.js
-// Serves marketing plan HTML pages stored in GitHub repo public/ folder
-
 const https = require('https');
 
-function fetchStaticFile(filename) {
+function fetchFromGitHub(path) {
   return new Promise((resolve, reject) => {
     const token = process.env.GITHUB_TOKEN;
     const repo  = 'rayanfarajj/astroai-backend';
-    const path  = `public/${filename}`;
-    const options = {
-      hostname: 'api.github.com',
-      path:     `/repos/${repo}/contents/${path}`,
-      method:   'GET',
-      headers:  { 'Authorization': `Bearer ${token}`, 'User-Agent': 'astroai-bots', 'Accept': 'application/vnd.github+json' },
-    };
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode === 404) return resolve(null);
-        if (res.statusCode !== 200) return reject(new Error(`GitHub ${res.statusCode}`));
-        try {
-          const json = JSON.parse(data);
-          resolve(Buffer.from(json.content.replace(/\n/g, ''), 'base64').toString('utf8'));
-        } catch(e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
-
-function fetchFromGitHub(slug) {
-  return new Promise((resolve, reject) => {
-    const token = process.env.GITHUB_TOKEN;
-    const repo  = 'rayanfarajj/astroai-backend';
-    const path  = `public/${slug}.html`;
 
     console.log('Fetching from GitHub:', path);
 
@@ -54,14 +23,12 @@ function fetchFromGitHub(slug) {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        console.log('GitHub API status:', res.statusCode, 'length:', data.length);
+        console.log('GitHub API status:', res.statusCode);
         if (res.statusCode === 404) return resolve(null);
         if (res.statusCode !== 200) return reject(new Error(`GitHub API ${res.statusCode}: ${data.slice(0,200)}`));
         try {
           const json = JSON.parse(data);
-          // Content is base64 encoded
           const html = Buffer.from(json.content.replace(/\n/g, ''), 'base64').toString('utf8');
-          console.log('HTML decoded, length:', html.length);
           resolve(html);
         } catch(e) {
           reject(new Error('Failed to parse GitHub response: ' + e.message));
@@ -83,15 +50,22 @@ exports.handler = async (event) => {
   slug = slug.replace(/^\/+/, '').trim();
   console.log('serve-plan — slug:', slug);
 
-  // Serve static HTML files directly from GitHub (not as plan slugs)
+  // ── Static HTML files — serve directly from public/ ──────────────────────
   const staticFiles = ['client-portal.html', 'agency-dashboard.html', 'index.html'];
   if (staticFiles.includes(slug)) {
     try {
-      const html = await fetchStaticFile(slug);
-      if (html) return { statusCode: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' }, body: html };
-    } catch(e) { console.error('Static file fetch error:', e.message); }
+      const html = await fetchFromGitHub(`public/${slug}`);
+      if (html) return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' },
+        body: html,
+      };
+    } catch(e) {
+      console.error('Static file error:', e.message);
+    }
   }
 
+  // ── Empty slug — homepage ─────────────────────────────────────────────────
   if (!slug) {
     return {
       statusCode: 200,
@@ -103,8 +77,13 @@ exports.handler = async (event) => {
     };
   }
 
+  // ── Plan pages — try plans/{slug}.html first, then {slug}.html ───────────
   try {
-    const html = await fetchFromGitHub(slug);
+    // Try plans/ subfolder first
+    let html = await fetchFromGitHub(`public/plans/${slug}.html`);
+
+    // Fall back to root public/ folder
+    if (!html) html = await fetchFromGitHub(`public/${slug}.html`);
 
     if (!html) {
       return {
