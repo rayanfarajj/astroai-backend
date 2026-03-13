@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Get Your Marketing Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#00d9a3;
+  --bg:#f7f8fc;
+  --surface:#fff;
+  --border:#e5e9f2;
+  --text:#1a2035;
+  --muted:#6b7a99;
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--brand);padding:24px 32px;color:#fff;text-align:center}
+.header .logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.header-logo{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.header h1{font-size:1.4rem;font-weight:800}
+.header p{opacity:.85;font-size:.85rem;margin-top:4px}
+
+.form-wrap{max-width:640px;margin:32px auto;padding:0 16px 60px}
+
+.step-indicator{display:flex;align-items:center;gap:0;margin-bottom:28px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);overflow:hidden}
+.step-tab{flex:1;padding:10px;text-align:center;font-size:.7rem;font-weight:700;color:var(–muted);border-right:1px solid var(–border);transition:all .2s}
+.step-tab:last-child{border-right:none}
+.step-tab.active{background:var(–brand);color:#fff}
+.step-tab.done{background:#f0fff9;color:var(–brand)}
+
+.card{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:28px;margin-bottom:16px}
+.card-title{font-size:.95rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.card-icon{font-size:1.1rem}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(–muted);margin-bottom:5px}
+.field label .req{color:var(–brand)}
+.field input,.field select,.field textarea{
+width:100%;padding:10px 13px;
+background:#f9fafc;border:1.5px solid var(–border);
+border-radius:8px;color:var(–text);font-size:.88rem;
+font-family:‘Plus Jakarta Sans’,sans-serif;outline:none;
+transition:border-color .2s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(–brand);background:#fff}
+.field textarea{resize:vertical;min-height:80px;line-height:1.6}
+.field input::placeholder,.field textarea::placeholder{color:#bcc4d4}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+.btn{padding:12px 24px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;border:none;font-family:‘Plus Jakarta Sans’,sans-serif;transition:all .2s}
+.btn-brand{background:var(–brand);color:#fff;width:100%}
+.btn-brand:hover{opacity:.9;transform:translateY(-1px)}
+.btn-back{background:#f0f2f7;color:var(–muted);border:1px solid var(–border);margin-right:10px}
+.btn-back:hover{background:#e8eaf0}
+
+.step-btns{display:flex;align-items:center;justify-content:flex-end;margin-top:20px}
+
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
+.cb-option{
+padding:7px 13px;border:1.5px solid var(–border);border-radius:20px;
+font-size:.78rem;font-weight:600;cursor:pointer;
+transition:all .2s;color:var(–muted);background:#f9fafc;
+user-select:none;
+}
+.cb-option.selected{background:rgba(0,217,163,.1);border-color:var(–brand);color:var(–brand)}
+
+.terms-wrap{
+background:#f9fafc;border:1px solid var(–border);
+border-radius:8px;padding:14px;
+font-size:.78rem;color:var(–muted);line-height:1.6;
+max-height:120px;overflow-y:auto;margin-bottom:10px;
+}
+.terms-check{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;cursor:pointer}
+.terms-check input[type=checkbox]{margin-top:2px;accent-color:var(–brand);width:16px;height:16px;flex-shrink:0}
+
+.progress-bar{height:3px;background:var(–border);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.progress-fill{height:100%;background:var(–brand);border-radius:2px;transition:width .3s}
+
+.error-msg{color:#ef4444;font-size:.78rem;margin-top:8px;display:none}
+
+/* Loader */
+.loading-screen{
+display:none;position:fixed;inset:0;background:var(–bg);
+z-index:999;flex-direction:column;align-items:center;justify-content:center;
+text-align:center;padding:32px;
+}
+.loading-screen.show{display:flex}
+.spinner{width:48px;height:48px;border:3px solid var(–border);border-top-color:var(–brand);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-screen h2{font-size:1.3rem;font-weight:800;margin-bottom:8px}
+.loading-screen p{color:var(–muted);font-size:.85rem;max-width:380px;line-height:1.6}
+.loading-dots span{animation:dots 1.4s infinite;opacity:0}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dots{0%,80%,100%{opacity:0}40%{opacity:1}}
+
+/* Success */
+.success-screen{display:none;text-align:center;padding:40px 20px}
+.success-screen.show{display:block}
+.success-icon{font-size:3rem;margin-bottom:16px}
+.success-screen h2{font-family:‘Plus Jakarta Sans’,sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:8px}
+.success-screen p{color:var(–muted);font-size:.9rem;line-height:1.6;margin-bottom:20px}
+.success-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.success-btn{padding:11px 24px;border-radius:8px;font-size:.85rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:inherit}
+
+@media(max-width:500px){.two-col,.three-col{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+
+<!-- LOADING -->
+
+<div class="loading-screen" id="loading">
+  <div class="spinner"></div>
+  <h2>Loading<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h2>
+  <p>Setting up your personalized form</p>
+</div>
+
+<!-- GENERATING -->
+
+<div class="loading-screen" id="generating">
+  <div class="spinner" style="border-top-color:var(--brand)"></div>
+  <h2>Building Your Plan<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h2>
+  <p id="gen-msg">Claude is analyzing your business and creating a custom marketing strategy. This takes about 2 minutes.</p>
+</div>
+
+<div id="main" style="display:none">
+  <!-- HEADER -->
+  <div class="header" id="page-header">
+    <div class="logo-wrap">
+      <div class="header-logo" id="header-logo">🚀</div>
+      <span id="header-brand" style="font-weight:800;font-size:1rem"></span>
+    </div>
+    <h1 id="header-title">Get Your AI Marketing Plan</h1>
+    <p id="header-sub">Fill out this quick form and receive your custom plan in minutes</p>
+  </div>
+
+  <div class="form-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:25%"></div></div>
+    <div class="step-indicator">
+      <div class="step-tab active" id="tab-1">① Your Business</div>
+      <div class="step-tab" id="tab-2">② Goals & Budget</div>
+      <div class="step-tab" id="tab-3">③ Your Info</div>
+      <div class="step-tab" id="tab-4">④ Confirm</div>
+    </div>
+
+```
+<!-- STEP 1 -->
+<div id="step-1">
+  <div class="card">
+    <div class="card-title"><span class="card-icon">🏢</span> Tell us about your business</div>
+    <div class="two-col">
+      <div class="field"><label>Business Name <span class="req">*</span></label><input id="f-biz" placeholder="Acme Roofing Co."></div>
+      <div class="field"><label>Industry <span class="req">*</span></label>
+        <select id="f-industry">
+          <option value="">Select industry...</option>
+          <option>Roofing</option><option>HVAC</option><option>Plumbing</option>
+          <option>Electrical</option><option>Landscaping</option><option>Cleaning</option>
+          <option>Pest Control</option><option>Painting</option><option>Flooring</option>
+          <option>Remodeling</option><option>Real Estate</option><option>Insurance</option>
+          <option>Law Firm</option><option>Dental</option><option>Med Spa</option>
+          <option>Fitness / Gym</option><option>Restaurant</option><option>Retail</option>
+          <option>E-commerce</option><option>Consulting</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Primary Service / Product <span class="req">*</span></label><input id="f-service" placeholder="e.g. Storm Damage Roof Replacement"></div>
+    <div class="field"><label>Website</label><input id="f-website" placeholder="https://yoursite.com"></div>
+    <div class="field"><label>Company Size</label>
+      <select id="f-size">
+        <option value="">Select...</option>
+        <option>Solo / 1 person</option><option>2–5 employees</option>
+        <option>6–15 employees</option><option>16–50 employees</option><option>50+ employees</option>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="card-icon">📍</span> Service area</div>
+    <div class="field"><label>Service Area Type</label>
+      <div class="checkbox-group" id="area-type">
+        <div class="cb-option" onclick="selectOne(this,'area-type')">Local (city)</div>
+        <div class="cb-option" onclick="selectOne(this,'area-type')">Regional (metro)</div>
+        <div class="cb-option" onclick="selectOne(this,'area-type')">Statewide</div>
+        <div class="cb-option" onclick="selectOne(this,'area-type')">National</div>
+        <div class="cb-option" onclick="selectOne(this,'area-type')">Online / Remote</div>
+      </div>
+    </div>
+    <div class="field"><label>Service Area Details</label><input id="f-area" placeholder="e.g. San Antonio & surrounding suburbs"></div>
+  </div>
+  <div class="step-btns"><button class="btn btn-brand" onclick="goStep(2)">Next: Goals & Budget →</button></div>
+</div>
+
+<!-- STEP 2 -->
+<div id="step-2" style="display:none">
+  <div class="card">
+    <div class="card-title"><span class="card-icon">🎯</span> Your 90-day goal</div>
+    <div class="field"><label>What's your #1 goal for the next 90 days? <span class="req">*</span></label>
+      <textarea id="f-goal" placeholder="e.g. Get 50 qualified leads per month and book 20 jobs"></textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="card-icon">💰</span> Advertising budget & platforms</div>
+    <div class="field"><label>Monthly Ad Budget <span class="req">*</span></label>
+      <select id="f-budget">
+        <option value="">Select range...</option>
+        <option value="500">$500/month</option><option value="1000">$1,000/month</option>
+        <option value="1500">$1,500/month</option><option value="2500">$2,500/month</option>
+        <option value="5000">$5,000/month</option><option value="10000">$10,000+/month</option>
+      </select>
+    </div>
+    <div class="field"><label>Ad Platforms <span class="req">*</span></label>
+      <div class="checkbox-group" id="platforms">
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Facebook</div>
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Instagram</div>
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Google</div>
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">YouTube</div>
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">TikTok</div>
+        <div class="cb-option" onclick="toggleMulti(this,'platforms')">LinkedIn</div>
+      </div>
+    </div>
+  </div>
+  <div class="error-msg" id="step2-err"></div>
+  <div class="step-btns">
+    <button class="btn btn-back" onclick="goStep(1)">← Back</button>
+    <button class="btn btn-brand" onclick="goStep(3)">Next: Your Info →</button>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div id="step-3" style="display:none">
+  <div class="card">
+    <div class="card-title"><span class="card-icon">👤</span> Your contact info</div>
+    <div class="two-col">
+      <div class="field"><label>First Name <span class="req">*</span></label><input id="f-fn" placeholder="Jane"></div>
+      <div class="field"><label>Last Name <span class="req">*</span></label><input id="f-ln" placeholder="Smith"></div>
+    </div>
+    <div class="field"><label>Email Address <span class="req">*</span></label><input id="f-email" type="email" placeholder="jane@yourbiz.com"></div>
+    <div class="field"><label>Phone Number</label><input id="f-phone" type="tel" placeholder="(512) 555-0000"></div>
+  </div>
+  <div class="error-msg" id="step3-err"></div>
+  <div class="step-btns">
+    <button class="btn btn-back" onclick="goStep(2)">← Back</button>
+    <button class="btn btn-brand" onclick="goStep(4)">Next: Review →</button>
+  </div>
+</div>
+
+<!-- STEP 4 - CONFIRM -->
+<div id="step-4" style="display:none">
+  <div class="card">
+    <div class="card-title"><span class="card-icon">✅</span> Review & Submit</div>
+    <div id="review-content" style="font-size:.83rem;color:var(--muted);line-height:2"></div>
+  </div>
+  <div class="card" id="terms-card">
+    <div class="card-title"><span class="card-icon">📄</span> Terms & Authorization</div>
+    <div class="terms-wrap" id="terms-text"></div>
+    <label class="terms-check"><input type="checkbox" id="terms-cb"><span>I have read and agree to the terms above and authorize the agency to manage my marketing campaigns.</span></label>
+  </div>
+  <div class="error-msg" id="step4-err"></div>
+  <div class="step-btns">
+    <button class="btn btn-back" onclick="goStep(3)">← Back</button>
+    <button class="btn btn-brand" onclick="submitForm()" id="submit-btn">🚀 Generate My Plan!</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">🎉</div>
+  <h2>Your Plan is Being Built!</h2>
+  <p id="success-msg">Your AI marketing plan will be ready in about 2 minutes. Check your email — we're sending it directly to you.</p>
+  <div class="success-btns">
+    <a id="success-plan-btn" href="#" class="success-btn" style="background:var(--brand);color:#fff;display:none">View My Plan →</a>
+    <a id="success-portal-btn" href="#" class="success-btn" style="background:#f0f2f7;color:var(--text)">Go to My Portal →</a>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+const API = 'https://marketingplan.astroaibots.com/api';
+let agencyId = '', agencyConfig = {};
+
+// Get agencyId from URL: /onboard/agency-id
+async function init() {
+  document.getElementById('loading').classList.add('show');
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  agencyId = parts[parts.length - 1];
+
+  if (!agencyId || agencyId === 'onboard') {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('main').style.display = 'block';
+    return;
+  }
+
+  try {
+    const res  = await fetch(API + '/agency/public?id=' + encodeURIComponent(agencyId));
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Agency not found');
+    agencyConfig = data;
+    applyBranding(data);
+  } catch(e) {
+    console.warn('Agency config load failed:', e.message);
+    // Fallback to defaults
+    agencyConfig = { name:'Astro AI', brandName:'Astro AI', brandColor:'#00d9a3', termsText:'By submitting this form you authorize the agency to create and manage digital marketing campaigns on your behalf.' };
+  }
+
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('main').style.display = 'block';
+}
+
+function applyBranding(cfg) {
+  document.documentElement.style.setProperty('--brand', cfg.brandColor || '#00d9a3');
+  document.getElementById('header-brand').textContent = cfg.brandName || cfg.name || '';
+  document.getElementById('header-title').textContent = cfg.onboardingTitle || 'Get Your AI Marketing Plan';
+  if (cfg.welcomeMsg) document.getElementById('header-sub').textContent = cfg.welcomeMsg;
+  document.title = cfg.onboardingTitle || cfg.brandName || 'Get Your Marketing Plan';
+  document.getElementById('terms-text').textContent = cfg.termsText || 'By submitting this form you authorize the agency to create and manage digital marketing campaigns on your behalf.';
+}
+
+function v(id) { return (document.getElementById(id)?.value||'').trim(); }
+function getSelected(groupId) { return [...document.querySelectorAll(`#${groupId} .selected`)].map(el=>el.textContent).join(', '); }
+function selectOne(el,groupId) { document.querySelectorAll(`#${groupId} .cb-option`).forEach(e=>e.classList.remove('selected')); el.classList.add('selected'); }
+function toggleMulti(el) { el.classList.toggle('selected'); }
+
+let currentStep = 1;
+function goStep(n) {
+  // Validate before advancing
+  if (n > currentStep) {
+    const err = validate(currentStep);
+    if (err) { showErr(currentStep, err); return; }
+    clearErr(currentStep);
+  }
+  document.getElementById('step-'+currentStep).style.display = 'none';
+  document.getElementById('tab-'+currentStep).classList.remove('active');
+  if (currentStep < n) document.getElementById('tab-'+currentStep).classList.add('done');
+  currentStep = n;
+  document.getElementById('step-'+n).style.display = 'block';
+  document.getElementById('tab-'+n).classList.add('active');
+  document.getElementById('progress').style.width = (n * 25) + '%';
+  if (n === 4) buildReview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validate(step) {
+  if (step === 1) {
+    if (!v('f-biz'))      return 'Business name is required.';
+    if (!v('f-industry')) return 'Please select an industry.';
+    if (!v('f-service'))  return 'Primary service is required.';
+  }
+  if (step === 2) {
+    if (!v('f-goal'))   return 'Please describe your 90-day goal.';
+    if (!v('f-budget')) return 'Please select your monthly budget.';
+    if (!getSelected('platforms')) return 'Please select at least one ad platform.';
+  }
+  if (step === 3) {
+    if (!v('f-fn'))    return 'First name is required.';
+    if (!v('f-ln'))    return 'Last name is required.';
+    if (!v('f-email')) return 'Email is required.';
+    if (!v('f-email').includes('@')) return 'Enter a valid email address.';
+  }
+  return null;
+}
+
+function showErr(step, msg) { const el = document.getElementById('step'+step+'-err'); if(el){el.textContent=msg;el.style.display='block';} }
+function clearErr(step) { const el = document.getElementById('step'+step+'-err'); if(el)el.style.display='none'; }
+
+function buildReview() {
+  const rows = [
+    ['Business', v('f-biz')],
+    ['Industry', v('f-industry')],
+    ['Service', v('f-service')],
+    ['Service Area', [getSelected('area-type'), v('f-area')].filter(Boolean).join(' — ')],
+    ['90-Day Goal', v('f-goal')],
+    ['Monthly Budget', '$'+v('f-budget')+'/mo'],
+    ['Platforms', getSelected('platforms')],
+    ['Contact', `${v('f-fn')} ${v('f-ln')} · ${v('f-email')}${v('f-phone') ? ' · '+v('f-phone') : ''}`],
+  ];
+  document.getElementById('review-content').innerHTML = rows
+    .filter(r=>r[1])
+    .map(r=>`<div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid #f0f2f7"><div style="font-weight:700;color:#333;min-width:120px">${r[0]}</div><div>${r[1]}</div></div>`)
+    .join('');
+}
+
+async function submitForm() {
+  if (!document.getElementById('terms-cb').checked) {
+    const el = document.getElementById('step4-err');
+    el.textContent = 'You must agree to the terms to continue.'; el.style.display = 'block';
+    return;
+  }
+
+  // Show generating screen
+  document.getElementById('step-4').style.display = 'none';
+  document.getElementById('generating').classList.add('show');
+
+  const msgs = [
+    'Analyzing your business and market...',
+    'Writing 5 ad angles with multiple variations...',
+    'Building your 90-day roadmap...',
+    'Crafting audience targeting strategy...',
+    'Generating qualification script...',
+    'Finalizing your plan...',
+  ];
+  let mi = 0;
+  const genMsg = document.getElementById('gen-msg');
+  const msgInterval = setInterval(() => { if(mi < msgs.length-1) genMsg.textContent = msgs[++mi]; }, 18000);
+
+  try {
+    const payload = {
+      agencyId,
+      firstName:       v('f-fn'),
+      lastName:        v('f-ln'),
+      email:           v('f-email'),
+      phone:           v('f-phone'),
+      businessName:    v('f-biz'),
+      industry:        v('f-industry'),
+      primaryService:  v('f-service'),
+      website:         v('f-website'),
+      companySize:     v('f-size'),
+      serviceAreaType: getSelected('area-type'),
+      serviceDetails:  v('f-area'),
+      goal90Days:      v('f-goal'),
+      adBudget:        v('f-budget'),
+      adPlatforms:     getSelected('platforms'),
+    };
+
+    const res  = await fetch(API + '/agency/process-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    clearInterval(msgInterval);
+    document.getElementById('generating').classList.remove('show');
+
+    if (!res.ok || !data.success) throw new Error(data.error || 'Plan generation failed');
+
+    // Show success
+    document.getElementById('step-4').style.display = 'none';
+    const ss = document.getElementById('success-screen');
+    ss.classList.add('show');
+    if (data.planUrl) {
+      const pb = document.getElementById('success-plan-btn');
+      pb.href = data.planUrl; pb.style.display = 'inline-flex';
+    }
+    if (data.portalUrl) {
+      document.getElementById('success-portal-btn').href = data.portalUrl;
+    }
+
+  } catch(e) {
+    clearInterval(msgInterval);
+    document.getElementById('generating').classList.remove('show');
+    document.getElementById('step-4').style.display = 'block';
+    const el = document.getElementById('step4-err');
+    el.textContent = '❌ ' + e.message; el.style.display = 'block';
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
