@@ -171,68 +171,72 @@ function firestorePatch(token, slug, fields) {
   });
 }
 
-// ── HighLevel SMS ─────────────────────────────────────────────────────────────
-// Step 1: look up contact by phone to get contactId
-function hlGetContactByPhone(phone) {
+// ── HighLevel SMS ──────────────────────────────────────────────────────────────
+function hlRequest(method, path, body) {
   return new Promise((resolve, reject) => {
-    // Normalize phone — strip spaces/dashes, ensure +1 prefix
-    let p = phone.replace(/[\s\-().]/g, '');
-    if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
-    const path = '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p);
-    const req = https.request({
-      hostname: 'services.leadconnectorhq.com',
-      path,
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + process.env.HL_API_KEY,
-        'Version': '2021-07-28',
-        'Accept': 'application/json',
-      },
-    }, res => {
+    const bodyStr = body ? JSON.stringify(body) : null;
+    const headers = {
+      'Authorization': 'Bearer ' + process.env.HL_API_KEY,
+      'Version':       '2021-07-28',
+      'Accept':        'application/json',
+    };
+    if (bodyStr) {
+      headers['Content-Type']   = 'application/json';
+      headers['Content-Length'] = Buffer.byteLength(bodyStr);
+    }
+    const req = https.request({ hostname: 'services.leadconnectorhq.com', path, method, headers }, res => {
       let d = ''; res.on('data', c => d += c);
       res.on('end', () => {
-        try {
-          const parsed = JSON.parse(d);
-          const contacts = parsed.contacts || [];
-          resolve(contacts.length ? contacts[0].id : null);
-        } catch(e) { reject(e); }
+        console.log('[HL] ' + method + ' ' + path + ' => HTTP ' + res.statusCode + ' | ' + d.slice(0,300));
+        try { resolve({ status: res.statusCode, body: JSON.parse(d) }); }
+        catch(e) { resolve({ status: res.statusCode, body: d }); }
       });
     });
-    req.on('error', reject); req.end();
-  });
-}
-
-// Step 2: send SMS using contactId
-function hlSendSMS(contactId, message) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      type: 'SMS',
-      contactId,
-      message,
-    });
-    const req = https.request({
-      hostname: 'services.leadconnectorhq.com',
-      path: '/conversations/messages',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + process.env.HL_API_KEY,
-        'Version': '2021-04-15',
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-      },
-    }, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { reject(e); } });
-    });
-    req.on('error', reject); req.write(body); req.end();
+    req.on('error', e => { console.error('[HL] request error:', e.message); reject(e); });
+    if (bodyStr) req.write(bodyStr);
+    req.end();
   });
 }
 
 async function sendHL_SMS(toPhone, message) {
-  const contactId = await hlGetContactByPhone(toPhone);
-  if (!contactId) throw new Error('Contact not found in HL for phone: ' + toPhone);
-  return hlSendSMS(contactId, message);
+  // Normalize to E.164
+  let p = (toPhone || '').replace(/[\s\-().]/g, '');
+  if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
+  console.log('[HL SMS] normalized phone:', p);
+
+  // Look up contact by phone
+  let search = await hlRequest('GET', '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
+  let contacts = (search.body && search.body.contacts) ? search.body.contacts : [];
+  console.log('[HL SMS] contact search count:', contacts.length);
+
+  // Fallback: try without country code
+  if (!contacts.length) {
+    const bare = p.replace('+1', '');
+    const search2 = await hlRequest('GET', '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(bare));
+    contacts = (search2.body && search2.body.contacts) ? search2.body.contacts : [];
+    console.log('[HL SMS] fallback search count:', contacts.length);
+  }
+
+  if (!contacts.length) {
+    throw new Error('No HL contact found for phone: ' + p);
+  }
+
+  const contactId = contacts[0].id;
+  console.log('[HL SMS] contactId:', contactId);
+
+  // Send SMS
+  const smsResp = await hlRequest('POST', '/conversations/messages', {
+    type: 'SMS',
+    contactId,
+    message,
+  });
+
+  if (smsResp.status >= 400) {
+    throw new Error('HL SMS failed HTTP ' + smsResp.status + ': ' + JSON.stringify(smsResp.body).slice(0, 200));
+  }
+  return smsResp.body;
 }
+
 
 // ── Email ─────────────────────────────────────────────────────────────────────
 function sendEmail(to, subject, html) {
