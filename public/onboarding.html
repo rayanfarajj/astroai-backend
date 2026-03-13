@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Astro AI — Client Onboarding Survey</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07091a;
+  --card:#0e1228;
+  --card2:#141933;
+  --orange:#f97316;
+  --orange2:#fb923c;
+  --gold:#fbbf24;
+  --green:#22c55e;
+  --blue:#3b82f6;
+  --cyan:#06b6d4;
+  --purple:#8b5cf6;
+  --red:#ef4444;
+  --text:#f0f4ff;
+  --muted:#7a89aa;
+  --border:rgba(255,255,255,0.07);
+  --border-focus:rgba(249,115,22,0.5);
+  --input-bg:rgba(255,255,255,0.04);
+}
+html,body{width:100%;min-height:100vh;overflow-x:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+
+/* ── BACKGROUND ── */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg::before,.bg::after{content:'';position:absolute;border-radius:50%;filter:blur(100px);opacity:.1;}
+.bg::before{width:700px;height:700px;background:radial-gradient(circle,var(--blue),var(--purple));top:-200px;right:-150px;animation:drift1 20s ease-in-out infinite alternate;}
+.bg::after{width:600px;height:600px;background:radial-gradient(circle,var(--orange),var(--purple));bottom:-150px;left:-200px;animation:drift2 24s ease-in-out infinite alternate;}
+.bg-orb3{position:absolute;width:350px;height:350px;background:radial-gradient(circle,var(--cyan),transparent);border-radius:50%;filter:blur(80px);opacity:.06;top:45%;left:45%;animation:drift3 16s ease-in-out infinite alternate;}
+@keyframes drift1{to{transform:translate(-60px,80px) scale(1.1);}}
+@keyframes drift2{to{transform:translate(80px,-60px) scale(1.15);}}
+@keyframes drift3{to{transform:translate(-40px,60px);}}
+
+/* ── WRAPPER ── */
+.wrap{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px 14px 80px;}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:28px 0 20px;width:100%;max-width:620px;}
+.logo-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:100px;padding:7px 16px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--orange);margin-bottom:16px;}
+.header h1{font-family:'Syne',sans-serif;font-size:clamp(22px,5.5vw,36px);font-weight:800;line-height:1.15;margin-bottom:10px;}
+.header h1 em{font-style:normal;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header p{color:var(--muted);font-size:13px;line-height:1.65;max-width:460px;margin:0 auto;}
+
+/* ── PROGRESS ── */
+.prog-wrap{width:100%;max-width:620px;margin-bottom:20px;}
+.prog-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.prog-section{font-size:11px;font-weight:800;color:var(--orange);letter-spacing:.5px;text-transform:uppercase;}
+.prog-pct{font-size:11px;color:var(--muted);font-weight:600;}
+.prog-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .65s cubic-bezier(.4,0,.2,1);}
+.prog-dots{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+.prog-dot{height:3px;flex:1;min-width:10px;border-radius:100px;background:rgba(255,255,255,.08);transition:background .4s;}
+.prog-dot.done{background:var(--orange);}
+.prog-dot.active{background:var(--gold);}
+
+/* ── SLIDE CONTAINER ── */
+.slides-wrap{width:100%;max-width:620px;}
+.slide{display:none;}
+.slide.active{display:block;animation:slideIn .4s cubic-bezier(.4,0,.2,1);}
+.slide.going-back.active{animation:slideInBack .4s cubic-bezier(.4,0,.2,1);}
+@keyframes slideIn{from{opacity:0;transform:translateX(48px);}to{opacity:1;transform:translateX(0);}}
+@keyframes slideInBack{from{opacity:0;transform:translateX(-48px);}to{opacity:1;transform:translateX(0);}}
+
+/* ── SLIDE CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px 22px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--orange),var(--gold),var(--orange));background-size:200% 100%;animation:shimmer 4s linear infinite;}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.card-tag{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--orange);opacity:.8;margin-bottom:8px;}
+.card-icon{font-size:26px;margin-bottom:8px;display:block;}
+.card-title{font-family:'Syne',sans-serif;font-size:clamp(17px,4vw,22px);font-weight:800;line-height:1.2;margin-bottom:6px;}
+.card-title em{font-style:normal;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-desc{color:var(--muted);font-size:12.5px;line-height:1.6;margin-bottom:20px;}
+
+/* ── FIELDS ── */
+.f{margin-bottom:15px;}
+.f:nth-child(1){animation:fadeUp .35s ease-out both .04s;}
+.f:nth-child(2){animation:fadeUp .35s ease-out both .08s;}
+.f:nth-child(3){animation:fadeUp .35s ease-out both .12s;}
+.f:nth-child(4){animation:fadeUp .35s ease-out both .16s;}
+.f:nth-child(5){animation:fadeUp .35s ease-out both .20s;}
+.f:nth-child(6){animation:fadeUp .35s ease-out both .24s;}
+.f:nth-child(7){animation:fadeUp .35s ease-out both .28s;}
+.f:nth-child(8){animation:fadeUp .35s ease-out both .32s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+.f-label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.f-label .req{color:var(--orange);margin-left:2px;}
+
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+
+input[type=text],input[type=email],input[type=tel],input[type=url],select,textarea{
+  width:100%;background:var(--input-bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px 14px;font-size:16px;font-family:'DM Sans',sans-serif;
+  color:var(--text);outline:none;transition:border-color .25s,box-shadow .25s,background .25s;
+  -webkit-appearance:none;appearance:none;
+}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' fill='%237a89aa' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;cursor:pointer;}
+textarea{resize:vertical;min-height:88px;font-size:14px;line-height:1.55;}
+input::placeholder,textarea::placeholder{color:rgba(180,195,220,.55);font-size:13px;}
+input:focus,select:focus,textarea:focus{border-color:var(--border-focus);background:rgba(249,115,22,.04);box-shadow:0 0 0 3px rgba(249,115,22,.07);}
+.f.ok input,.f.ok select,.f.ok textarea{border-color:rgba(34,197,94,.4);}
+.f.err input,.f.err select,.f.err textarea{border-color:rgba(239,68,68,.4);}
+.err-msg{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+.f.err .err-msg{display:block;}
+
+/* ── OPTIONS (radio / checkbox) ── */
+.opts{display:grid;gap:7px;}
+.opts.c2{grid-template-columns:1fr 1fr;}
+.opts.c3{grid-template-columns:1fr 1fr 1fr;}
+.opt{position:relative;}
+.opt input{position:absolute;opacity:0;pointer-events:none;}
+.opt-l{display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:500;transition:all .22s;user-select:none;}
+.opt-l:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04);}
+.opt input:checked+.opt-l{border-color:var(--orange);background:rgba(249,115,22,.1);color:var(--orange);}
+.opt-dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.2);flex-shrink:0;transition:all .22s;position:relative;}
+.opt input:checked+.opt-l .opt-dot{border-color:var(--orange);background:var(--orange);}
+.opt-dot::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:5px;height:5px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s;}
+.opt input:checked+.opt-l .opt-dot::after{opacity:1;}
+.opt-box{width:15px;height:15px;border-radius:4px;border:2px solid rgba(255,255,255,.2);flex-shrink:0;transition:all .22s;position:relative;}
+.opt input:checked+.opt-l .opt-box{border-color:var(--orange);background:var(--orange);}
+.opt input:checked+.opt-l .opt-box::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;color:#fff;font-weight:900;}
+
+/* ── CONSENT CHECKBOX ── */
+.consent{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .22s;}
+.consent:hover,.consent.on{border-color:rgba(249,115,22,.35);}
+.consent-box{width:17px;height:17px;border-radius:4px;border:2px solid rgba(255,255,255,.2);flex-shrink:0;margin-top:1px;transition:all .22s;position:relative;}
+.consent.on .consent-box{border-color:var(--orange);background:var(--orange);}
+.consent.on .consent-box::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;color:#fff;font-weight:900;}
+.consent-txt{font-size:11.5px;color:var(--muted);line-height:1.5;}
+
+/* ── PLATFORM CARDS ── */
+.platforms{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.pt{position:relative;}
+.pt input{position:absolute;opacity:0;pointer-events:none;}
+.pt-l{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:14px 10px;background:var(--input-bg);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .28s;min-height:76px;}
+.pt-l:hover{border-color:rgba(249,115,22,.3);transform:translateY(-2px);}
+.pt input:checked+.pt-l{border-color:var(--orange);background:rgba(249,115,22,.1);transform:translateY(-2px);box-shadow:0 6px 20px rgba(249,115,22,.15);}
+.pt-icon{font-size:22px;}
+.pt-name{font-size:11px;font-weight:700;color:var(--muted);}
+.pt input:checked+.pt-l .pt-name{color:var(--orange);}
+
+/* ── ACCESS METHOD CARDS ── */
+.access-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.ac{position:relative;}
+.ac input{position:absolute;opacity:0;pointer-events:none;}
+.ac-l{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px 12px;background:var(--input-bg);border:2px solid var(--border);border-radius:14px;cursor:pointer;text-align:center;transition:all .3s;min-height:130px;}
+.ac-l:hover{border-color:rgba(249,115,22,.3);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.35);}
+.ac input:checked+.ac-l{border-color:var(--orange);background:rgba(249,115,22,.08);transform:translateY(-3px);box-shadow:0 8px 28px rgba(249,115,22,.15);}
+.ac-icon{font-size:28px;}
+.ac-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;line-height:1.2;}
+.ac input:checked+.ac-l .ac-title{color:var(--orange);}
+.ac-desc{font-size:10.5px;color:var(--muted);line-height:1.4;}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0 13px;}
+.div-line{flex:1;height:1px;background:var(--border);}
+.div-txt{font-size:9.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+
+/* ── HINT ── */
+.hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4;padding-left:2px;}
+
+/* ── CALENDAR ── */
+.cal-wrap{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:14px;padding:14px;overflow:hidden;}
+.cal-wrap iframe{width:100%;border:none;min-height:580px;border-radius:8px;display:block;}
+
+/* ── EMAIL CONFIRM ── */
+.email-confirm{text-align:center;padding:24px 14px;}
+.ec-icon{font-size:52px;display:block;margin-bottom:14px;animation:popIn .55s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+.email-confirm h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,var(--cyan),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.email-confirm p{color:var(--muted);font-size:13px;line-height:1.65;max-width:360px;margin:0 auto 16px;}
+.ec-info{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:13px 14px;font-size:12.5px;line-height:1.55;}
+.ec-info strong{color:var(--cyan);}
+
+/* ── REFERRAL CARD ── */
+.ref-card{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(251,191,36,.05));border:1px solid rgba(249,115,22,.2);border-radius:15px;padding:20px 16px;margin-bottom:16px;}
+.ref-header{display:flex;align-items:flex-start;gap:11px;margin-bottom:14px;}
+.ref-emoji{font-size:30px;flex-shrink:0;line-height:1;}
+.ref-header h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;line-height:1.25;}
+.ref-header h3 em{font-style:normal;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ref-perks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.perk{display:flex;align-items:center;gap:7px;padding:9px 11px;background:rgba(255,255,255,.04);border-radius:9px;font-size:11.5px;font-weight:600;}
+.perk-i{font-size:15px;flex-shrink:0;}
+.ref-note{font-size:11.5px;color:var(--muted);line-height:1.55;border-top:1px solid var(--border);padding-top:12px;margin-top:4px;}
+
+/* ── NAV BUTTONS ── */
+.nav{display:flex;gap:9px;margin-top:16px;align-items:stretch;}
+.btn-back{background:transparent;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;flex-shrink:0;white-space:nowrap;}
+.btn-back:hover{border-color:rgba(255,255,255,.2);color:var(--text);}
+.btn-next{flex:1;padding:14px 18px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:800;cursor:pointer;position:relative;overflow:hidden;transition:transform .2s,box-shadow .3s;box-shadow:0 4px 18px rgba(249,115,22,.3);}
+.btn-next::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent);opacity:0;transition:opacity .25s;}
+.btn-next:hover::after{opacity:1;}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(249,115,22,.45);}
+.btn-next:active{transform:translateY(0);}
+.btn-next:disabled{opacity:.6;pointer-events:none;}
+/* ── CONTRACT / AUTHORIZATION ── */
+.contract-terms{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.term-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:rgba(255,255,255,.03);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .22s;}
+.term-item:hover,.term-item.on{border-color:rgba(249,115,22,.3);}
+.term-cb{width:17px;height:17px;border-radius:4px;border:2px solid rgba(255,255,255,.25);flex-shrink:0;margin-top:1px;transition:all .22s;position:relative;}
+.term-item.on .term-cb{border-color:var(--orange);background:var(--orange);}
+.term-item.on .term-cb::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:#fff;font-weight:900;}
+.term-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.term-body{font-size:11.5px;color:var(--muted);line-height:1.55;}
+
+.sig-wrap{background:rgba(255,255,255,.04);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;position:relative;}
+.sig-top{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border);}
+.sig-top span{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.sig-clear{background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 8px;border-radius:6px;transition:color .2s;}
+.sig-clear:hover{color:var(--red);}
+canvas#sigPad{display:block;width:100%;height:140px;cursor:crosshair;touch-action:none;background:rgba(0,0,0,.15);}
+.sig-hint{font-size:11px;color:var(--muted);padding:7px 13px;font-style:italic;}
+.contract-meta{background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.18);border-radius:10px;padding:12px 14px;font-size:11.5px;color:var(--muted);line-height:1.7;margin-top:14px;}
+.contract-meta strong{color:var(--orange);}
+.doc-ref{font-size:10px;color:rgba(122,137,170,.5);text-align:right;margin-top:8px;font-family:monospace;}
+.terms-err{font-size:11px;color:var(--red);margin-top:6px;display:none;padding:8px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;}
+.term-item.unchecked-warn{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.06);}
+.policy-box{background:rgba(249,115,22,.06);border:1.5px solid rgba(249,115,22,.25);border-radius:12px;padding:14px 15px;margin-top:4px;}
+.policy-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.policy-row+.policy-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.policy-cb{width:17px;height:17px;border-radius:4px;border:2px solid rgba(255,255,255,.25);flex-shrink:0;margin-top:1px;transition:all .22s;position:relative;}
+.policy-row.on .policy-cb{border-color:var(--orange);background:var(--orange);}
+.policy-row.on .policy-cb::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;color:#fff;font-weight:900;}
+.policy-txt{font-size:12.5px;color:var(--muted);line-height:1.55;}
+.policy-txt a{color:var(--orange);font-weight:700;text-decoration:none;}
+.policy-txt a:hover{text-decoration:underline;}
+.policy-err{font-size:11px;color:var(--red);margin-top:8px;display:none;}
+
+
+.btn-skip{background:transparent;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;padding:12px 10px;text-decoration:underline;text-underline-offset:3px;transition:color .2s;flex-shrink:0;}
+.btn-skip:hover{color:var(--text);}
+.spin{display:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-next.loading .btn-lbl{display:none;}
+.btn-next.loading .spin{display:block;}
+
+/* ── SUCCESS ── */
+.success{display:none;text-align:center;padding:50px 20px;animation:fadeUp .6s ease-out;}
+.suc-ring{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(34,197,94,.04));border:2px solid rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 20px;box-shadow:0 0 48px rgba(34,197,94,.2);animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .2s both;}
+.success h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:10px;background:linear-gradient(135deg,var(--green),#4ade80);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.success p{color:var(--muted);font-size:13.5px;line-height:1.65;max-width:380px;margin:0 auto;}
+
+/* ── MOBILE ── */
+@media(max-width:480px){
+  .wrap{padding:10px 10px 70px;}
+  .card{padding:18px 14px;border-radius:15px;}
+  .f-row{grid-template-columns:1fr;}
+  .opts.c3{grid-template-columns:1fr 1fr;}
+  .platforms{grid-template-columns:1fr 1fr;}
+  .access-grid{grid-template-columns:1fr 1fr;}
+  .ref-perks{grid-template-columns:1fr 1fr;}
+  .header{padding:18px 0 14px;}
+  .nav{gap:7px;}
+  .prog-dots{display:none;}
+  .ac-l{padding:14px 8px;min-height:110px;}
+}
+@media(max-width:360px){
+  .access-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-orb3"></div></div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-pill">🚀 Astro AI Bots</div>
+    <h1>Welcome to Your<br><em>Client Onboarding</em></h1>
+    <p>Help us build the right marketing strategy, ad campaign, and lead qualification system for your business. Takes about 5–8 minutes.</p>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-meta">
+      <span class="prog-section" id="progLabel">Section 1 of 16</span>
+      <span class="prog-pct" id="progPct">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-dots" id="progDots"></div>
+  </div>
+
+  <!-- ═══════════════ SLIDES ═══════════════ -->
+  <div class="slides-wrap" id="slidesWrap">
+
+    <!-- ─── S1: Contact Info ─── -->
+    <div class="slide active" id="s1">
+      <div class="card">
+        <div class="card-tag">Section 1 · Contact</div>
+        <span class="card-icon">👤</span>
+        <div class="card-title">Business <em>General Info</em></div>
+        <div class="card-desc">Every detail matters — this helps us build the right ad strategy for your business.</div>
+
+        <div class="f-row">
+          <div class="f" id="fg-fname"><label class="f-label">First Name <span class="req">*</span></label><input type="text" id="fname" placeholder="First Name" autocomplete="given-name"><div class="err-msg">Required.</div></div>
+          <div class="f" id="fg-lname"><label class="f-label">Last Name <span class="req">*</span></label><input type="text" id="lname" placeholder="Last Name" autocomplete="family-name"><div class="err-msg">Required.</div></div>
+        </div>
+        <div class="f" id="fg-email1"><label class="f-label">Email <span class="req">*</span></label><input type="email" id="email1" placeholder="Email Address" autocomplete="email"><div class="err-msg">Valid email required.</div></div>
+        <div class="f" id="fg-phone1"><label class="f-label">Phone Number <span class="req">*</span></label><input type="tel" id="phone1" placeholder="Best Number to Reach You" autocomplete="tel"><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-bizname"><label class="f-label">Business Name <span class="req">*</span></label><input type="text" id="bizname" placeholder="Business Name" autocomplete="organization"><div class="err-msg">Required.</div></div>
+        <div class="f"><label class="f-label">Website URL</label><input type="url" id="website" placeholder="https://yourwebsite.com"></div>
+        <div class="f"><label class="f-label">Main Business Phone</label><input type="text" id="bizphone" placeholder="Main Business Phone Number (or extension)"></div>
+        <div class="f">
+          <label class="f-label">SMS Consent</label>
+          <div class="consent on" id="smsConsent" onclick="toggleConsent(this)">
+            <div class="consent-box"></div>
+            <div class="consent-txt">By providing my phone number, I agree to receive text messages from Astro AI regarding my account, campaign updates, and support.</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-next" onclick="go(1,2)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button></div>
+    </div>
+
+    <!-- ─── S2: Mailing Address ─── -->
+    <div class="slide" id="s2">
+      <div class="card">
+        <div class="card-tag">Section 2 · Mailing Address</div>
+        <span class="card-icon">📬</span>
+        <div class="card-title">Mailing <em>Address</em></div>
+        <div class="card-desc">We may send helpful onboarding resources, printed materials, welcome items, or occasional client gifts to this address.</div>
+
+        <div class="f" id="fg-addr1"><label class="f-label">Street Address <span class="req">*</span></label><input type="text" id="addr1" placeholder="Street Address" autocomplete="address-line1"><div class="err-msg">Required.</div></div>
+        <div class="f"><label class="f-label">Apt / Suite / Unit</label><input type="text" id="addr2" placeholder="Apartment, Suite, Unit, etc." autocomplete="address-line2"></div>
+        <div class="f-row">
+          <div class="f" id="fg-city"><label class="f-label">City <span class="req">*</span></label><input type="text" id="city" placeholder="City" autocomplete="address-level2"><div class="err-msg">Required.</div></div>
+          <div class="f" id="fg-state"><label class="f-label">State <span class="req">*</span></label><input type="text" id="state" placeholder="State" autocomplete="address-level1"><div class="err-msg">Required.</div></div>
+        </div>
+        <div class="f" id="fg-zip"><label class="f-label">Zip Code <span class="req">*</span></label><input type="text" id="zip" placeholder="Zip Code" autocomplete="postal-code"><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(2)">← Back</button>
+        <button class="btn-next" onclick="go(2,3)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S3: Business Overview ─── -->
+    <div class="slide" id="s3">
+      <div class="card">
+        <div class="card-tag">Section 3 · Business Overview</div>
+        <span class="card-icon">🏢</span>
+        <div class="card-title">Business <em>Information</em></div>
+        <div class="card-desc">This powers how we target, message, and position your brand in the market.</div>
+
+        <div class="f" id="fg-compSize"><label class="f-label">Company Size <span class="req">*</span></label>
+          <select id="compSize"><option value="">Select…</option><option>Just me / Solo business</option><option>2–5 employees</option><option>6–10 employees</option><option>11–25 employees</option><option>26–50 employees</option><option>51+ employees</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-industry"><label class="f-label">Industry <span class="req">*</span></label>
+          <select id="industry"><option value="">Select your industry…</option><option>Home Services</option><option>Health & Wellness</option><option>Beauty / Med Spa</option><option>Real Estate</option><option>Legal</option><option>Dental</option><option>Automotive</option><option>Roofing</option><option>HVAC</option><option>Plumbing</option><option>Cleaning Services</option><option>Remodeling / Construction</option><option>Professional Services</option><option>Coaching / Consulting</option><option>E-commerce</option><option>Other</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-primarySvc"><label class="f-label">Primary Service or Offer to Promote First <span class="req">*</span></label><input type="text" id="primarySvc" placeholder="Ex: Roof repair, med spa consultation…"><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-bizDesc"><label class="f-label">Business Description <span class="req">*</span></label><textarea id="bizDesc" placeholder="Briefly describe your business, what you sell, who you help, where you operate, and what makes your company different."></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(3)">← Back</button>
+        <button class="btn-next" onclick="go(3,4)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S4: Offer & Positioning ─── -->
+    <div class="slide" id="s4">
+      <div class="card">
+        <div class="card-tag">Section 4 · Offer & Positioning</div>
+        <span class="card-icon">🎯</span>
+        <div class="card-title">Your Offer & <em>Competitive Edge</em></div>
+        <div class="card-desc">Help us understand what drives customers to choose you and what we should highlight in your ads.</div>
+
+        <div class="f" id="fg-mainGoal"><label class="f-label">Main Goal From Advertising <span class="req">*</span></label>
+          <select id="mainGoal"><option value="">Select your main goal…</option><option>More phone calls</option><option>More form leads</option><option>More booked appointments</option><option>More local brand awareness</option><option>More website traffic</option><option>More sales</option><option>More qualified leads only</option><option>Other</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-avgVal"><label class="f-label">Average Customer / Job Value <span class="req">*</span></label><input type="text" id="avgVal" placeholder="Ex: $500, $2,500, $8,000 per job"><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-standOut"><label class="f-label">What Makes You Stand Out From Competitors? <span class="req">*</span></label><textarea id="standOut" placeholder="Tell us why a customer should choose you instead of the competition. Ex: Same-day estimates, financing, workmanship guarantee…"></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-promos"><label class="f-label">Current Promotions or Incentives <span class="req">*</span></label><textarea id="promos" placeholder="Ex: Free estimate, $250 off first service, 10% off new customers, financing available…"></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(4)">← Back</button>
+        <button class="btn-next" onclick="go(4,5)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S5: Target Audience ─── -->
+    <div class="slide" id="s5">
+      <div class="card">
+        <div class="card-tag">Section 5 · Target Audience</div>
+        <span class="card-icon">👥</span>
+        <div class="card-title">Your <em>Ideal Customer</em></div>
+        <div class="card-desc">The more specific you are, the sharper our targeting. Help us find your perfect buyers.</div>
+
+        <div class="f" id="fg-idealCust"><label class="f-label">Who Is Your Ideal Customer? <span class="req">*</span></label><textarea id="idealCust" placeholder="Ex: Homeowners age 30–60 who own their home, live in middle- to upper-income neighborhoods, and are looking for reliable service rather than the cheapest option."></textarea><div class="err-msg">Required.</div></div>
+        <div class="f"><label class="f-label">Age Group Preference</label>
+          <div class="opts c3">
+            <div class="opt"><input type="checkbox" name="age" value="18–24" id="a1"><label class="opt-l" for="a1"><div class="opt-box"></div>18–24</label></div>
+            <div class="opt"><input type="checkbox" name="age" value="25–34" id="a2"><label class="opt-l" for="a2"><div class="opt-box"></div>25–34</label></div>
+            <div class="opt"><input type="checkbox" name="age" value="35–44" id="a3"><label class="opt-l" for="a3"><div class="opt-box"></div>35–44</label></div>
+            <div class="opt"><input type="checkbox" name="age" value="45–54" id="a4"><label class="opt-l" for="a4"><div class="opt-box"></div>45–54</label></div>
+            <div class="opt"><input type="checkbox" name="age" value="55–64" id="a5"><label class="opt-l" for="a5"><div class="opt-box"></div>55–64</label></div>
+            <div class="opt"><input type="checkbox" name="age" value="65+" id="a6"><label class="opt-l" for="a6"><div class="opt-box"></div>65+</label></div>
+            <div class="opt" style="grid-column:1/-1"><input type="checkbox" name="age" value="No preference" id="a7"><label class="opt-l" for="a7"><div class="opt-box"></div>No preference</label></div>
+          </div>
+        </div>
+        <div class="f"><label class="f-label">Preferred Gender of Leads</label>
+          <select id="genderPref"><option value="">No preference</option><option>Mostly male</option><option>Mostly female</option></select></div>
+        <div class="f" id="fg-lang"><label class="f-label">Preferred Lead Language <span class="req">*</span></label>
+          <div class="opts c2">
+            <div class="opt"><input type="radio" name="lang" value="English" id="l1"><label class="opt-l" for="l1"><div class="opt-dot"></div>English</label></div>
+            <div class="opt"><input type="radio" name="lang" value="Spanish" id="l2"><label class="opt-l" for="l2"><div class="opt-dot"></div>Spanish</label></div>
+            <div class="opt"><input type="radio" name="lang" value="English & Spanish" id="l3"><label class="opt-l" for="l3"><div class="opt-dot"></div>English & Spanish</label></div>
+            <div class="opt"><input type="radio" name="lang" value="Other" id="l4"><label class="opt-l" for="l4"><div class="opt-dot"></div>Other</label></div>
+          </div>
+          <div class="err-msg">Please select one.</div></div>
+        <div class="f" id="fg-interests"><label class="f-label">Common Interests / Behaviors <span class="req">*</span></label><textarea id="interests" placeholder="Ex: Home improvement, luxury services, high household income, recently moved…"></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(5)">← Back</button>
+        <button class="btn-next" onclick="go(5,6)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S6: Service Area ─── -->
+    <div class="slide" id="s6">
+      <div class="card">
+        <div class="card-tag">Section 6 · Service Area</div>
+        <span class="card-icon">📍</span>
+        <div class="card-title">Where Do You <em>Serve Customers?</em></div>
+        <div class="card-desc">We'll use this to set precise geographic targeting for your campaigns.</div>
+
+        <div class="f" id="fg-svcType"><label class="f-label">Where Do You Provide Services? <span class="req">*</span></label>
+          <div class="opts">
+            <div class="opt"><input type="radio" name="svcType" value="Nationwide (U.S.)" id="sa1"><label class="opt-l" for="sa1"><div class="opt-dot"></div>🇺🇸 Nationwide (U.S.)</label></div>
+            <div class="opt"><input type="radio" name="svcType" value="Only in specific states" id="sa2"><label class="opt-l" for="sa2"><div class="opt-dot"></div>🗺️ Only in specific states</label></div>
+            <div class="opt"><input type="radio" name="svcType" value="Within a set radius of my city" id="sa3"><label class="opt-l" for="sa3"><div class="opt-dot"></div>📏 Within a set radius of my city</label></div>
+            <div class="opt"><input type="radio" name="svcType" value="Only at my physical location" id="sa4"><label class="opt-l" for="sa4"><div class="opt-dot"></div>🏪 Only at my physical location</label></div>
+            <div class="opt"><input type="radio" name="svcType" value="Other" id="sa5"><label class="opt-l" for="sa5"><div class="opt-dot"></div>Other</label></div>
+          </div>
+          <div class="err-msg">Please select one.</div></div>
+        <div class="f" id="fg-svcDetails"><label class="f-label">Service Area Details <span class="req">*</span></label><textarea id="svcDetails" placeholder="List the cities, states, zip codes, or mileage radius you want to target. Ex: Houston, Katy, Sugar Land, within 30 miles of downtown Houston."></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(6)">← Back</button>
+        <button class="btn-next" onclick="go(6,7)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S7: Lead Qualification ─── -->
+    <div class="slide" id="s7">
+      <div class="card">
+        <div class="card-tag">Section 7 · Lead Qualification</div>
+        <span class="card-icon">✅</span>
+        <div class="card-title">What Makes a <em>Perfect Lead?</em></div>
+        <div class="card-desc">Help us filter in the right leads and filter out the wrong ones from day one.</div>
+
+        <div class="f" id="fg-goodLead"><label class="f-label">What Does a Highly Qualified Lead Look Like? <span class="req">*</span></label><textarea id="goodLead" placeholder="Ex: A homeowner in our service area who is actively looking for help within the next 30 days, has the budget, and is ready to speak with our team."></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-badLead"><label class="f-label">What Makes a Lead a Bad Fit / Instant Disqualification? <span class="req">*</span></label><textarea id="badLead" placeholder="Ex: Outside service area, looking for cheapest option, not the decision-maker, not ready to move forward."></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-qualQ"><label class="f-label">Top 3 Qualifying Questions to Ask Leads <span class="req">*</span></label><textarea id="qualQ" placeholder="1. What service are you looking for?&#10;2. What city or zip code is the property in?&#10;3. How soon are you looking to get started?"></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-disQ"><label class="f-label">Top 3 Disqualifying Questions <span class="req">*</span></label><textarea id="disQ" placeholder="1. Are you outside our service area?&#10;2. Are you only looking for the cheapest quote?&#10;3. Are you not the homeowner / decision-maker?"></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(7)">← Back</button>
+        <button class="btn-next" onclick="go(7,8)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S8: Lead Handoff ─── -->
+    <div class="slide" id="s8">
+      <div class="card">
+        <div class="card-tag">Section 8 · Lead Handoff</div>
+        <span class="card-icon">📲</span>
+        <div class="card-title">Lead Handling <em>Preferences</em></div>
+        <div class="card-desc">Set up exactly how your team receives and responds to new leads.</div>
+
+        <div class="f" id="fg-leadDest"><label class="f-label">Where Should Qualified Leads Be Sent? <span class="req">*</span></label>
+          <select id="leadDest"><option value="">Select preferred method…</option><option>Phone call</option><option>Text message</option><option>Email</option><option>GHL pipeline / CRM</option><option>Calendar booking link</option><option>Multiple methods</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-leadEmail"><label class="f-label">Best Email for Lead Notifications <span class="req">*</span></label><input type="email" id="leadEmail" placeholder="bestemail@business.com"><div class="err-msg">Valid email required.</div></div>
+        <div class="f" id="fg-leadPhone"><label class="f-label">Best Phone for Lead Notifications <span class="req">*</span></label><input type="tel" id="leadPhone" placeholder="Best Number for Calls / SMS"><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-respTime"><label class="f-label">How Quickly Does Your Team Respond? <span class="req">*</span></label>
+          <select id="respTime"><option value="">Select…</option><option>Within 5 minutes</option><option>Within 15 minutes</option><option>Within 1 hour</option><option>Same day</option><option>Next business day</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-dedicated"><label class="f-label">Dedicated Person for Calls & Follow-Up? <span class="req">*</span></label>
+          <select id="dedicated"><option value="">Select…</option><option>Yes</option><option>No</option><option>Sometimes</option></select>
+          <div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(8)">← Back</button>
+        <button class="btn-next" onclick="go(8,9)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S9: Past Marketing ─── -->
+    <div class="slide" id="s9">
+      <div class="card">
+        <div class="card-tag">Section 9 · Past Marketing</div>
+        <span class="card-icon">📊</span>
+        <div class="card-title">Current <em>Marketing Snapshot</em></div>
+        <div class="card-desc">Understanding what worked — and what didn't — helps us build smarter campaigns faster.</div>
+
+        <div class="f" id="fg-paidAds"><label class="f-label">Have You Run Paid Ads Before? <span class="req">*</span></label>
+          <select id="paidAds"><option value="">Select…</option><option>Yes, currently running ads</option><option>Yes, in the past</option><option>No, this will be our first campaign</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f"><label class="f-label">Platforms Used Before</label>
+          <div class="opts c2">
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Facebook" id="pp1"><label class="opt-l" for="pp1"><div class="opt-box"></div>Facebook</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Instagram" id="pp2"><label class="opt-l" for="pp2"><div class="opt-box"></div>Instagram</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Google Search" id="pp3"><label class="opt-l" for="pp3"><div class="opt-box"></div>Google Search</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Google Local Services" id="pp4"><label class="opt-l" for="pp4"><div class="opt-box"></div>Google Local</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="YouTube" id="pp5"><label class="opt-l" for="pp5"><div class="opt-box"></div>YouTube</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="TikTok" id="pp6"><label class="opt-l" for="pp6"><div class="opt-box"></div>TikTok</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Yelp" id="pp7"><label class="opt-l" for="pp7"><div class="opt-box"></div>Yelp</label></div>
+            <div class="opt"><input type="checkbox" name="prevPlatform" value="Other" id="pp8"><label class="opt-l" for="pp8"><div class="opt-box"></div>Other</label></div>
+          </div>
+        </div>
+        <div class="f" id="fg-workedWell"><label class="f-label">What Worked Well? <span class="req">*</span></label><textarea id="workedWell" placeholder="Ex: Calls from Google, Facebook lead forms, retargeting — or 'N/A' if first campaign"></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-notWorked"><label class="f-label">What Did Not Work Well? <span class="req">*</span></label><textarea id="notWorked" placeholder="Ex: Low-quality leads, bad targeting — or 'N/A' if first campaign"></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(9)">← Back</button>
+        <button class="btn-next" onclick="go(9,10)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S10: Goals & Priorities ─── -->
+    <div class="slide" id="s10">
+      <div class="card">
+        <div class="card-tag">Section 10 · Goals & Priorities</div>
+        <span class="card-icon">🚀</span>
+        <div class="card-title">Goals, Limitations <em>& Expectations</em></div>
+        <div class="card-desc">Let's align on focus areas so we hit the ground running from day one.</div>
+
+        <div class="f" id="fg-goal90"><label class="f-label">Main Goal for the Next 90 Days <span class="req">*</span></label><textarea id="goal90" placeholder="Ex: Generate 20–30 qualified leads per month, increase booked appointments, and build a predictable flow of new customers."></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-limits"><label class="f-label">Limitations or Things to Avoid <span class="req">*</span></label><textarea id="limits" placeholder="Ex: Do not target renters, avoid weekends, focus only on premium services — or 'None'"></textarea><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-priorities"><label class="f-label">Services or Locations to Prioritize <span class="req">*</span></label><textarea id="priorities" placeholder="Tell us what service or location you want us to focus on first."></textarea><div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(10)">← Back</button>
+        <button class="btn-next" onclick="go(10,11)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S11: Custom Lead Questions ─── -->
+    <div class="slide" id="s11">
+      <div class="card">
+        <div class="card-tag">Section 11 · Custom Questions</div>
+        <span class="card-icon">💬</span>
+        <div class="card-title">Custom Lead Form <em>Questions</em></div>
+        <div class="card-desc">Add up to 3 custom questions you want us to ask your incoming leads on your behalf.</div>
+
+        <div class="f"><label class="f-label">Custom Question #1</label><input type="text" id="cq1" placeholder="Enter a custom question you want us to ask"></div>
+        <div class="f"><label class="f-label">Custom Question #2</label><input type="text" id="cq2" placeholder="Enter a custom question you want us to ask"></div>
+        <div class="f"><label class="f-label">Custom Question #3</label><input type="text" id="cq3" placeholder="Enter a custom question you want us to ask"></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(11)">← Back</button>
+        <button class="btn-next" onclick="go(11,12)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S12: Ad Budget ─── -->
+    <div class="slide" id="s12">
+      <div class="card">
+        <div class="card-tag">Section 12 · Advertising Budget</div>
+        <span class="card-icon">💰</span>
+        <div class="card-title">Your <em>Ad Budget</em></div>
+        <div class="card-desc">We recommend starting at least $20/day for stronger data and faster optimization. You can start as low as $15/day and scale once results come in.</div>
+
+        <div class="f" id="fg-adBudget"><label class="f-label">Daily Ad Budget <span class="req">*</span></label>
+          <div class="opts">
+            <div class="opt"><input type="radio" name="adBudget" value="$15/day (starter test budget)" id="b1"><label class="opt-l" for="b1"><div class="opt-dot"></div>$15/day — Starter test budget</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$20/day (recommended minimum)" id="b2"><label class="opt-l" for="b2"><div class="opt-dot"></div>$20/day — Recommended minimum ⭐</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$25/day" id="b3"><label class="opt-l" for="b3"><div class="opt-dot"></div>$25/day</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$35/day" id="b4"><label class="opt-l" for="b4"><div class="opt-dot"></div>$35/day</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$50/day" id="b5"><label class="opt-l" for="b5"><div class="opt-dot"></div>$50/day</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$75/day" id="b6"><label class="opt-l" for="b6"><div class="opt-dot"></div>$75/day</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="$100+/day" id="b7"><label class="opt-l" for="b7"><div class="opt-dot"></div>$100+/day</label></div>
+            <div class="opt"><input type="radio" name="adBudget" value="I want a custom recommendation" id="b8"><label class="opt-l" for="b8"><div class="opt-dot"></div>I want a custom recommendation</label></div>
+          </div>
+          <div class="err-msg">Please select a budget.</div></div>
+        <div class="f" id="fg-budgetScale"><label class="f-label">Open to Increasing Budget if Results Are Good? <span class="req">*</span></label>
+          <select id="budgetScale"><option value="">Select…</option><option>Yes, absolutely</option><option>Yes, after we see consistent results</option><option>Maybe</option><option>Not at this time</option></select>
+          <div class="err-msg">Required.</div></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(12)">← Back</button>
+        <button class="btn-next" onclick="go(12,13)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S13: Growth & Upsells ─── -->
+    <div class="slide" id="s13">
+      <div class="card">
+        <div class="card-tag">Section 13 · Growth & Upsells</div>
+        <span class="card-icon">📈</span>
+        <div class="card-title"><em>Growth</em> Opportunities</div>
+        <div class="card-desc">If we help you generate strong results, we'd love to help you grow faster.</div>
+
+        <div class="f" id="fg-upgrade"><label class="f-label">Open to Upgrading for More Aggressive Growth? <span class="req">*</span></label>
+          <select id="upgrade"><option value="">Select…</option><option>Yes, definitely</option><option>Yes, if the ROI makes sense</option><option>Maybe later</option><option>Not at this time</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-refBonus"><label class="f-label">Interested in Referral Bonuses? <span class="req">*</span></label>
+          <select id="refBonus"><option value="">Select…</option><option>Yes, send me the referral details</option><option>Maybe later</option><option>No thanks</option></select>
+          <div class="err-msg">Required.</div></div>
+        <div class="f"><label class="f-label">Know Another Business Owner Who Needs Help With Ads?</label>
+          <select id="knowSomeone"><option value="">Select…</option><option>Yes</option><option>Maybe</option><option>Not right now</option></select></div>
+        <div class="f"><label class="f-label">Who Should We Thank You For Referring?</label><textarea id="refContact" placeholder="Business name, contact name, or industry…"></textarea></div>
+        <div class="f"><label class="f-label">Anything Else We Should Know?</label><textarea id="finalNotes" placeholder="Anything else about your goals, offers, audience, or expectations?"></textarea></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(13)">← Back</button>
+        <button class="btn-next" onclick="go(13,14)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S14: Ad Account Access ─── -->
+    <div class="slide" id="s14">
+      <div class="card">
+        <div class="card-tag">Section 14 · Ad Account Access</div>
+        <span class="card-icon">🔑</span>
+        <div class="card-title">Connect Your <em>Ad Accounts</em></div>
+        <div class="card-desc">Tell us which platforms you want us to manage, then choose how you'd like to grant us access.</div>
+
+        <div class="f"><label class="f-label" style="margin-bottom:9px;">Select All Platforms (check all that apply)</label>
+          <div class="platforms">
+            <div class="pt"><input type="checkbox" name="adPlatform" value="Meta (Facebook & Instagram)" id="ap1"><label class="pt-l" for="ap1"><span class="pt-icon">📘</span><span class="pt-name">Meta (FB & IG)</span></label></div>
+            <div class="pt"><input type="checkbox" name="adPlatform" value="Google Ads" id="ap2"><label class="pt-l" for="ap2"><span class="pt-icon">🔍</span><span class="pt-name">Google Ads</span></label></div>
+            <div class="pt"><input type="checkbox" name="adPlatform" value="TikTok Ads" id="ap3"><label class="pt-l" for="ap3"><span class="pt-icon">🎵</span><span class="pt-name">TikTok</span></label></div>
+            <div class="pt"><input type="checkbox" name="adPlatform" value="LinkedIn Ads" id="ap4"><label class="pt-l" for="ap4"><span class="pt-icon">💼</span><span class="pt-name">LinkedIn</span></label></div>
+          </div>
+        </div>
+
+        <div class="divider"><div class="div-line"></div><div class="div-txt">How would you like to give us access?</div><div class="div-line"></div></div>
+
+        <div class="access-grid" id="accessGrid">
+          <div class="ac">
+            <input type="radio" name="accessMethod" value="email" id="amEmail">
+            <label class="ac-l" for="amEmail">
+              <div class="ac-icon">📧</div>
+              <div class="ac-title">Email Instructions</div>
+              <div class="ac-desc">We'll send you step-by-step instructions to grant us access at your own pace</div>
+            </label>
+          </div>
+          <div class="ac">
+            <input type="radio" name="accessMethod" value="zoom" id="amZoom">
+            <label class="ac-l" for="amZoom">
+              <div class="ac-icon">🖥️</div>
+              <div class="ac-title">Free Zoom Setup</div>
+              <div class="ac-desc">Jump on a free screen-share — we'll handle everything together in under 15 min</div>
+            </label>
+          </div>
+        </div>
+        <div class="err-msg" id="accessErr" style="margin-top:6px;">Please select an access method.</div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(14)">← Back</button>
+        <button class="btn-next" onclick="go(14,15)"><span class="btn-lbl">Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+
+    <!-- ─── S15: Authorization Agreement ─── -->
+    <div class="slide" id="s15">
+      <div class="card">
+        <div class="card-tag">Section 15 · Authorization Agreement</div>
+        <span class="card-icon">📋</span>
+        <div class="card-title">Authorization <em>Agreement</em></div>
+        <div class="card-desc">Please review and confirm each term below by checking all boxes, then sign to authorize Astro A.I. Marketing to manage your campaigns.</div>
+
+        <div class="contract-terms" id="contractTerms">
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Campaign Creation</div><div class="term-body">Ads will be created based on the information you provided through the survey form on our website.</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Platform Authorization</div><div class="term-body">You allow us to run marketing campaigns on your chosen advertising platforms (e.g., Facebook, Google, TikTok, etc.) with your consent.</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)" id="termTechSetup">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Technical Setup</div><div class="term-body" id="termTechBody">Loading…</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Full Access</div><div class="term-body">You maintain owner access to all accounts, and we will act as admin for managing ads and campaigns.</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Campaign Performance</div><div class="term-body">You understand that campaign performance is based on multiple factors, and Astro A.I. Marketing has no control over or affiliation with Facebook, Meta, Google, TikTok, or any other ad platform.</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">No Responsibility for Payments</div><div class="term-body">All payments for ad spend and extra messaging fees are made directly to the ad platforms and not through Astro A.I. Marketing. We are not liable for any of these fees.</div></div>
+          </div>
+          <div class="term-item on" onclick="toggleTerm(this)">
+            <div class="term-cb"></div>
+            <div><div class="term-title">Liability Waiver</div><div class="term-body">Astro A.I. Marketing is not responsible for any outcomes, issues, or costs related to your advertising campaigns, including but not limited to ad performance, budget management, or third-party fees.</div></div>
+          </div>
+        </div>
+        <div class="terms-err" id="termsErr">⚠️ Please check all boxes above to confirm each term before continuing.</div>
+
+        <div class="f">
+          <label class="f-label">Privacy Policy & Terms of Service <span class="req">*</span></label>
+          <div class="policy-box">
+            <div class="policy-row on" id="policyPrivacy" onclick="togglePolicy(this)">
+              <div class="policy-cb"></div>
+              <div class="policy-txt">I have read and agree to the <a href="https://astroaibots.com/privacy_policy-page" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a> of Astro A.I. Marketing.</div>
+            </div>
+            <div class="policy-row on" id="policyTos" onclick="togglePolicy(this)">
+              <div class="policy-cb"></div>
+              <div class="policy-txt">I have read and agree to the <a href="https://astroaibots.com/terms_and_conditions" target="_blank" onclick="event.stopPropagation()">Terms &amp; Conditions</a> of Astro A.I. Marketing.</div>
+            </div>
+          </div>
+          <div class="policy-err" id="policyErr">⚠️ You must accept both the Privacy Policy and Terms of Service to continue.</div>
+        </div>
+        <div class="f" id="fg-sigName"><label class="f-label">Your Full Legal Name <span class="req">*</span></label><input type="text" id="sigName" placeholder="Your full legal name as it appears on your ID"><div class="err-msg">Required.</div></div>
+        <div class="f" id="fg-sigBiz"><label class="f-label">Business Name <span class="req">*</span></label><input type="text" id="sigBiz" placeholder="Legal business name"><div class="err-msg">Required.</div></div>
+
+        <div class="f" id="fg-sigPad">
+          <label class="f-label">Your Signature <span class="req">*</span></label>
+          <div class="sig-wrap">
+            <div class="sig-top"><span>✍️ Sign below</span><button class="sig-clear" onclick="clearSig()">Clear</button></div>
+            <canvas id="sigPad" width="600" height="140"></canvas>
+            <div class="sig-hint">Draw your signature with your finger or mouse</div>
+          </div>
+          <div class="err-msg" id="sigErr" style="display:none;">Signature required.</div>
+        </div>
+
+        <div class="contract-meta">
+          <strong>Owner/Authorizer Confirmation:</strong><br>
+          I, <span id="contractNameDisplay" style="color:var(--text);font-weight:600;"></span> am the legal owner and authorized representative of <span id="contractBizDisplay" style="color:var(--text);font-weight:600;"></span> and have full authority to grant Astro A.I. Marketing the permission to manage advertising campaigns on behalf of this business. I confirm that I have read and agree to the Privacy Policy and Terms &amp; Conditions.<br><br>
+          <strong>Date:</strong> <span id="contractDate"></span> &nbsp;|&nbsp; <strong>IP:</strong> <span id="contractIP">Capturing…</span><br>
+          <strong>User Agent:</strong> <span id="contractUA" style="font-size:10px;word-break:break-all;"></span>
+        </div>
+        <div class="doc-ref" id="contractRef"></div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(15)">← Back</button>
+        <button class="btn-next" onclick="go(15,16)"><span class="btn-lbl">I Agree & Continue →</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+    <!-- ─── S16: Referral Program ─── -->
+    <div class="slide" id="s16">
+      <div class="card">
+        <div class="card-tag">Section 16 · Referral Program</div>
+        <span class="card-icon">🎁</span>
+        <div class="card-title">Earn Up to <em>3 Months Free</em><br>or a $200 Gift Card</div>
+        <div class="card-desc">Refer a business owner friend — when they sign up, you both win.</div>
+
+        <div class="ref-card">
+          <div class="ref-header">
+            <div class="ref-emoji">🤝</div>
+            <div>
+              <h3>Refer a Business &<br><em>Get Rewarded</em></h3>
+            </div>
+          </div>
+          <div class="ref-perks">
+            <div class="perk"><span class="perk-i">🎁</span>Up to $200 gift card</div>
+            <div class="perk"><span class="perk-i">📅</span>Up to 3 months free</div>
+            <div class="perk"><span class="perk-i">🆓</span>Friend gets 2 weeks free</div>
+            <div class="perk"><span class="perk-i">✉️</span>We send the invite for you</div>
+          </div>
+          <div class="ref-note">Enter your friend's info below. We'll send them a personalized invitation on your behalf. When they sign up, your reward is applied automatically.</div>
+        </div>
+
+        <div class="f"><label class="f-label">Friend's Name or Business Name</label><input type="text" id="refName" placeholder="Friend's name or their business name"></div>
+        <div class="f"><label class="f-label">Friend's Email</label><input type="email" id="refEmail" placeholder="friend@example.com"></div>
+        <div class="f"><label class="f-label">Friend's Phone Number</label><input type="tel" id="refPhone" placeholder="Friend's phone number"></div>
+        <div class="hint" style="margin-top:-6px;">💡 We'll reach out to them on your behalf. You'll be notified when they sign up and your reward is unlocked.</div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(16)">← Back</button>
+        <button class="btn-skip" onclick="submitForm()">Skip →</button>
+        <button class="btn-next" id="submitBtn" onclick="submitForm()"><span class="btn-lbl">Submit & Finish 🚀</span><div class="spin"></div></button>
+      </div>
+    </div>
+
+
+
+    <!-- ─── S-DONE: Final Completion Screen ─── -->
+    <div class="slide" id="s-email">
+      <div class="card">
+        <div class="email-confirm">
+          <span class="ec-icon">🎉</span>
+          <h3>Onboarding Complete!</h3>
+          <p>Thank you for completing your onboarding survey. Our team will review your information and send you an <strong style="color:var(--text);">initial update within 3–5 business days</strong> as we begin setting up your campaign.</p>
+          <div class="ec-info" style="margin-bottom:14px;"><strong>Ad account access instructions sent to:</strong><br><span id="ecEmailDisplay" style="color:var(--text);"></span></div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">Have questions? Reach out to us anytime at<br><a href="/cdn-cgi/l/email-protection#7d14131b123d1c0e090f121c141f12090e531e1210" style="color:var(--orange);font-weight:700;text-decoration:none;"><span class="__cf_email__" data-cfemail="375e595158775644434558565e555843441954585a">[email&#160;protected]</span></a></p>
+          <button class="btn-next" style="max-width:320px;margin:0 auto 12px;display:block;font-size:13px;padding:13px 18px;" onclick="window.open('https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh','_blank')">📅 Schedule Free Technical Setup Call</button>
+          <p style="font-size:11px;color:var(--muted);">Changed your mind? Book a free Zoom session and we'll connect your ad accounts for you.</p>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+            <p style="font-size:12px;color:var(--muted);">You may now close this page. 👋</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /slides-wrap -->
+
+  <!-- SUCCESS -->
+  <div class="success" id="successScreen">
+    <div class="suc-ring">🎉</div>
+    <h2>Survey Complete!</h2>
+    <p>Thank you! Your onboarding information has been submitted. Our team will review everything and reach out within 1 business day to get your campaign launched.</p>
+  </div>
+
+</div><!-- /wrap -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://link.astroaibots.com/js/form_embed.js" type="text/javascript"></script>
+<script>
+// ── CONFIG ──────────────────────────────────────────
+const HL_WEBHOOK = 'https://services.leadconnectorhq.com/hooks/c7S4QWDhffHXVOTRfB2y/webhook-trigger/c355daa1-adcf-421f-8286-029c9f0ffbb5';
+const SEND_PDF_URL      = 'https://celebrated-baklava-e035d6.netlify.app/.netlify/functions/send-pdf';
+const GENERATE_PLAN_URL = 'https://celebrated-baklava-e035d6.netlify.app/.netlify/functions/generate-plan';
+const TOTAL = 16;
+// ────────────────────────────────────────────────────
+
+let cur = 1;
+let goingBack = false;
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Build progress dots
+(function buildDots(){
+  const wrap = document.getElementById('progDots');
+  for(let i=1;i<=TOTAL;i++){
+    const d = document.createElement('div');
+    d.className = 'prog-dot';
+    d.id = 'dot'+i;
+    wrap.appendChild(d);
+  }
+})();
+
+function updateProg(n){
+  const pct = Math.round(((n-1)/TOTAL)*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progPct').textContent = pct+'%';
+  document.getElementById('progLabel').textContent = 'Section '+n+' of '+TOTAL;
+  for(let i=1;i<=TOTAL;i++){
+    const d = document.getElementById('dot'+i);
+    if(!d) continue;
+    d.className = 'prog-dot' + (i<n?' done':i===n?' active':'');
+  }
+}
+
+function showSlide(n, isBack){
+  goingBack = !!isBack;
+  const all = document.querySelectorAll('.slide');
+  all.forEach(s=>s.classList.remove('active','going-back'));
+  const target = document.getElementById('s'+n);
+  if(!target) return;
+  if(isBack) target.classList.add('going-back');
+  target.classList.add('active');
+  cur = n;
+  updateProg(n);
+  window.scrollTo({top:0, behavior:'smooth'});
+  // Init contract slide when landing on slide 15
+  if(n===15){ initContractSlide(); }
+}
+
+function initContractSlide(){
+  initSigPad();
+  const now = new Date();
+  window._contractTimestamp = now.toISOString();
+  window._docRef = window._docRef || genDocRef();
+  const dateEl = document.getElementById('contractDate');
+  if(dateEl) dateEl.textContent = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+  const refEl = document.getElementById('contractRef');
+  if(refEl) refEl.textContent = 'Document Ref: '+window._docRef;
+  const uaEl = document.getElementById('contractUA');
+  if(uaEl) uaEl.textContent = navigator.userAgent;
+  // Pre-fill from slide 1
+  const fn = document.getElementById('fname')?.value||'';
+  const ln = document.getElementById('lname')?.value||'';
+  const bn = document.getElementById('bizname')?.value||'';
+  const sn = document.getElementById('sigName');
+  const sb = document.getElementById('sigBiz');
+  if(sn && !sn.value && (fn||ln)) sn.value = (fn+' '+ln).trim();
+  if(sb && !sb.value && bn) sb.value = bn;
+  updateContractMeta();
+  if(window._clientIP){ const el=document.getElementById('contractIP'); if(el) el.textContent=window._clientIP; }
+  // Dynamic Technical Setup text based on access method chosen in slide 14
+  const accessMethod = document.querySelector('input[name="accessMethod"]:checked')?.value;
+  const techBody = document.getElementById('termTechBody');
+  if(techBody){
+    if(accessMethod === 'zoom'){
+      techBody.textContent = 'You acknowledge that you have scheduled (or will schedule) a free technical setup session via Zoom screen-share, during which Astro A.I. Marketing will set up your ad account with your permission and assistance.';
+    } else {
+      techBody.textContent = 'You acknowledge that you have requested email instructions for technical setup and understand that Astro A.I. Marketing will provide step-by-step guidance to help you grant ad account access at your own pace.';
+    }
+  }
+  // Attach live update listeners (safe to add multiple times)
+  document.getElementById('sigName')?.addEventListener('input', updateContractMeta);
+  document.getElementById('sigBiz')?.addEventListener('input', updateContractMeta);
+}
+
+function showSpecial(id){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active','going-back'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('progWrap').style.display = 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function back(from){ showSlide(from-1, true); }
+
+// ── VALIDATION ───────────────────────────────────────
+function v(id, gid, test){
+  const el = document.getElementById(id);
+  const g  = document.getElementById(gid || 'fg-'+id);
+  if(!el||!g) return true;
+  const ok = test(el.value.trim());
+  g.classList.toggle('err', !ok);
+  g.classList.toggle('ok', ok);
+  return ok;
+}
+function vRadio(name, fgId){
+  const ok = !!document.querySelector(`input[name="${name}"]:checked`);
+  const fg = document.getElementById(fgId);
+  if(fg){
+    fg.classList.toggle('err', !ok);
+    fg.classList.toggle('ok', ok);
+  }
+  return ok;
+}
+function validate(n){
+  let ok = true;
+  if(n===1){
+    ok &= v('fname','fg-fname',s=>s.length>0);
+    ok &= v('lname','fg-lname',s=>s.length>0);
+    ok &= v('email1','fg-email1',s=>emailRe.test(s));
+    ok &= v('phone1','fg-phone1',s=>s.length>6);
+    ok &= v('bizname','fg-bizname',s=>s.length>0);
+  }
+  if(n===2){
+    ok &= v('addr1','fg-addr1',s=>s.length>0);
+    ok &= v('city','fg-city',s=>s.length>0);
+    ok &= v('state','fg-state',s=>s.length>0);
+    ok &= v('zip','fg-zip',s=>s.length>0);
+  }
+  if(n===3){
+    ok &= v('compSize','fg-compSize',s=>s!=='');
+    ok &= v('industry','fg-industry',s=>s!=='');
+    ok &= v('primarySvc','fg-primarySvc',s=>s.length>0);
+    ok &= v('bizDesc','fg-bizDesc',s=>s.length>10);
+  }
+  if(n===4){
+    ok &= v('mainGoal','fg-mainGoal',s=>s!=='');
+    ok &= v('avgVal','fg-avgVal',s=>s.length>0);
+    ok &= v('standOut','fg-standOut',s=>s.length>5);
+    ok &= v('promos','fg-promos',s=>s.length>0);
+  }
+  if(n===5){
+    ok &= v('idealCust','fg-idealCust',s=>s.length>5);
+    ok &= v('interests','fg-interests',s=>s.length>0);
+    const lr = vRadio('lang','fg-lang');
+    ok &= lr;
+  }
+  if(n===6){
+    const sr = vRadio('svcType','fg-svcType');
+    ok &= sr;
+    ok &= v('svcDetails','fg-svcDetails',s=>s.length>0);
+  }
+  if(n===7){
+    ok &= v('goodLead','fg-goodLead',s=>s.length>5);
+    ok &= v('badLead','fg-badLead',s=>s.length>5);
+    ok &= v('qualQ','fg-qualQ',s=>s.length>5);
+    ok &= v('disQ','fg-disQ',s=>s.length>5);
+  }
+  if(n===8){
+    ok &= v('leadDest','fg-leadDest',s=>s!=='');
+    ok &= v('leadEmail','fg-leadEmail',s=>emailRe.test(s));
+    ok &= v('leadPhone','fg-leadPhone',s=>s.length>6);
+    ok &= v('respTime','fg-respTime',s=>s!=='');
+    ok &= v('dedicated','fg-dedicated',s=>s!=='');
+  }
+  if(n===9){
+    ok &= v('paidAds','fg-paidAds',s=>s!=='');
+    ok &= v('workedWell','fg-workedWell',s=>s.length>0);
+    ok &= v('notWorked','fg-notWorked',s=>s.length>0);
+  }
+  if(n===10){
+    ok &= v('goal90','fg-goal90',s=>s.length>5);
+    ok &= v('limits','fg-limits',s=>s.length>0);
+    ok &= v('priorities','fg-priorities',s=>s.length>0);
+  }
+  if(n===12){
+    const br = !!document.querySelector('input[name="adBudget"]:checked');
+    const bg = document.getElementById('fg-adBudget');
+    if(bg) bg.classList.toggle('err',!br);
+    ok &= br;
+    ok &= v('budgetScale','fg-budgetScale',s=>s!=='');
+  }
+  if(n===13){
+    ok &= v('upgrade','fg-upgrade',s=>s!=='');
+    ok &= v('refBonus','fg-refBonus',s=>s!=='');
+  }
+  if(n===15){
+    // Check all contract terms are checked
+    const terms = document.querySelectorAll('#contractTerms .term-item');
+    const allTermsChecked = Array.from(terms).every(t=>t.classList.contains('on'));
+    const termsErrEl = document.getElementById('termsErr');
+    if(!allTermsChecked){
+      if(termsErrEl) termsErrEl.style.display='block';
+      // Highlight unchecked items
+      terms.forEach(t=>{ if(!t.classList.contains('on')) t.classList.add('unchecked-warn'); });
+      ok=false;
+    } else {
+      if(termsErrEl) termsErrEl.style.display='none';
+      terms.forEach(t=>t.classList.remove('unchecked-warn'));
+    }
+    // Check privacy + tos
+    const privOk = document.getElementById('policyPrivacy')?.classList.contains('on');
+    const tosOk  = document.getElementById('policyTos')?.classList.contains('on');
+    const policyErrEl = document.getElementById('policyErr');
+    if(!privOk || !tosOk){
+      if(policyErrEl) policyErrEl.style.display='block';
+      ok=false;
+    } else {
+      if(policyErrEl) policyErrEl.style.display='none';
+    }
+    ok &= v('sigName','fg-sigName',s=>s.length>2);
+    ok &= v('sigBiz','fg-sigBiz',s=>s.length>1);
+    // Check signature
+    const hasSig = isSigned();
+    document.getElementById('sigErr').style.display = hasSig?'none':'block';
+    if(!hasSig) ok=false;
+  }
+  if(n===14){
+    const ar = !!document.querySelector('input[name="accessMethod"]:checked');
+    document.getElementById('accessErr').style.display = ar?'none':'block';
+    ok &= ar;
+  }
+  return !!ok;
+}
+
+function go(from, to){
+  if(!validate(from)){
+    const firstErr = document.querySelector('#s'+from+' .f.err');
+    if(firstErr) firstErr.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  showSlide(to);
+}
+
+// ── COLLECT ──────────────────────────────────────────
+function g(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+function radio(name){ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:''; }
+function checks(name){ return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e=>e.value).join(', '); }
+
+function collectAll(){
+  return {
+    firstName: g('fname'), lastName: g('lname'),
+    email: g('email1'), phone: g('phone1'),
+    businessName: g('bizname'), website: g('website'),
+    bizPhone: g('bizphone'),
+    smsConsent: document.getElementById('smsConsent')?.classList.contains('on')?'Yes':'No',
+    mailingAddr1: g('addr1'), mailingAddr2: g('addr2'),
+    mailingCity: g('city'), mailingState: g('state'), mailingZip: g('zip'),
+    companySize: g('compSize'), industry: g('industry'),
+    primaryService: g('primarySvc'), bizDescription: g('bizDesc'),
+    mainGoal: g('mainGoal'), avgCustomerValue: g('avgVal'),
+    standOut: g('standOut'), promotions: g('promos'),
+    idealCustomer: g('idealCust'), ageGroups: checks('age'),
+    genderPref: g('genderPref'), language: radio('lang'),
+    interests: g('interests'),
+    serviceAreaType: radio('svcType'), serviceDetails: g('svcDetails'),
+    qualifiedLead: g('goodLead'), badLead: g('badLead'),
+    qualifyingQuestions: g('qualQ'), disqualifyingQuestions: g('disQ'),
+    leadDestination: g('leadDest'), leadEmail: g('leadEmail'), leadPhone: g('leadPhone'),
+    responseTime: g('respTime'), dedicatedPerson: g('dedicated'),
+    paidAdsBefore: g('paidAds'), platformsUsedBefore: checks('prevPlatform'),
+    workedWell: g('workedWell'), notWorked: g('notWorked'),
+    goal90Days: g('goal90'), limitations: g('limits'), priorities: g('priorities'),
+    customQ1: g('cq1'), customQ2: g('cq2'), customQ3: g('cq3'),
+    adBudget: radio('adBudget'), budgetIncrease: g('budgetScale'),
+    openToUpgrade: g('upgrade'), referralBonus: g('refBonus'),
+    knowsSomeone: g('knowSomeone'), referralContact: g('refContact'),
+    finalNotes: g('finalNotes'),
+    adPlatforms: checks('adPlatform'), accessMethod: radio('accessMethod'),
+    referralFriendName: g('refName'), referralFriendEmail: g('refEmail'),
+    referralFriendPhone: g('refPhone'),
+    authorizationAgreed: 'Yes',
+    authPolicyAccepted: 'Yes',
+    authTosAccepted: 'Yes',
+    authSignerName: g('sigName'),
+    authSignerBusiness: g('sigBiz'),
+    authSignature: getSigDataURL(),
+    authTimestamp: window._contractTimestamp || new Date().toISOString(),
+    authIP: window._clientIP || 'Captured on submit',
+    authUserAgent: navigator.userAgent,
+    authDocRef: window._docRef || '',
+    source: 'astroai-onboarding-survey',
+    submittedAt: new Date().toISOString(),
+    status: 'completed',
+  };
+}
+
+// ── SUBMIT ───────────────────────────────────────────
+async function submitForm(){
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  const data = collectAll();
+
+  fetch(HL_WEBHOOK,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data),
+  }).catch(()=>{});
+
+  // Generate auth PDF and email to owner
+  try {
+    const pdfBlob = generateAuthPDF(data);
+    if(pdfBlob) await sendAuthEmail(data, pdfBlob);
+  } catch(e){ console.warn('PDF/email failed:',e); }
+
+  // Trigger marketing plan generation in background (non-blocking)
+  try {
+    fetch(GENERATE_PLAN_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data),
+    }).then(r=>r.json()).then(r=>console.log('Marketing plan:', r)).catch(e=>console.warn('Plan gen failed:',e));
+  } catch(e){ console.warn('Plan trigger failed:',e); }
+
+  await new Promise(r=>setTimeout(r,1400));
+  btn.classList.remove('loading');
+
+  document.getElementById('ecEmailDisplay').textContent = data.email;
+  showSpecial('s-email');
+  // If zoom selected, open booking page in new tab
+  const method = data.accessMethod;
+  if(method === 'zoom'){
+    setTimeout(()=>{
+      window.open('https://link.astroaibots.com/widget/booking/fp48fbNtkGyPlqJJWEUh','_blank');
+    }, 800);
+  }
+}
+
+// ── CONSENT TOGGLE ───────────────────────────────────
+function toggleConsent(el){ el.classList.toggle('on'); }
+
+// ── SIGNATURE PAD ────────────────────────────────────────
+let sigDrawing = false;
+let sigHasData = false;
+let _sigCanvas, _sigCtx;
+
+function initSigPad(){
+  _sigCanvas = document.getElementById('sigPad');
+  if(!_sigCanvas) return;
+  _sigCtx = _sigCanvas.getContext('2d');
+  _sigCtx.strokeStyle = '#f97316';
+  _sigCtx.lineWidth = 2.8;
+  _sigCtx.lineCap = 'round';
+  _sigCtx.lineJoin = 'round';
+
+  function getPos(e){
+    const r = _sigCanvas.getBoundingClientRect();
+    const scaleX = _sigCanvas.width / r.width;
+    const scaleY = _sigCanvas.height / r.height;
+    if(e.touches) return {x:(e.touches[0].clientX-r.left)*scaleX, y:(e.touches[0].clientY-r.top)*scaleY};
+    return {x:(e.clientX-r.left)*scaleX, y:(e.clientY-r.top)*scaleY};
+  }
+  function start(e){ e.preventDefault(); sigDrawing=true; const p=getPos(e); _sigCtx.beginPath(); _sigCtx.moveTo(p.x,p.y); }
+  function draw(e){ e.preventDefault(); if(!sigDrawing) return; const p=getPos(e); _sigCtx.lineTo(p.x,p.y); _sigCtx.stroke(); sigHasData=true; }
+  function stop(){ sigDrawing=false; }
+
+  _sigCanvas.addEventListener('mousedown',start);
+  _sigCanvas.addEventListener('mousemove',draw);
+  _sigCanvas.addEventListener('mouseup',stop);
+  _sigCanvas.addEventListener('mouseleave',stop);
+  _sigCanvas.addEventListener('touchstart',start,{passive:false});
+  _sigCanvas.addEventListener('touchmove',draw,{passive:false});
+  _sigCanvas.addEventListener('touchend',stop);
+}
+
+function clearSig(){ if(_sigCtx){ _sigCtx.clearRect(0,0,_sigCanvas.width,_sigCanvas.height); sigHasData=false; }}
+function isSigned(){ return sigHasData; }
+function getSigDataURL(){ return _sigCanvas ? _sigCanvas.toDataURL('image/png') : ''; }
+
+// ── CONTRACT META HELPERS ─────────────────────────────────
+function genDocRef(){
+  const h = ()=>Math.random().toString(16).slice(2,10).toUpperCase();
+  return `${h()}-${h().slice(0,4)}-${h().slice(0,4)}-${h().slice(0,4)}-${h()}`;
+}
+
+function updateContractMeta(){
+  const name = document.getElementById('sigName')?.value||'__________________';
+  const biz  = document.getElementById('sigBiz')?.value||'______________________';
+  const nd = document.getElementById('contractNameDisplay');
+  const bd = document.getElementById('contractBizDisplay');
+  if(nd) nd.textContent = name+',';
+  if(bd) bd.textContent = biz;
+}
+
+function toggleTerm(el){
+  el.classList.toggle('on');
+  el.classList.remove('unchecked-warn');
+  // Hide error if all checked
+  const terms = document.querySelectorAll('#contractTerms .term-item');
+  const allOk = Array.from(terms).every(t=>t.classList.contains('on'));
+  const termsErr = document.getElementById('termsErr');
+  if(allOk && termsErr) termsErr.style.display='none';
+}
+
+function togglePolicy(el){
+  el.classList.toggle('on');
+  const privOk = document.getElementById('policyPrivacy')?.classList.contains('on');
+  const tosOk  = document.getElementById('policyTos')?.classList.contains('on');
+  const policyErr = document.getElementById('policyErr');
+  if(privOk && tosOk && policyErr) policyErr.style.display='none';
+}
+
+// Contract slide init is handled inside showSlide() directly
+
+// ── IP CAPTURE (runs on page load) ───────────────────────
+fetch('https://api.ipify.org?format=json')
+  .then(r=>r.json())
+  .then(d=>{ window._clientIP=d.ip; const el=document.getElementById('contractIP'); if(el) el.textContent=d.ip; })
+  .catch(()=>{ window._clientIP='Unable to capture'; });
+
+// ── PDF GENERATION ───────────────────────────────────
+function generateAuthPDF(data){
+  const jsPDFLib = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!jsPDFLib){ console.warn('jsPDF not loaded'); return; }
+  const doc = new jsPDFLib({ orientation:'portrait', unit:'mm', format:'a4' });
+  const PW = 210, PH = 297, M = 20, maxW = PW - M*2;
+  let y = 0;
+
+  // ── HELPERS ────────────────────────────────────────────
+  function addPage(){
+    doc.addPage();
+    y = 0;
+    drawPageBorder();
+    drawWatermark();
+    y = 20;
+  }
+  function checkPage(h){ if(y + (h||10) > 275) addPage(); }
+
+  function txt(str, sz, bold, rgb){
+    if(str === null || str === undefined) return;
+    doc.setFontSize(sz || 10);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setTextColor(...(rgb || [30,30,30]));
+    const lines = doc.splitTextToSize(String(str), maxW);
+    lines.forEach(l => {
+      checkPage(6);
+      doc.text(l, M, y);
+      y += (sz || 10) * 0.43 + 1.8;
+    });
+  }
+
+  function row(label, value){
+    if(!value) return;
+    const lw = doc.getStringUnitWidth(label+': ') * 9 / doc.internal.scaleFactor;
+    checkPage(7);
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(80,90,110);
+    doc.text(label+':', M, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    const vlines = doc.splitTextToSize(String(value), maxW - lw - 2);
+    doc.text(vlines[0], M + lw + 1, y);
+    y += 9*0.43+1.8;
+    if(vlines.length>1) vlines.slice(1).forEach(l=>{ checkPage(5); doc.text(l, M+lw+3, y); y+=9*0.43+1.8; });
+  }
+
+  function sectionBand(title){
+    checkPage(16);
+    y += 3;
+    // Filled band
+    doc.setFillColor(8, 12, 40);
+    doc.rect(M, y, maxW, 8, 'F');
+    // Orange left accent bar
+    doc.setFillColor(249,115,22);
+    doc.rect(M, y, 3, 8, 'F');
+    // Title text
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text(title, M+6, y+5.5);
+    y += 12;
+  }
+
+  function thinRule(){
+    doc.setDrawColor(210,215,225);
+    doc.setLineWidth(0.25);
+    doc.line(M, y, PW-M, y);
+    y += 4;
+  }
+
+  function drawPageBorder(){
+    // Outer border
+    doc.setDrawColor(180,185,200);
+    doc.setLineWidth(0.4);
+    doc.rect(6, 6, PW-12, PH-12);
+    // Inner border
+    doc.setDrawColor(220,222,230);
+    doc.setLineWidth(0.2);
+    doc.rect(8, 8, PW-16, PH-16);
+    // Corner accents — top-left
+    doc.setDrawColor(249,115,22);
+    doc.setLineWidth(1.2);
+    doc.line(6,6,18,6); doc.line(6,6,6,18);
+    // top-right
+    doc.line(PW-18,6,PW-6,6); doc.line(PW-6,6,PW-6,18);
+    // bottom-left
+    doc.line(6,PH-18,6,PH-6); doc.line(6,PH-6,18,PH-6);
+    // bottom-right
+    doc.line(PW-6,PH-18,PW-6,PH-6); doc.line(PW-18,PH-6,PW-6,PH-6);
+  }
+
+  function drawWatermark(){
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity:0.04}));
+    doc.setFontSize(52); doc.setFont('helvetica','bold'); doc.setTextColor(0,0,0);
+    doc.text('ASTRO A.I. MARKETING', PW/2, PH/2, {align:'center', angle:45});
+    doc.restoreGraphicsState();
+  }
+
+  function drawFooter(pageNum, totalPages){
+    const FY = PH - 13;
+    doc.setFillColor(8,12,40);
+    doc.rect(6, FY-2, PW-12, 11, 'F');
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(160,170,190);
+    doc.text('Electronically signed & legally binding  |  info@astroaibots.com  |  astroaibots.com', M, FY+4);
+    doc.setTextColor(249,115,22);
+    doc.text('Page '+pageNum+' of '+totalPages, PW-M, FY+4, {align:'right'});
+  }
+
+  // ── PAGE 1 SETUP ───────────────────────────────────────
+  drawPageBorder();
+  drawWatermark();
+
+  // ── HEADER ─────────────────────────────────────────────
+  // Dark header band
+  doc.setFillColor(8,12,40);
+  doc.rect(6, 6, PW-12, 40, 'F');
+  // Orange accent line under header
+  doc.setFillColor(249,115,22);
+  doc.rect(6, 46, PW-12, 1.5, 'F');
+  // Company name
+  doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(249,115,22);
+  doc.text('ASTRO A.I. MARKETING', M, 22);
+  // Subtitle
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(180,195,215);
+  doc.text('Authorization Agreement for Advertising Management', M, 31);
+  // Doc ref + date right-aligned
+  const signedDate = data.authTimestamp
+    ? new Date(data.authTimestamp).toLocaleString('en-US',{dateStyle:'long',timeStyle:'short'})
+    : new Date().toLocaleString();
+  doc.setFontSize(7.5); doc.setTextColor(140,155,175);
+  doc.text('Doc Ref: '+(data.authDocRef||'N/A'), M, 39);
+  doc.text('Signed: '+signedDate, PW-M, 39, {align:'right'});
+
+  y = 56;
+
+  // ── AUTHORIZED BY ──────────────────────────────────────
+  sectionBand('AUTHORIZED BY');
+  // Name large
+  doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(20,20,20);
+  doc.text(data.authSignerName||'', M, y); y += 7;
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(80,90,110);
+  doc.text(data.authSignerBusiness||'', M, y); y += 6;
+  thinRule();
+  row('Email',      data.email);
+  row('Phone',      data.phone);
+  row('IP Address', data.authIP);
+  row('Signed',     signedDate);
+  row('Doc Ref',    data.authDocRef);
+  thinRule();
+
+  // ── AGREED TERMS ───────────────────────────────────────
+  sectionBand('AGREED TERMS — ALL BOXES CONFIRMED BY CLIENT');
+  const techTerm = (data.accessMethod === 'zoom')
+    ? 'Technical Setup: A free Zoom screen-share session will be scheduled to connect the client ad account with full permission.'
+    : 'Technical Setup: Email instructions for technical setup have been requested; client will grant ad account access at own pace.';
+  const termsList = [
+    'Campaign Creation: Ads created based on information provided through the onboarding survey on the Astro A.I. Marketing website.',
+    'Platform Authorization: Client grants permission to run marketing campaigns on chosen platforms (Facebook, Google, TikTok, etc.).',
+    techTerm,
+    'Full Access: Client maintains full owner access to all accounts; Astro A.I. Marketing acts as admin for campaign management only.',
+    'Campaign Performance: Client understands performance depends on multiple factors; Astro A.I. Marketing has no control over or affiliation with any ad platform.',
+    'No Responsibility for Payments: All ad spend and messaging fees paid directly to platforms; Astro A.I. Marketing bears no liability for these fees.',
+    'Liability Waiver: Astro A.I. Marketing is not responsible for any outcomes, issues, or costs related to advertising campaigns, including ad performance, budget management, or third-party fees.',
+  ];
+  termsList.forEach((t,i)=>{
+    checkPage(14);
+    // Checkbox square
+    doc.setDrawColor(180,185,200); doc.setLineWidth(0.3);
+    doc.rect(M, y-3.5, 4, 4);
+    // Checkmark lines inside box
+    doc.setDrawColor(34,197,94); doc.setLineWidth(0.7);
+    doc.line(M+0.8, y-1.5, M+1.8, y-0.5);
+    doc.line(M+1.8, y-0.5, M+3.4, y-3.2);
+    // Term text
+    doc.setFontSize(8.8); doc.setFont('helvetica','bold'); doc.setTextColor(20,20,20);
+    const termW = maxW - 6;
+    const tLines = doc.splitTextToSize((i+1)+'. '+t, termW);
+    tLines.forEach((l,li)=>{
+      checkPage(6);
+      doc.text(l, M+6, y + (li===0?0:li*(8.8*0.43+1.5)));
+    });
+    y += tLines.length*(8.8*0.43+1.5) + 2.5;
+  });
+  thinRule();
+
+  // ── POLICIES ACCEPTED ──────────────────────────────────
+  sectionBand('POLICIES ACCEPTED');
+  [{label:'Privacy Policy', url:'https://astroaibots.com/privacy_policy-page'},
+   {label:'Terms & Conditions', url:'https://astroaibots.com/terms_and_conditions'}
+  ].forEach(p=>{
+    checkPage(10);
+    // Green checkbox
+    doc.setDrawColor(180,185,200); doc.setLineWidth(0.3);
+    doc.rect(M, y-3.5, 4, 4);
+    doc.setDrawColor(34,197,94); doc.setLineWidth(0.7);
+    doc.line(M+0.8,y-1.5,M+1.8,y-0.5); doc.line(M+1.8,y-0.5,M+3.4,y-3.2);
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(20,20,20);
+    doc.text(p.label+':', M+6, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,80,160);
+    doc.text(p.url, M+6, y+5);
+    y += 13;
+  });
+  thinRule();
+
+  // ── OWNER CONFIRMATION ─────────────────────────────────
+  sectionBand('OWNER / AUTHORIZER CONFIRMATION');
+  // Light background box
+  doc.setFillColor(248,249,252);
+  doc.setDrawColor(200,205,215); doc.setLineWidth(0.3);
+  const confText = 'I, '+( data.authSignerName||'')
+    +', am the legal owner and authorized representative of '
+    +(data.authSignerBusiness||'')
+    +' and have full authority to grant Astro A.I. Marketing the permission to manage advertising '
+    +'campaigns on behalf of this business. I confirm that I have read, understood, and agree to '
+    +'the Privacy Policy and Terms & Conditions of Astro A.I. Marketing.';
+  const confLines = doc.splitTextToSize(confText, maxW-6);
+  const boxH = confLines.length * (9.5*0.43+1.8) + 8;
+  checkPage(boxH+4);
+  doc.rect(M, y, maxW, boxH, 'FD');
+  doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+  let cy = y+6;
+  confLines.forEach(l=>{ doc.text(l,M+3,cy); cy+=9.5*0.43+1.8; });
+  y += boxH + 5;
+
+  // ── SIGNATURE BLOCK ────────────────────────────────────
+  sectionBand('ELECTRONIC SIGNATURE');
+  checkPage(45);
+
+  // Signature image inside a bordered box
+  const sigBoxX = M, sigBoxY = y, sigBoxW = 90, sigBoxH = 28;
+  doc.setFillColor(252,252,254);
+  doc.setDrawColor(180,185,200); doc.setLineWidth(0.3);
+  doc.rect(sigBoxX, sigBoxY, sigBoxW, sigBoxH, 'FD');
+  if(data.authSignature && data.authSignature.length > 200){
+    try { doc.addImage(data.authSignature,'PNG', sigBoxX+3, sigBoxY+2, sigBoxW-6, sigBoxH-4); } catch(e){}
+  } else {
+    doc.setFontSize(8); doc.setTextColor(160,165,175); doc.setFont('helvetica','italic');
+    doc.text('No signature captured', sigBoxX+3, sigBoxY+15);
+  }
+  // Labels below sig box
+  y += sigBoxH + 2;
+  doc.setDrawColor(100,110,130); doc.setLineWidth(0.4);
+  doc.line(M, y, M+sigBoxW, y); y+=4;
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(50,55,65);
+  doc.text(data.authSignerName||'', M, y); y+=5;
+  doc.setFontSize(7.5); doc.setTextColor(100,110,130);
+  doc.text(data.authSignerBusiness||'', M, y); y+=5;
+  doc.text('Signed electronically on: '+signedDate, M, y); y+=10;
+  thinRule();
+
+  // ── TECHNICAL / AUDIT RECORD ───────────────────────────
+  sectionBand('AUDIT TRAIL & TECHNICAL RECORD');
+  row('Full Name',       data.authSignerName);
+  row('Business',        data.authSignerBusiness);
+  row('Email',           data.email);
+  row('Phone',           data.phone);
+  row('IP Address',      data.authIP);
+  row('Timestamp (UTC)', data.authTimestamp);
+  row('Document Ref',    data.authDocRef);
+  row('Source',          'Astro A.I. Marketing Onboarding Form — astroaibots.com');
+  row('SMS Consent',     data.smsConsent);
+  row('Privacy Policy',  'Accepted — https://astroaibots.com/privacy_policy-page');
+  row('Terms & Conds',   'Accepted — https://astroaibots.com/terms_and_conditions');
+  thinRule();
+  // User agent small
+  checkPage(14);
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(130,140,155);
+  const uaLines = doc.splitTextToSize('Browser/Device: '+(data.authUserAgent||''), maxW);
+  uaLines.forEach(l=>{ checkPage(5); doc.text(l,M,y); y+=4.5; });
+  y+=3;
+
+  // ── ADD FOOTERS ON ALL PAGES ───────────────────────────
+  const totalPages = doc.internal.getNumberOfPages();
+  for(let i=1;i<=totalPages;i++){
+    doc.setPage(i);
+    drawFooter(i, totalPages);
+  }
+
+  return doc.output('blob');
+}
+
+// ── SEND PDF TO OWNER VIA NETLIFY ────────────────────
+async function sendAuthEmail(data, pdfBlob){
+  try {
+    const arrayBuf  = await pdfBlob.arrayBuffer();
+    const uint8     = new Uint8Array(arrayBuf);
+    let binary      = '';
+    uint8.forEach(b => binary += String.fromCharCode(b));
+    const pdfBase64 = btoa(binary);
+
+    const safeName = (data.authSignerName||'client').replace(/[^a-zA-Z0-9 _-]/g,'').replace(/\s+/g,'_');
+    const safeDate = new Date().toISOString().slice(0,10);
+    const filename  = 'AstroAI_Authorization_' + safeName + '_' + safeDate + '.pdf';
+    const signedAt  = data.authTimestamp
+      ? new Date(data.authTimestamp).toLocaleString('en-US',{dateStyle:'full',timeStyle:'long'})
+      : new Date().toLocaleString();
+
+    const payload = {
+      pdfBase64,
+      filename,
+      clientName:     data.authSignerName     || '',
+      clientBusiness: data.authSignerBusiness || '',
+      clientEmail:    data.email              || '',
+      clientPhone:    data.phone              || '',
+      signedAt,
+      clientIP:       data.authIP             || '',
+      docRef:         data.authDocRef         || '',
+      accessMethod:   data.accessMethod === 'zoom' ? 'Zoom Screen-Share Session' : 'Email Instructions Requested',
+      adPlatforms:    data.adPlatforms        || '',
+      adBudget:       data.adBudget           || '',
+    };
+
+    const res    = await fetch(SEND_PDF_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const result = await res.json();
+    if(result.success) console.log('Auth PDF emailed to owner OK');
+    else console.warn('PDF email failed:', result);
+  } catch(err){
+    console.warn('sendAuthEmail error:', err);
+  }
+}
+
+// ── PHONE FORMAT ─────────────────────────────────────
+['phone1','leadPhone','refPhone'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',function(){
+    let v = this.value.replace(/\D/g,'').slice(0,10);
+    if(v.length>=7) v=`(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+    else if(v.length>=4) v=`(${v.slice(0,3)}) ${v.slice(3)}`;
+    else if(v.length>0) v=`(${v}`;
+    this.value=v;
+  });
+});
+
+// ── INIT ─────────────────────────────────────────────
+updateProg(1);
+</script>
+</body>
+</html>
