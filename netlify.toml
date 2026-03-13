@@ -19,6 +19,15 @@
 [functions."send-message"]
   timeout = 15
 
+[functions."upload-file"]
+  timeout = 30
+
+[functions."list-files"]
+  timeout = 15
+
+[functions."get-file"]
+  timeout = 15
+
 [functions."submit-referral"]
   timeout = 15
 
