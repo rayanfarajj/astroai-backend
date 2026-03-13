@@ -87,7 +87,26 @@ export default async (req) => {
         createdAt:      get('createdAt'),
         status:         get('status') || 'new',
         statusLabel:    get('statusLabel') || '🆕 New',
-        dashboardJSON:  (() => { try { return JSON.parse(get('dashboardJSON')); } catch(e) { return {}; } })(),
+        dashboardJSON:  (() => {
+          // Try stringValue first (how objects are stored)
+          const raw = f['dashboardJSON']?.stringValue
+                   || f['dashboardJSON']?.bytesValue
+                   || '';
+          if (!raw) return {};
+          try {
+            const parsed = JSON.parse(raw);
+            return parsed;
+          } catch(e) {
+            console.error('[get-clients] dashboardJSON parse failed, raw length:', raw.length, 'error:', e.message);
+            // Try to recover truncated JSON
+            const idx = raw.lastIndexOf('}]}}');
+            if (idx > 0) {
+              try { return JSON.parse(raw.slice(0, idx + 4)); } catch(e2) {}
+            }
+            return { _parseError: e.message, _rawLength: raw.length };
+          }
+        })(),
+        _rawJSONLength: (f['dashboardJSON']?.stringValue || '').length,
       };
     });
 
