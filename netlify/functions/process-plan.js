@@ -2,6 +2,74 @@
 const nodemailer = require('nodemailer');
 const https      = require('https');
 
+// ── Firebase Firestore save ────────────────────────────────
+function saveToFirestore(clientRecord) {
+  return new Promise((resolve, reject) => {
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+
+    // Get a JWT token for Firebase
+    function base64url(str) {
+      return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const header = base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const payload = base64url(JSON.stringify({
+      iss: clientEmail, sub: clientEmail,
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: now, exp: now + 3600,
+      scope: 'https://www.googleapis.com/auth/datastore'
+    }));
+    const crypto = require('crypto');
+    const sign = crypto.createSign('RSA-SHA256');
+    sign.update(header + '.' + payload);
+    const signature = base64url(sign.sign(privateKey));
+    const jwt = header + '.' + payload + '.' + signature;
+
+    // Exchange JWT for access token
+    const tokenBody = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`;
+    const tokenReq = https.request({
+      hostname: 'oauth2.googleapis.com', path: '/token', method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(tokenBody) }
+    }, (res) => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        const token = JSON.parse(d).access_token;
+        if (!token) return reject(new Error('No Firebase token: ' + d));
+
+        // Save to Firestore
+        const docId = clientRecord.slug;
+        const fields = {};
+        Object.entries(clientRecord).forEach(([k, v]) => {
+          if (v === null || v === undefined) fields[k] = { nullValue: null };
+          else if (typeof v === 'boolean') fields[k] = { booleanValue: v };
+          else if (typeof v === 'number') fields[k] = { integerValue: String(v) };
+          else if (typeof v === 'object') fields[k] = { stringValue: JSON.stringify(v) };
+          else fields[k] = { stringValue: String(v) };
+        });
+        const fsBody = JSON.stringify({ fields });
+        const fsPath = `/v1/projects/${projectId}/databases/(default)/documents/clients/${docId}`;
+        const fsReq = https.request({
+          hostname: 'firestore.googleapis.com', path: fsPath, method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(fsBody) }
+        }, (r) => {
+          let rd = '';
+          r.on('data', c => rd += c);
+          r.on('end', () => resolve(JSON.parse(rd)));
+        });
+        fsReq.on('error', reject);
+        fsReq.write(fsBody);
+        fsReq.end();
+      });
+    });
+    tokenReq.on('error', reject);
+    tokenReq.write(tokenBody);
+    tokenReq.end();
+  });
+}
+
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -1843,6 +1911,32 @@ exports.handler = async (event) => {
     console.log('[process-plan] Saved to GitHub:', dashboardUrl);
 
     const generatedAt = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+
+    // Save to Firestore
+    try {
+      await saveToFirestore({
+        slug,
+        businessName,
+        clientName,
+        clientEmail,
+        dashboardUrl,
+        industry:        data.industry || '',
+        primaryService:  data.primaryService || '',
+        adBudget:        data.adBudget || '',
+        adPlatforms:     data.adPlatforms || '',
+        serviceArea:     `${data.serviceAreaType||''} ${data.serviceDetails||''}`.trim(),
+        website:         data.website || '',
+        phone:           data.phone || '',
+        companySize:     data.companySize || '',
+        goal90:          data.goal90Days || '',
+        generatedAt,
+        createdAt:       new Date().toISOString(),
+        dashboardJSON:   dashboardJSON,
+      });
+      console.log('[process-plan] Saved to Firestore ✓');
+    } catch(fe) {
+      console.error('[process-plan] Firestore save failed (non-fatal):', fe.message);
+    }
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
