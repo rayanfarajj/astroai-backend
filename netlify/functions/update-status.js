@@ -171,66 +171,35 @@ function firestorePatch(token, slug, fields) {
   });
 }
 
-function hlRequest(method, path, body) {
+function sendHL_SMS(toPhone, message) {
   return new Promise((resolve, reject) => {
-    const bodyStr = body ? JSON.stringify(body) : null;
-    const headers = {
-      'Authorization': process.env.HL_API_KEY,
-      'Accept':        'application/json',
-    };
-    if (bodyStr) {
-      headers['Content-Type']   = 'application/json';
-      headers['Content-Length'] = Buffer.byteLength(bodyStr);
-    }
-    const req = https.request({ hostname: 'rest.gohighlevel.com', path, method, headers }, res => {
+    const webhookUrl = process.env.HL_WEBHOOK_URL;
+    if (!webhookUrl) return reject(new Error('HL_WEBHOOK_URL not set'));
+
+    let p = (toPhone || '').replace(/[\s\-().]/g, '');
+    if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
+
+    const bodyStr = JSON.stringify({ phone: p, message });
+    const url = new URL(webhookUrl);
+    const req = https.request({
+      hostname: url.hostname,
+      path:     url.pathname,
+      method:   'POST',
+      headers:  {
+        'Content-Type':   'application/json',
+        'Content-Length': Buffer.byteLength(bodyStr),
+      },
+    }, res => {
       let d = ''; res.on('data', c => d += c);
       res.on('end', () => {
-        console.log('[HL] ' + method + ' ' + path + ' => HTTP ' + res.statusCode + ' | ' + d.slice(0,400));
-        try { resolve({ status: res.statusCode, body: JSON.parse(d) }); }
-        catch(e) { resolve({ status: res.statusCode, body: d }); }
+        console.log('[HL webhook] HTTP', res.statusCode, '|', d.slice(0, 200));
+        resolve({ status: res.statusCode, body: d });
       });
     });
-    req.on('error', e => { console.error('[HL] request error:', e.message); reject(e); });
-    if (bodyStr) req.write(bodyStr);
+    req.on('error', reject);
+    req.write(bodyStr);
     req.end();
   });
-}
-
-async function sendHL_SMS(toPhone, message) {
-  let p = (toPhone || '').replace(/[\s\-().]/g, '');
-  if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
-  console.log('[HL SMS] sending to:', p);
-
-  // Search contact — GHL v1 API
-  const search = await hlRequest('GET', '/v1/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p));
-  let contacts = search.body?.contacts || [];
-  console.log('[HL SMS] contacts found:', contacts.length, '| HTTP:', search.status);
-
-  // Auto-create if not found
-  if (!contacts.length) {
-    console.log('[HL SMS] creating contact');
-    const created = await hlRequest('POST', '/v1/contacts/', {
-      locationId: process.env.HL_LOCATION_ID,
-      phone: p,
-    });
-    console.log('[HL SMS] create HTTP:', created.status, JSON.stringify(created.body).slice(0,200));
-    if (created.body?.contact?.id) contacts = [created.body.contact];
-    else throw new Error('Could not find or create contact for: ' + p);
-  }
-
-  const contactId = contacts[0].id;
-  console.log('[HL SMS] contactId:', contactId);
-
-  // Send SMS — GHL v1
-  const smsResp = await hlRequest('POST', '/v1/conversations/messages/outbound', {
-    type:      'SMS',
-    contactId,
-    message,
-  });
-
-  console.log('[HL SMS] send HTTP:', smsResp.status);
-  if (smsResp.status >= 400) throw new Error('SMS failed ' + smsResp.status + ': ' + JSON.stringify(smsResp.body).slice(0,200));
-  return smsResp.body;
 }
 
 function sendEmail(to, subject, html) {
