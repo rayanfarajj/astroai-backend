@@ -172,13 +172,43 @@ function firestorePatch(token, slug, fields) {
 }
 
 // ── HighLevel SMS ─────────────────────────────────────────────────────────────
-function sendHL_SMS(toPhone, message) {
+// Step 1: look up contact by phone to get contactId
+function hlGetContactByPhone(phone) {
+  return new Promise((resolve, reject) => {
+    // Normalize phone — strip spaces/dashes, ensure +1 prefix
+    let p = phone.replace(/[\s\-().]/g, '');
+    if (!p.startsWith('+')) p = '+1' + p.replace(/^1/, '');
+    const path = '/contacts/?locationId=' + process.env.HL_LOCATION_ID + '&query=' + encodeURIComponent(p);
+    const req = https.request({
+      hostname: 'services.leadconnectorhq.com',
+      path,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + process.env.HL_API_KEY,
+        'Version': '2021-07-28',
+        'Accept': 'application/json',
+      },
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(d);
+          const contacts = parsed.contacts || [];
+          resolve(contacts.length ? contacts[0].id : null);
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject); req.end();
+  });
+}
+
+// Step 2: send SMS using contactId
+function hlSendSMS(contactId, message) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       type: 'SMS',
-      contactPhone: toPhone,
+      contactId,
       message,
-      locationId: process.env.HL_LOCATION_ID,
     });
     const req = https.request({
       hostname: 'services.leadconnectorhq.com',
@@ -192,10 +222,16 @@ function sendHL_SMS(toPhone, message) {
       },
     }, res => {
       let d = ''; res.on('data', c => d += c);
-      res.on('end', () => resolve(JSON.parse(d)));
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { reject(e); } });
     });
     req.on('error', reject); req.write(body); req.end();
   });
+}
+
+async function sendHL_SMS(toPhone, message) {
+  const contactId = await hlGetContactByPhone(toPhone);
+  if (!contactId) throw new Error('Contact not found in HL for phone: ' + toPhone);
+  return hlSendSMS(contactId, message);
 }
 
 // ── Email ─────────────────────────────────────────────────────────────────────
