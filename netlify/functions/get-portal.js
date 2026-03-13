@@ -40,18 +40,18 @@ function firestoreGet(token, docPath) {
   });
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+export default async (req) => {
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
 
-  const slug = event.queryStringParameters?.slug;
-  if (!slug) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'slug required' }) };
+  const slug = new URL(req.url).searchParams.get('slug');
+  if (!slug) return new Response(JSON.stringify({ error: 'slug required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
   try {
     const token = await getFirebaseToken();
 
     // Get client record
     const clientDoc = await firestoreGet(token, `clients/${slug}`);
-    if (!clientDoc.fields) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Client not found' }) };
+    if (!clientDoc.fields) return new Response(JSON.stringify({ error: 'Client not found' }), { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
     const f   = clientDoc.fields;
     const get = (k) => f[k]?.stringValue || f[k]?.integerValue || '';
@@ -107,10 +107,14 @@ exports.handler = async (event) => {
       } catch {}
     }
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ client, offer }) };
+    return new Response(JSON.stringify({ client, offer }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
 
   } catch(e) {
     console.error('[get-portal] Error:', e.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
   }
+};
+
+export const config = {
+  path: '/api/get-portal',
 };
