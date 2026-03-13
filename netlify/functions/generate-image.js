@@ -6,7 +6,7 @@ export default async (req) => {
     'Access-Control-Allow-Headers': 'Content-Type, x-internal-key',
   };
 
-  if (req.method === 'OPTIONS') return new Response('', { status: 204, headers: CORS });
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
   if (req.method !== 'POST')    return new Response('Method not allowed', { status: 405, headers: CORS });
 
   if (req.headers.get('x-internal-key') !== process.env.INTERNAL_KEY) {
