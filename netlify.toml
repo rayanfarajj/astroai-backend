@@ -28,8 +28,6 @@
 [functions."process-plan"]
   timeout = 180
 
-# Redirects are handled by public/_redirects file
-
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
