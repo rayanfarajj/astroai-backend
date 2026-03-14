@@ -100,6 +100,6 @@ export default async (req) => {
 
 export const config = {
   path: '/*',
-  excludedPath: ['/api/*', '/api/agency/*', '/.netlify/*'],
+  excludedPath: ['/api/*', '/api/agency/*', '/.netlify/*', '/join', '/signup', '/login', '/saas.html', '/saas-dashboard.html', '/onboard.html', '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html'],
   preferStatic: true,
 };
