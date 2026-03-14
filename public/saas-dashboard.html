@@ -510,8 +510,18 @@ async function updateStatus(clientId, sel) {
 // ── DELETE ────────────────────────────────────────────────────
 async function deleteClient(clientId, name) {
   if (!confirm(`Delete "${name}"? This is permanent.`)) return;
-  // Simple: just remove from local array (no delete endpoint needed for MVP)
-  clients = clients.filter(c=>c._id!==clientId); renderTable(); updateStats(); toast('🗑 Removed');
+  try {
+    const res  = await fetch(API + '/agency/delete-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-agency-token': token },
+      body: JSON.stringify({ agencyId, clientId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      clients = clients.filter(c => c._id !== clientId);
+      renderTable(); updateStats(); toast('🗑 Deleted');
+    } else toast('❌ ' + (data.error || 'Failed'));
+  } catch(e) { toast('❌ ' + e.message); }
 }
 
 // ── ADD CLIENT ────────────────────────────────────────────────
