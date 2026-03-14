@@ -449,6 +449,8 @@ async function submitForm() {
     }
     if (data.portalUrl) {
       document.getElementById('success-portal-btn').href = data.portalUrl;
+    } else if (data.clientId) {
+      document.getElementById('success-portal-btn').href = `https://marketingplan.astroaibots.com/client-portal.html?s=${data.clientId}`;
     }
 
   } catch(e) {
