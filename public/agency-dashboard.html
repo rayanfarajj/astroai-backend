@@ -1,743 +1,358 @@
-<!DOCTYPE html>
+// netlify/functions/agency-process-plan.js
+// POST /api/agency/process-plan
+// Generates an AI marketing plan and saves it under /agencies/{agencyId}/clients/{clientId}
+// Uses SHARED Anthropic + OpenAI keys (Tier 1 model)
+
+const https      = require('https');
+const { fsGet, fsSetSub, fsGetSub } = require('./_firebase');
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-internal-key',
+  'Content-Type': 'application/json',
+};
+
+// ── CLAUDE PROMPT ──────────────────────────────────────────────
+function buildPrompt(d, agency) {
+  return `You are an expert digital marketing strategist. Generate a comprehensive AI marketing plan for the following business. Return ONLY valid JSON, no markdown, no explanation.
+
+BUSINESS INFO:
+- Business Name: ${d.businessName}
+- Owner: ${d.firstName} ${d.lastName}
+- Industry: ${d.industry}
+- Primary Service: ${d.primaryService}
+- Monthly Ad Budget: $${d.adBudget}
+- Ad Platforms: ${d.adPlatforms}
+- Service Area: ${d.serviceAreaType} — ${d.serviceDetails}
+- Website: ${d.website || 'none'}
+- Team Size: ${d.companySize}
+- 90-Day Goal: ${d.goal90Days}
+- Agency: ${agency.name}
+
+Return this exact JSON structure:
+{
+  "executiveSummary": "2-3 sentence overview",
+  "adAngles": [
+    {
+      "angleLabel": "Empathy",
+      "ads": [
+        {"title":"Version A","primaryText":"3-4 compelling sentences","headline":"short punchy headline under 40 chars","description":"one line benefit statement","cta":"Book Free Estimate"}
+      ]
+    },
+    {"angleLabel":"Pain Points","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."},{"title":"Version B","primaryText":"...","headline":"...","description":"...","cta":"..."}]},
+    {"angleLabel":"Proof","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."}]},
+    {"angleLabel":"Curiosity","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."}]},
+    {"angleLabel":"Retargeting","ads":[{"title":"Warm Lead","primaryText":"...","headline":"...","description":"...","cta":"..."},{"title":"Last Chance","primaryText":"...","headline":"...","description":"...","cta":"..."}]}
+  ],
+  "targeting": {
+    "demographics": ["Age 28-55","Homeowners","HHI $60k+"],
+    "interests1": {"label":"Primary Interests","items":["Home Improvement","Property Management","..."]},
+    "interests2": {"label":"Secondary Interests","items":["DIY","Local Events","..."]},
+    "behaviors": ["Recent movers","Online shoppers","..."],
+    "custom": ["Website visitors","Email list","..."],
+    "lookalike": ["1% lookalike of customers","..."]
+  },
+  "roadmap": [
+    {"week":"Week 1-2","title":"Foundation","desc":"Set up tracking, build audiences, launch awareness campaigns"},
+    {"week":"Week 3-4","title":"Launch","desc":"Activate all ad angles, A/B test creatives"},
+    {"week":"Week 5-8","title":"Optimize","desc":"Kill underperformers, scale winners, add retargeting"},
+    {"week":"Week 9-12","title":"Scale","desc":"Increase budget on proven winners, expand to lookalike audiences"}
+  ],
+  "qualificationScript": {
+    "opening": "Hi [Name], this is [Agent] from ${d.businessName}. I'm reaching out because you expressed interest in our services — do you have 2 minutes?",
+    "transition": "Great! I have a few quick questions to make sure we're the right fit for you.",
+    "questions": [
+      {"q":"What's the main challenge you're trying to solve right now?","why":"Uncover pain point"},
+      {"q":"Have you worked with a company like ours before?","why":"Gauge experience"},
+      {"q":"What's your timeline for getting this handled?","why":"Qualify urgency"},
+      {"q":"Do you own or rent your property?","why":"Qualify decision maker"},
+      {"q":"What's most important to you — price, speed, or quality?","why":"Uncover priority"}
+    ],
+    "objections": [
+      {"obj":"I need to think about it","response":"Totally understand. What specific concern can I address right now to help you decide?"},
+      {"obj":"It's too expensive","response":"I get that. Let me ask — what would it cost you NOT to fix this? Most clients find the ROI pays for itself in the first month."},
+      {"obj":"I'm already working with someone","response":"That's great! Are you 100% happy with their results? We work with a lot of clients who came to us after their first agency underdelivered."}
+    ]
+  },
+  "kpis": {
+    "cpl": "Target cost per lead: $15-$35",
+    "ctr": "Target CTR: 1.5-3%",
+    "roas": "Target ROAS: 3-5x",
+    "monthlyLeads": "Projected leads/month: 40-80"
+  }
+}`;
+}
+
+// ── CALL CLAUDE ─────────────────────────────────────────────────
+async function callClaude(prompt) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'claude-opus-4-6',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const req = https.request({
+      hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => {
+        try {
+          const r = JSON.parse(d);
+          resolve(r.content?.[0]?.text || '');
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject); req.write(body); req.end();
+  });
+}
+
+// ── SAVE TO GITHUB ──────────────────────────────────────────────
+async function saveToGitHub(slug, agencyId, html) {
+  const path    = `public/plans/${agencyId}/${slug}.html`;
+  const content = Buffer.from(html).toString('base64');
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ message: `Plan: ${agencyId}/${slug}`, content });
+    const req  = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/rayanfarajj/astroai-backend/contents/${path}`,
+      method: 'PUT',
+      headers: { 'Authorization': `token ${process.env.GITHUB_TOKEN}`, 'User-Agent': 'AstroAI', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => resolve(JSON.parse(d)));
+    });
+    req.on('error', reject); req.write(body); req.end();
+  });
+}
+
+// ── BUILD PLAN HTML ─────────────────────────────────────────────
+function buildPlanHTML(json, data, agency) {
+  const safe   = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const brand  = agency.brandName || agency.name || 'Astro AI';
+  const color  = agency.brandColor || '#00d9a3';
+
+  const adSections = (json.adAngles || []).map(angle => `
+    <div class="angle-section">
+      <div class="angle-label" style="background:rgba(0,0,0,.06);border-radius:20px;padding:4px 14px;display:inline-block;font-size:.75rem;font-weight:700;color:#444;margin-bottom:12px">${safe(angle.angleLabel)}</div>
+      ${(angle.ads || []).map(ad => `
+        <div class="ad-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:16px;margin-bottom:10px">
+          <div class="ad-card-body">
+            <div style="font-size:.68rem;font-weight:700;color:#999;margin-bottom:8px;text-transform:uppercase">${safe(ad.title||'')}</div>
+            <p style="margin:0 0 8px;font-size:.85rem;line-height:1.6;color:#333">${safe(ad.primaryText||'')}</p>
+            <p class="headline" style="font-weight:700;font-size:.9rem;color:#111;margin:6px 0">${safe(ad.headline||'')}</p>
+            <p style="font-size:.8rem;color:#555;margin:4px 0">${safe(ad.description||'')}</p>
+            <p style="font-size:.78rem;color:${color};font-weight:700;margin:6px 0">${safe(ad.cta||'')}</p>
+          </div>
+          <button onclick="copyAd(this)" style="margin-top:10px;padding:5px 12px;background:${color};color:#fff;border:none;border-radius:5px;font-size:.72rem;cursor:pointer">📋 Copy</button>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const roadmapHTML = (json.roadmap || []).map(r =>
+    `<div style="display:flex;gap:16px;padding:12px 0;border-bottom:1px solid #eee">
+      <div style="font-weight:700;color:${color};min-width:80px;font-size:.78rem">${safe(r.week||'')}</div>
+      <div><div style="font-weight:700;font-size:.85rem">${safe(r.title||'')}</div><div style="font-size:.8rem;color:#555;margin-top:2px">${safe(r.desc||'')}</div></div>
+    </div>`).join('');
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Astro AI — Agency Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${safe(data.businessName)} — Marketing Plan | ${safe(brand)}</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-html{background:#0a0e1a;min-height:100%;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh;font-size:13px;line-height:1.5;}
-:root{--bg:#0a0e1a;--surface:#111827;--surface-2:#1a2235;--surface-3:#1f2d42;--border:rgba(255,255,255,.07);--border-2:rgba(255,255,255,.13);--teal:#00d9a3;--teal-dim:rgba(0,217,163,.1);--teal-glow:rgba(0,217,163,.2);--orange:#f97316;--red:#ef4444;--red-dim:rgba(239,68,68,.12);--blue:#3b82f6;--blue-dim:rgba(59,130,246,.12);--purple:#8b5cf6;--purple-dim:rgba(139,92,246,.12);--yellow:#f59e0b;--text:#e2e8f0;--text-dim:#8892a4;--text-muted:#4a5568;--mono:'JetBrains Mono',monospace;--radius:10px;}
-#login-screen{position:fixed;inset:0;background:#0a0e1a;display:flex;align-items:center;justify-content:center;z-index:9999;}
-.login-box{background:var(--surface);border:1px solid var(--border-2);border-radius:16px;padding:40px;width:360px;text-align:center;}
-.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;}
-.login-icon{width:40px;height:40px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 16px var(--teal-glow);}
-.login-name{font-size:1.1rem;font-weight:800;letter-spacing:-.02em;}
-.login-sub{color:var(--text-muted);font-size:.75rem;margin-top:1px;}
-.login-box h2{font-size:1rem;font-weight:700;margin-bottom:6px;}
-.login-box p{color:var(--text-dim);font-size:.8rem;margin-bottom:24px;}
-.login-input{width:100%;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;color:var(--text);font-size:.88rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;margin-bottom:10px;}
-.login-input:focus{border-color:var(--teal);}
-.login-btn{width:100%;padding:10px;background:var(--teal);color:#0a0e1a;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-.login-btn:hover{opacity:.88;}
-.login-err{color:var(--red);font-size:.78rem;margin-top:8px;display:none;}
-#app{display:none;background:#0a0e1a;min-height:100vh;}
-.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;}
-.tb-left{display:flex;align-items:center;gap:14px;}
-.tb-brand{display:flex;align-items:center;gap:9px;}
-.tb-icon{width:30px;height:30px;background:var(--teal);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 10px var(--teal-glow);}
-.tb-name{font-weight:800;font-size:.9rem;letter-spacing:-.02em;}
-.tb-divider{width:1px;height:16px;background:var(--border-2);}
-.tb-page{font-size:.8rem;font-weight:600;color:var(--text-dim);}
-.tb-right{display:flex;align-items:center;gap:8px;}
-.tb-time{font-size:.68rem;color:var(--text-muted);font-family:var(--mono);}
-.btn{padding:6px 12px;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .15s;text-decoration:none;display:inline-flex;align-items:center;}
-.btn-teal{background:var(--teal);color:#0a0e1a;}
-.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border-2);}
-.btn-ghost:hover{background:var(--surface-2);color:var(--text);}
-.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);}
-.btn:hover{opacity:.85;}
-.main{padding:24px;background:#0a0e1a;min-height:calc(100vh - 52px);}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
-.stat-val{font-size:1.8rem;font-weight:800;color:var(--text);letter-spacing:-.04em;font-family:var(--mono);line-height:1;}
-.stat-lbl{font-size:.63rem;font-weight:700;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:.07em;}
-.toolbar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-.search-wrap{position:relative;flex:1;min-width:180px;}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.8rem;pointer-events:none;}
-.search-input{width:100%;padding:7px 10px 7px 28px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-size:.8rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
-.search-input:focus{border-color:var(--teal);}
-.filter-sel{padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-size:.78rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;cursor:pointer;}
-.filter-sel:focus{border-color:var(--teal);}
-.tb-count{font-size:.72rem;color:var(--text-muted);font-family:var(--mono);margin-left:auto;}
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:10px 14px;text-align:left;font-size:.63rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;border-bottom:1px solid var(--border);background:var(--surface);}
-tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
-tbody tr:last-child{border:none;}
-tbody tr:hover{background:var(--surface-2);}
-td{padding:11px 14px;vertical-align:middle;}
-.c-name{font-size:.84rem;font-weight:700;color:var(--text);}
-.c-sub{font-size:.7rem;color:var(--text-dim);margin-top:1px;font-family:var(--mono);}
-.c-dim{font-size:.78rem;color:var(--text-dim);}
-.c-muted{font-size:.75rem;color:var(--text-muted);}
-.spill{display:inline-block;padding:4px 9px;border-radius:20px;font-size:.68rem;font-weight:700;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
-.s-new{background:var(--surface-3);color:var(--text-dim);}
-.s-active{background:var(--blue-dim);color:var(--blue);}
-.s-launched{background:var(--teal-dim);color:var(--teal);}
-.s-paused{background:rgba(245,158,11,.12);color:var(--yellow);}
-.s-completed{background:var(--purple-dim);color:var(--purple);}
-.note-txt{font-size:.75rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;cursor:pointer;}
-.note-txt:hover{color:var(--text);}
-.note-empty{font-size:.72rem;color:var(--text-muted);font-style:italic;cursor:pointer;}
-.note-empty:hover{color:var(--text-dim);}
-.acts{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
-.act{padding:4px 8px;border-radius:6px;font-size:.68rem;font-weight:600;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .12s;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap;}
-.act-copy{background:var(--surface-3);color:var(--text-dim);border:1px solid var(--border-2);}
-.act-copy:hover{background:var(--surface-2);color:var(--text);}
-.act-view{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
-.act-portal{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
-.act-det{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);}
-.act-del{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.15);}
-.empty-state{padding:56px 20px;text-align:center;color:var(--text-muted);}
-.empty-state p{font-size:.84rem;margin-top:8px;}
-.spinner{width:22px;height:22px;border:2px solid var(--border-2);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;backdrop-filter:blur(4px);}
-.modal-overlay.open{display:block;}
-.modal-panel{position:fixed;top:0;right:0;width:min(700px,100vw);height:100vh;background:var(--surface);border-left:1px solid var(--border-2);display:flex;flex-direction:column;overflow:hidden;animation:slideIn .22s cubic-bezier(.4,0,.2,1);z-index:501;}
-@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0;}
-.modal-head-info{flex:1;min-width:0;}
-.modal-title{font-size:1rem;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.modal-meta{font-size:.68rem;color:var(--text-muted);margin-top:2px;font-family:var(--mono);}
-.modal-head-btns{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.close-x{width:28px;height:28px;border-radius:7px;background:var(--surface-3);border:1px solid var(--border-2);color:var(--text-dim);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.close-x:hover{background:var(--surface-2);color:var(--text);}
-.modal-tabs{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;padding:0 8px;}
-.modal-tabs::-webkit-scrollbar{height:2px;}
-.modal-tabs::-webkit-scrollbar-thumb{background:var(--teal);}
-.mtab{padding:11px 12px;font-size:.74rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;}
-.mtab:hover{color:var(--text);}
-.mtab.on{color:var(--teal);border-bottom-color:var(--teal);}
-.modal-body{flex:1;overflow-y:auto;padding:20px;}
-.tab-pane{display:none;}
-.tab-pane.on{display:block;}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
-.info-cell{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
-.info-lbl{font-size:.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
-.info-val{font-size:.8rem;font-weight:600;color:var(--text);}
-.angle-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.67rem;font-weight:700;margin-bottom:10px;margin-top:6px;}
-.ad-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
-.copy-field{margin-bottom:10px;}
-.copy-lbl{font-size:.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
-.copy-row{display:flex;gap:8px;align-items:flex-start;}
-.copy-val{flex:1;font-size:.8rem;color:var(--text);line-height:1.55;}
-.copy-btn{padding:3px 8px;font-size:.65rem;font-weight:700;border:1px solid var(--border-2);background:var(--surface-3);color:var(--text-dim);border-radius:5px;cursor:pointer;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;flex-shrink:0;}
-.copy-btn:hover,.copy-btn.ok{background:var(--teal-dim);border-color:rgba(0,217,163,.3);color:var(--teal);}
-.ad-acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
-.ad-act{flex:1;padding:6px 10px;border-radius:6px;font-size:.72rem;font-weight:700;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
-.aa-copy{background:var(--surface-3);color:var(--text-dim);border:1px solid var(--border-2);}
-.aa-copy:hover{background:var(--surface-2);color:var(--text);}
-.aa-prompt{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
-.aa-gen{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);}
-.img-wrap{margin-top:10px;display:none;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
-.img-wrap img{width:100%;display:block;}
-.img-dl{display:block;text-align:center;padding:8px;background:var(--surface-3);color:var(--teal);font-size:.72rem;font-weight:600;text-decoration:none;}
-.tg-block{margin-bottom:14px;}
-.tg-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px;}
-.tags{display:flex;flex-wrap:wrap;gap:5px;}
-.tag{background:var(--surface-2);border:1px solid var(--border-2);border-radius:20px;padding:3px 10px;font-size:.72rem;color:var(--text-dim);}
-.rm-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-.rm-row:last-child{border:none;}
-.rm-week{font-size:.68rem;font-weight:700;color:var(--teal);min-width:64px;font-family:var(--mono);padding-top:2px;}
-.rm-title{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:2px;}
-.rm-desc{font-size:.75rem;color:var(--text-dim);line-height:1.5;}
-.notes-ta{width:100%;min-height:160px;padding:12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;color:var(--text);font-size:.82rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;resize:vertical;line-height:1.6;}
-.notes-ta:focus{border-color:var(--teal);}
-.notes-save-btn{margin-top:10px;padding:8px 16px;background:var(--teal);color:#0a0e1a;border:none;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-.plat-pre{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:.76rem;color:var(--text-dim);white-space:pre-wrap;line-height:1.75;font-family:var(--mono);}
-.of-lbl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:block;margin-bottom:5px;}
-.of-in{width:100%;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-size:.8rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
-.of-in:focus{border-color:var(--teal);}
-.of-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.of-acts{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;}
-.of-btn{padding:8px 14px;border-radius:7px;font-size:.76rem;font-weight:700;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-.ofb-save{background:var(--teal);color:#0a0e1a;}
-.ofb-glob{background:var(--surface-3);color:var(--text-dim);border:1px solid var(--border-2);}
-.ofb-clear{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);}
-.file-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;}
-.file-icon{font-size:1.1rem;flex-shrink:0;}
-.file-info{flex:1;min-width:0;}
-.file-name{font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.file-meta{font-size:.65rem;color:var(--text-muted);margin-top:1px;font-family:var(--mono);}
-.file-dl{font-size:.68rem;font-weight:700;color:var(--teal);text-decoration:none;padding:4px 8px;border:1px solid rgba(0,217,163,.25);border-radius:5px;transition:all .15s;white-space:nowrap;}
-.file-dl:hover{background:var(--teal-dim);}
-.sheet{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.sheet.open{display:flex;}
-.sheet-box{background:var(--surface);border:1px solid var(--border-2);border-radius:14px;padding:28px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;}
-.sheet-title{font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.02em;}
-.sheet-sub{font-size:.78rem;color:var(--text-dim);margin-bottom:20px;}
-.sh-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:block;margin-bottom:5px;}
-.sh-in,.sh-sel,.sh-ta{width:100%;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:7px;color:var(--text);font-size:.82rem;font-family:'Plus Jakarta Sans',sans-serif;outline:none;margin-bottom:12px;}
-.sh-ta{resize:vertical;min-height:90px;line-height:1.6;}
-.sh-in:focus,.sh-sel:focus,.sh-ta:focus{border-color:var(--teal);}
-.sh-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.sh-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface-3);border:1px solid var(--border-2);color:var(--text);padding:9px 16px;border-radius:8px;font-size:.78rem;font-weight:500;opacity:0;transition:all .2s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.5);}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-@media(max-width:960px){.stats{grid-template-columns:repeat(3,1fr);}.modal-panel{width:100vw;}}
-@media(max-width:600px){.stats{grid-template-columns:1fr 1fr;}.sh-2col,.of-2col,.info-grid{grid-template-columns:1fr;}.topbar{padding:0 12px;}.main{padding:12px;}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#222;background:#fff;font-size:14px}
+.header{background:${color};color:#fff;padding:28px 32px}
+.header h1{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.header p{opacity:.85;font-size:.9rem}
+.container{max-width:860px;margin:0 auto;padding:32px 24px}
+.section{margin-bottom:32px}
+.section-title{font-size:1rem;font-weight:800;color:#111;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid ${color}}
+.badge{background:${color}20;color:${color};border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700;display:inline-block;margin:3px}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi-card{background:#f5f5f5;border-radius:8px;padding:14px}
+.kpi-val{font-size:1.1rem;font-weight:800;color:${color}}
+.kpi-lbl{font-size:.7rem;color:#777;margin-top:2px}
+footer{text-align:center;padding:24px;font-size:.72rem;color:#aaa;border-top:1px solid #eee;margin-top:40px}
 </style>
 </head>
 <body>
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="login-icon">🚀</div>
-      <div><div class="login-name">Astro AI</div><div class="login-sub">Agency Dashboard</div></div>
-    </div>
-    <h2>Sign In</h2>
-    <p>Enter your agency password to continue</p>
-    <input class="login-input" id="pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
-    <div class="login-err" id="login-err">❌ Incorrect password</div>
-  </div>
+<div class="header">
+  <div style="font-size:.8rem;opacity:.7;margin-bottom:4px">${safe(brand)}</div>
+  <h1>${safe(data.businessName)}</h1>
+  <p>AI Marketing Plan · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p>
 </div>
-<div id="app">
-  <header class="topbar">
-    <div class="tb-left">
-      <div class="tb-brand"><div class="tb-icon">🚀</div><span class="tb-name">Astro AI</span></div>
-      <div class="tb-divider"></div>
-      <span class="tb-page">Marketing Command Center</span>
-    </div>
-    <div class="tb-right">
-      <span class="tb-time" id="last-updated"></span>
-      <button class="btn btn-ghost" onclick="openBlastModal()">📣 Send Message</button>
-      <button class="btn btn-teal" onclick="openAddModal()">+ Add Client</button>
-      <button class="btn btn-danger" onclick="doLogout()">Sign Out</button>
-    </div>
-  </header>
-  <div class="main">
-    <div class="stats">
-      <div class="stat-card"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total Clients</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-month">—</div><div class="stat-lbl">This Month</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-week">—</div><div class="stat-lbl">This Week</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-live">—</div><div class="stat-lbl">Live Campaigns</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-done">—</div><div class="stat-lbl">Completed</div></div>
-    </div>
-    <div class="toolbar">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="search" placeholder="Search clients..." oninput="renderTable()">
-      </div>
-      <select class="filter-sel" id="f-industry" onchange="renderTable()"><option value="">All Industries</option></select>
-      <select class="filter-sel" id="f-status" onchange="renderTable()">
-        <option value="">All Statuses</option>
-        <option value="new">New</option>
-        <option value="active">Plan Ready</option>
-        <option value="launched">Campaign Live</option>
-        <option value="paused">Paused</option>
-        <option value="completed">Completed</option>
-      </select>
-      <select class="filter-sel" id="f-sort" onchange="renderTable()">
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-        <option value="name">Name A–Z</option>
-      </select>
-      <span class="tb-count" id="tbl-count"></span>
-      <button class="btn btn-ghost" onclick="loadClients()">↺ Refresh</button>
-    </div>
-    <div class="table-wrap" id="tbl-wrap">
-      <div class="empty-state"><div class="spinner"></div><p>Loading clients...</p></div>
-    </div>
+<div class="container">
+  <div class="section">
+    <div class="section-title">Executive Summary</div>
+    <p style="line-height:1.75;color:#444">${safe(json.executiveSummary||'')}</p>
   </div>
+  <div class="section">
+    <div class="section-title">Ad Copy</div>
+    ${adSections}
+  </div>
+  <div class="section">
+    <div class="section-title">Audience Targeting</div>
+    ${Object.entries(json.targeting || {}).map(([k,v]) => {
+      const items = Array.isArray(v) ? v : (v?.items || []);
+      const label = v?.label || k.replace(/([A-Z])/g,' $1').trim();
+      if (!items.length) return '';
+      return `<div style="margin-bottom:12px"><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px">${safe(label)}</div>${items.map(i=>`<span class="badge">${safe(i)}</span>`).join('')}</div>`;
+    }).join('')}
+  </div>
+  <div class="section">
+    <div class="section-title">90-Day Roadmap</div>
+    ${roadmapHTML}
+  </div>
+  ${json.kpis ? `<div class="section">
+    <div class="section-title">Target KPIs</div>
+    <div class="kpi-grid">
+      ${Object.entries(json.kpis).map(([,v])=>`<div class="kpi-card"><div class="kpi-val">${safe(String(v).split(':')[1]||v)}</div><div class="kpi-lbl">${safe(String(v).split(':')[0])}</div></div>`).join('')}
+    </div>
+  </div>` : ''}
 </div>
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
-<div class="modal-panel" id="modal-panel" style="display:none">
-  <div class="modal-head">
-    <div class="modal-head-info">
-      <div class="modal-title" id="m-title">—</div>
-      <div class="modal-meta" id="m-meta"></div>
-    </div>
-    <div class="modal-head-btns">
-      <button class="btn btn-ghost" onclick="copyPortalLink()">🔗 Portal</button>
-      <button class="btn btn-ghost" id="m-viewbtn">↗ Plan</button>
-      <button class="btn btn-ghost" onclick="openClientPortal()">👤 Open Portal</button>
-      <div class="close-x" onclick="closeModal()">✕</div>
-    </div>
-  </div>
-  <div class="modal-tabs" id="mtabs">
-    <button class="mtab on" onclick="switchTab(this,'tp-info')">Overview</button>
-    <button class="mtab" onclick="switchTab(this,'tp-ads');ensureAds()">Ad Copy</button>
-    <button class="mtab" onclick="switchTab(this,'tp-targeting')">Targeting</button>
-    <button class="mtab" onclick="switchTab(this,'tp-roadmap')">Roadmap</button>
-    <button class="mtab" onclick="switchTab(this,'tp-script')">Script</button>
-    <button class="mtab" onclick="switchTab(this,'tp-notes')">Notes</button>
-    <button class="mtab" onclick="switchTab(this,'tp-access')">Platform Access</button>
-    <button class="mtab" onclick="switchTab(this,'tp-offer')">Special Offer</button>
-    <button class="mtab" onclick="switchTab(this,'tp-files');loadClientFiles()">Files</button>
-  </div>
-  <div class="modal-body">
-    <div class="tab-pane on" id="tp-info"></div>
-    <div class="tab-pane" id="tp-ads"></div>
-    <div class="tab-pane" id="tp-targeting"></div>
-    <div class="tab-pane" id="tp-roadmap"></div>
-    <div class="tab-pane" id="tp-script"></div>
-    <div class="tab-pane" id="tp-notes"></div>
-    <div class="tab-pane" id="tp-access"></div>
-    <div class="tab-pane" id="tp-offer"></div>
-    <div class="tab-pane" id="tp-files"></div>
-  </div>
-</div>
-<div class="sheet" id="add-sheet">
-  <div class="sheet-box">
-    <div class="sheet-title">Add New Client</div>
-    <div class="sheet-sub">Manually add a client to the dashboard.</div>
-    <div class="sh-2col">
-      <div><label class="sh-label">First Name *</label><input class="sh-in" id="a-fn" placeholder="Jane"></div>
-      <div><label class="sh-label">Last Name</label><input class="sh-in" id="a-ln" placeholder="Smith"></div>
-    </div>
-    <label class="sh-label">Business Name *</label><input class="sh-in" id="a-biz" placeholder="Smith Cleaning Co.">
-    <div class="sh-2col">
-      <div><label class="sh-label">Email *</label><input class="sh-in" id="a-em" type="email" placeholder="jane@biz.com"></div>
-      <div><label class="sh-label">Phone</label><input class="sh-in" id="a-ph" type="tel" placeholder="(512) 555-0000"></div>
-    </div>
-    <div class="sh-2col">
-      <div><label class="sh-label">Industry</label><input class="sh-in" id="a-ind" placeholder="Roofing"></div>
-      <div><label class="sh-label">Primary Service</label><input class="sh-in" id="a-svc" placeholder="Storm Damage Repair"></div>
-    </div>
-    <div class="sh-2col">
-      <div><label class="sh-label">Monthly Budget</label><input class="sh-in" id="a-bud" placeholder="1500"></div>
-      <div><label class="sh-label">Ad Platforms</label><input class="sh-in" id="a-plt" placeholder="Facebook, Google"></div>
-    </div>
-    <label class="sh-label">90-Day Goal</label><input class="sh-in" id="a-goal" placeholder="50 qualified leads/month">
-    <label class="sh-label">Auth PDF URL</label><input class="sh-in" id="a-pdf" type="url" placeholder="https://...">
-    <div class="sh-foot">
-      <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
-      <button class="btn btn-teal" onclick="submitAdd()">Add Client →</button>
-    </div>
-  </div>
-</div>
-<div class="sheet" id="blast-sheet">
-  <div class="sheet-box">
-    <div class="sheet-title">Send Message</div>
-    <div class="sheet-sub">Send a custom message to a client.</div>
-    <label class="sh-label">Client</label>
-    <select class="sh-sel" id="bl-client"></select>
-    <label class="sh-label">Message Type</label>
-    <select class="sh-sel" id="bl-type">
-      <option value="both">Email + SMS</option>
-      <option value="email">Email Only</option>
-      <option value="sms">SMS Only</option>
-    </select>
-    <div id="bl-subj-wrap">
-      <label class="sh-label">Email Subject</label>
-      <input class="sh-in" id="bl-subj" placeholder="Update on your campaign...">
-    </div>
-    <label class="sh-label">Message *</label>
-    <textarea class="sh-ta" id="bl-msg" placeholder="Type your message..."></textarea>
-    <div class="sh-foot">
-      <button class="btn btn-ghost" onclick="closeBlastModal()">Cancel</button>
-      <button class="btn btn-teal" onclick="sendBlast()">Send →</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div><script>
-'use strict';
-const API  = 'https://marketingplan.astroaibots.com/api';
-const IKEY = 'astroai-internal-2024';
-const PWD  = 'astroai2024!';
-let clients = [], curClient = null, curJSON = null;
-
-function doLogin() {
-  if (document.getElementById('pw').value === PWD) {
-    sessionStorage.setItem('auth','1');
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    loadClients();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-    document.getElementById('pw').value = '';
-  }
+<footer>Powered by ${safe(brand)} · Astro AI Platform</footer>
+<script>
+function copyAd(btn){
+  const body=btn.closest('.ad-card-body');
+  const ps=[...body.querySelectorAll('p')].map(p=>p.textContent);
+  navigator.clipboard.writeText(ps.join('\\n\\n')).then(()=>{btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000)});
 }
-function doLogout() { sessionStorage.removeItem('auth'); location.reload(); }
-if (sessionStorage.getItem('auth') === '1') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-}
-
-async function loadClients() {
-  setTable('<div class="empty-state"><div class="spinner"></div><p>Loading clients...</p></div>');
-  try {
-    const res  = await fetch(API + '/get-clients', { headers: { 'x-internal-key': IKEY } });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed');
-    clients = data.clients || [];
-    const inds = [...new Set(clients.map(c => c.industry).filter(Boolean))].sort();
-    const sel  = document.getElementById('f-industry');
-    sel.innerHTML = '<option value="">All Industries</option>' + inds.map(i => `<option value="${x(i)}">${x(i)}</option>`).join('');
-    document.getElementById('bl-client').innerHTML = clients.map(c => `<option value="${c.id}">${x(c.businessName)} — ${x(c.clientName)}</option>`).join('');
-    updateStats();
-    renderTable();
-    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
-  } catch(e) {
-    setTable(`<div class="empty-state"><p style="font-size:1.4rem">⚠️</p><p>${e.message}</p></div>`);
-  }
-}
-
-function updateStats() {
-  const now = new Date();
-  document.getElementById('s-total').textContent = clients.length;
-  document.getElementById('s-month').textContent = clients.filter(c => { const d = new Date(c.createdAt); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); }).length;
-  document.getElementById('s-week').textContent  = clients.filter(c => (now - new Date(c.createdAt)) < 7*86400000).length;
-  document.getElementById('s-live').textContent  = clients.filter(c => c.status==='launched').length;
-  document.getElementById('s-done').textContent  = clients.filter(c => c.status==='completed').length;
-}
-
-function renderTable() {
-  const q  = document.getElementById('search').value.toLowerCase();
-  const fi = document.getElementById('f-industry').value;
-  const fs = document.getElementById('f-status').value;
-  const so = document.getElementById('f-sort').value;
-  let list = clients.filter(c => {
-    const mq = !q || [c.businessName,c.clientName,c.industry,c.primaryService].some(v => (v||'').toLowerCase().includes(q));
-    return mq && (!fi || c.industry===fi) && (!fs || c.status===fs);
-  });
-  if (so==='oldest') list.sort((a,b) => new Date(a.createdAt)-new Date(b.createdAt));
-  else if (so==='name') list.sort((a,b) => (a.businessName||'').localeCompare(b.businessName||''));
-  else list.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt));
-  document.getElementById('tbl-count').textContent = list.length + ' client' + (list.length!==1?'s':'');
-  if (!list.length) { setTable('<div class="empty-state"><p style="font-size:1.4rem">🔍</p><p>No clients found.</p></div>'); return; }
-  const SC = { new:'s-new', active:'s-active', launched:'s-launched', paused:'s-paused', completed:'s-completed' };
-  const rows = list.map(c => `<tr>
-    <td><div class="c-name">${x(c.businessName||'—')}</div><div class="c-sub">${x(c.clientName||'')}${c.clientEmail?' · '+x(c.clientEmail):''}</div></td>
-    <td><div class="c-dim">${x(c.industry||'—')}</div></td>
-    <td><div class="c-muted">${x(c.primaryService||'—')}</div></td>
-    <td>
-      <select class="spill ${SC[c.status]||'s-new'}" onchange="updateStatus('${c.id}',this)">
-        <option value="new" ${c.status==='new'?'selected':''}>🆕 New</option>
-        <option value="active" ${c.status==='active'?'selected':''}>📋 Plan Ready</option>
-        <option value="launched" ${c.status==='launched'?'selected':''}>🚀 Live</option>
-        <option value="paused" ${c.status==='paused'?'selected':''}>⏸ Paused</option>
-        <option value="completed" ${c.status==='completed'?'selected':''}>✅ Done</option>
-      </select>
-      ${c.statusUpdated?`<div style="font-size:.6rem;color:var(--text-muted);margin-top:2px;font-family:var(--mono)">${new Date(c.statusUpdated).toLocaleDateString()}</div>`:''}
-    </td>
-    <td>${c.notes?`<div class="note-txt" onclick="openModal('${c.id}');gotoTab(5)" title="${x(c.notes)}">${x(c.notes.slice(0,40)+(c.notes.length>40?'…':''))}</div>`:`<div class="note-empty" onclick="openModal('${c.id}');gotoTab(5)">Add notes...</div>`}</td>
-    <td style="font-size:.68rem;color:var(--text-muted);font-family:var(--mono)">${c.createdAt?new Date(c.createdAt).toLocaleDateString():'—'}</td>
-    <td>
-      <div class="acts">
-        <button class="act act-copy" onclick="navigator.clipboard.writeText('${x(c.dashboardUrl||'')}').then(()=>toast('🔗 Copied!'))" title="Copy plan link">🔗</button>
-        <a class="act act-view" href="${x(c.dashboardUrl||'#')}" target="_blank">↗ Plan</a>
-        <button class="act act-portal" onclick="window.open('https://marketingplan.astroaibots.com/client-portal.html?s=${c.id}','_blank')">👤 Portal</button>
-        <button class="act act-det" onclick="openModal('${c.id}')">Details</button>
-        ${c.authPdfUrl?`<a class="act act-copy" href="${x(c.authPdfUrl)}" target="_blank">📄 Auth</a>`:''}
-        <button class="act act-del" onclick="deleteClient('${c.id}','${xa(c.businessName||'')}')">🗑</button>
-      </div>
-    </td>
-  </tr>`).join('');
-  setTable(`<table><thead><tr><th>Business / Owner</th><th>Industry</th><th>Service</th><th>Status</th><th>Notes</th><th>Added</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`);
-}
-
-function setTable(html) { document.getElementById('tbl-wrap').innerHTML = html; }
-
-async function updateStatus(id, sel) {
-  const status = sel.value;
-  const client = clients.find(c => c.id===id);
-  if (!client) return;
-  const SC = { new:'s-new', active:'s-active', launched:'s-launched', paused:'s-paused', completed:'s-completed' };
-  sel.className = 'spill ' + (SC[status]||'s-new');
-  const notify = confirm(`Change status to "${sel.options[sel.selectedIndex].text}"?\n\nOK = update + Email & SMS ${client.clientName}\nCancel = status update only`);
-  sel.disabled = true;
-  try {
-    const res  = await fetch(API + '/update-status', { method:'POST', headers:{'Content-Type':'application/json','x-internal-key':IKEY}, body:JSON.stringify({slug:id,status,notify}) });
-    const data = await res.json();
-    if (data.success) { client.status=status; const sent=[data.emailSent&&'📧 Email',data.smsSent&&'💬 SMS'].filter(Boolean).join(' · '); toast('✅ Updated'+(sent?' — '+sent+' sent':'')); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-  finally { sel.disabled=false; }
-}
-
-async function deleteClient(id, name) {
-  if (!confirm(`Delete "${name}"?\n\nThis is permanent.`)) return;
-  try {
-    const res  = await fetch(API + '/delete-client', { method:'POST', headers:{'Content-Type':'application/json','x-internal-key':IKEY}, body:JSON.stringify({slug:id}) });
-    const data = await res.json();
-    if (data.success) { clients=clients.filter(c=>c.id!==id); renderTable(); updateStats(); toast('🗑 Deleted'); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function openAddModal()  { document.getElementById('add-sheet').classList.add('open'); }
-function closeAddModal() { document.getElementById('add-sheet').classList.remove('open'); }
-async function submitAdd() {
-  const fn=v('a-fn'),ln=v('a-ln'),biz=v('a-biz'),em=v('a-em');
-  if (!fn||!biz||!em) { toast('❌ First name, business, and email required'); return; }
-  try {
-    const res  = await fetch(API + '/add-client', { method:'POST', headers:{'Content-Type':'application/json','x-internal-key':IKEY}, body:JSON.stringify({firstName:fn,lastName:ln,email:em,businessName:biz,phone:v('a-ph'),industry:v('a-ind'),primaryService:v('a-svc'),adBudget:v('a-bud'),adPlatforms:v('a-plt'),goal90Days:v('a-goal'),authPdfUrl:v('a-pdf')}) });
-    const data = await res.json();
-    if (data.success) { closeAddModal(); loadClients(); toast('✅ Client added!'); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function openBlastModal() { document.getElementById('blast-sheet').classList.add('open'); document.getElementById('bl-type').dispatchEvent(new Event('change')); }
-function closeBlastModal() { document.getElementById('blast-sheet').classList.remove('open'); }
-document.getElementById('bl-type').addEventListener('change', function() { document.getElementById('bl-subj-wrap').style.display=this.value!=='sms'?'block':'none'; });
-async function sendBlast() {
-  const cid=v('bl-client'),type=v('bl-type'),msg=v('bl-msg'),subj=v('bl-subj');
-  if (!msg) { toast('❌ Message required'); return; }
-  const client=clients.find(c=>c.id===cid);
-  if (!client) { toast('❌ Client not found'); return; }
-  try {
-    const res  = await fetch(API + '/update-status', { method:'POST', headers:{'Content-Type':'application/json','x-internal-key':IKEY}, body:JSON.stringify({slug:cid,status:client.status,notify:true,customMessage:msg,customSubject:subj,messageType:type}) });
-    const data = await res.json();
-    if (data.success) { closeBlastModal(); toast('✅ Sent to '+client.clientName); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function openModal(id) {
-  const c=clients.find(x=>x.id===id); if (!c) return;
-  curClient=c; curJSON=c.dashboardJSON||null;
-  document.getElementById('m-title').textContent=c.businessName||'—';
-  document.getElementById('m-meta').textContent=[c.clientName,c.industry,c.createdAt?new Date(c.createdAt).toLocaleDateString():null].filter(Boolean).join(' · ');
-  document.getElementById('m-viewbtn').onclick=()=>window.open(c.dashboardUrl,'_blank');
-  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.mtab')[0].classList.add('on');
-  document.getElementById('tp-info').classList.add('on');
-  buildOverview(c); buildTargeting(curJSON); buildRoadmap(curJSON); buildScript(curJSON); buildNotes(c); buildAccess(c); buildOffer(c);
-  document.getElementById('tp-ads').dataset.loaded='0';
-  document.getElementById('tp-ads').innerHTML='<p style="color:var(--text-muted);font-size:.82rem;padding:8px 0">Click the Ad Copy tab to load ads.</p>';
-  document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('modal-panel').style.display='flex';
-  document.body.style.overflow='hidden';
-}
-
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.getElementById('modal-panel').style.display='none'; document.body.style.overflow=''; }
-function gotoTab(index) { setTimeout(()=>{ const tabs=document.querySelectorAll('.mtab'); if(tabs[index])tabs[index].click(); },80); }
-function switchTab(btn,paneId) { document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on')); document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on')); btn.classList.add('on'); document.getElementById(paneId).classList.add('on'); }
-function openClientPortal() { if(!curClient)return; window.open('https://marketingplan.astroaibots.com/client-portal.html?s='+curClient.id,'_blank'); }
-function copyPortalLink() { if(!curClient)return; navigator.clipboard.writeText('https://marketingplan.astroaibots.com/client-portal.html?s='+curClient.id).then(()=>toast('👤 Portal link copied!')); }
-
-async function ensureAds() {
-  const pane=document.getElementById('tp-ads');
-  if (pane.dataset.loaded==='1') return;
-  pane.dataset.loaded='1';
-  const j=curClient.dashboardJSON;
-  if (!j||typeof j!=='object'||!j.adAngles||!j.adAngles.length) {
-    pane.innerHTML=`<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:8px"><div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">⚠️ No ad copy found</div><div style="font-size:.75rem;color:var(--text-dim)">${curClient.dashboardUrl?`<a href="${curClient.dashboardUrl}" target="_blank" style="color:var(--teal)">Open Plan →</a>`:''} <button onclick="reloadClientJSON()" style="padding:4px 10px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔄 Re-fetch JSON</button></div></div>`;
-    return;
-  }
-  buildAdCopy(j,pane);
-}
-
-function buildAdCopy(j,pane) {
-  pane.innerHTML='';
-  const AC={Empathy:'rgba(99,102,241,.15)','Pain Points':'rgba(16,185,129,.15)',Proof:'rgba(245,158,11,.15)',Curiosity:'rgba(59,130,246,.15)',Retargeting:'rgba(239,68,68,.15)'};
-  const ACOL={Empathy:'#818cf8','Pain Points':'#34d399',Proof:'#fbbf24',Curiosity:'#60a5fa',Retargeting:'#f87171'};
-  (j.adAngles||[]).forEach((angle,ai)=>{
-    const badge=document.createElement('div'); badge.className='angle-badge';
-    badge.style.background=AC[angle.angleLabel]||'var(--surface-2)'; badge.style.color=ACOL[angle.angleLabel]||'var(--text-dim)';
-    badge.textContent=angle.angleLabel||''; pane.appendChild(badge);
-    (angle.ads||[]).forEach((ad,di)=>{
-      const adId='ad-'+ai+'-'+di;
-      window._AP=window._AP||{}; window._AP[adId]={businessName:curClient.businessName||'',industry:curClient.industry||'local business',angle:angle.angleLabel||'',headline:ad.headline||'',primaryText:ad.primaryText||'',description:ad.description||'',cta:ad.cta||'',goal:curClient.goal90||'',adPlatforms:curClient.adPlatforms||'Facebook/Instagram'};
-      const card=document.createElement('div'); card.className='ad-card'; card.id=adId;
-      const title=document.createElement('div'); title.style.cssText='font-size:.72rem;font-weight:700;color:var(--text-dim);margin-bottom:10px'; title.textContent=ad.title||''; card.appendChild(title);
-      [['Primary Text',ad.primaryText],['Headline',ad.headline],['Description',ad.description],['CTA',ad.cta]].forEach(([lbl,val])=>card.appendChild(mkCopyField(lbl,val||'')));
-      const acts=document.createElement('div'); acts.className='ad-acts';
-      const cpAll=document.createElement('button'); cpAll.className='ad-act aa-copy'; cpAll.textContent='📋 Copy All';
-      cpAll.onclick=()=>{ const txt='PRIMARY TEXT:\n'+(ad.primaryText||'')+'\n\nHEADLINE:\n'+(ad.headline||'')+'\n\nDESCRIPTION:\n'+(ad.description||'')+'\n\nCTA:\n'+(ad.cta||''); navigator.clipboard.writeText(txt).then(()=>{ cpAll.textContent='✅ Copied!'; setTimeout(()=>{cpAll.textContent='📋 Copy All';},2500); }); };
-      const cpPr=document.createElement('button'); cpPr.className='ad-act aa-prompt'; cpPr.textContent='🎨 Copy Prompt'; cpPr.onclick=()=>copyImgPrompt(cpPr,adId);
-      const genImg=document.createElement('button'); genImg.className='ad-act aa-gen'; genImg.textContent='⚡ Generate Image'; genImg.onclick=()=>generateImage(adId);
-      acts.appendChild(cpAll); acts.appendChild(cpPr); acts.appendChild(genImg); card.appendChild(acts);
-      const imgWrap=document.createElement('div'); imgWrap.className='img-wrap'; imgWrap.id=adId+'-img'; card.appendChild(imgWrap);
-      pane.appendChild(card);
-    });
-  });
-}
-
-function mkCopyField(label,val) {
-  const field=document.createElement('div'); field.className='copy-field';
-  const lbl=document.createElement('div'); lbl.className='copy-lbl'; lbl.textContent=label;
-  const row=document.createElement('div'); row.className='copy-row';
-  const valEl=document.createElement('div'); valEl.className='copy-val'; valEl.textContent=val;
-  const btn=document.createElement('button'); btn.className='copy-btn'; btn.textContent='Copy';
-  btn.onclick=()=>navigator.clipboard.writeText(val).then(()=>{ btn.textContent='✓'; btn.classList.add('ok'); setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},2000); });
-  row.appendChild(valEl); row.appendChild(btn); field.appendChild(lbl); field.appendChild(row);
-  return field;
-}
-
-function buildOverview(c) {
-  const el=document.getElementById('tp-info'); el.innerHTML='';
-  const grid=document.createElement('div'); grid.className='info-grid';
-  [['Business',c.businessName],['Owner',c.clientName],['Email',c.clientEmail],['Phone',c.phone],['Industry',c.industry],['Service',c.primaryService],['Service Area',c.serviceArea],['Team Size',c.companySize],['Monthly Budget','$'+(c.adBudget||'?')+'/mo'],['Platforms',c.adPlatforms],['Website',c.website],['90-Day Goal',c.goal90]].forEach(([lbl,val])=>{
-    const cell=document.createElement('div'); cell.className='info-cell';
-    cell.innerHTML=`<div class="info-lbl">${lbl}</div><div class="info-val">${x(val||'—')}</div>`;
-    grid.appendChild(cell);
-  });
-  el.appendChild(grid);
-  const btns=document.createElement('div'); btns.style.cssText='display:flex;gap:7px;flex-wrap:wrap;margin-top:4px';
-  const cpBrief=document.createElement('button'); cpBrief.className='btn btn-ghost'; cpBrief.textContent='📋 Copy Brief'; cpBrief.onclick=copySummary; btns.appendChild(cpBrief);
-  if (c.authPdfUrl) { const a=document.createElement('a'); a.className='btn btn-ghost'; a.href=c.authPdfUrl; a.target='_blank'; a.textContent='📄 Auth Form'; btns.appendChild(a); }
-  el.appendChild(btns);
-}
-
-function buildTargeting(j) {
-  const el=document.getElementById('tp-targeting'); el.innerHTML='';
-  if (!j) { el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No targeting data.</p>'; return; }
-  const t=j.targeting||{}; let any=false;
-  [['Demographics',t.demographics],[(t.interests1||{}).label||'Primary Interests',(t.interests1||{}).items],[(t.interests2||{}).label||'Secondary Interests',(t.interests2||{}).items],['Behaviors',t.behaviors],['Custom Audiences',t.custom],['Lookalike Audiences',t.lookalike]].forEach(([lbl,items])=>{
-    if (!items||!items.length) return; any=true;
-    const block=document.createElement('div'); block.className='tg-block';
-    const lblEl=document.createElement('div'); lblEl.className='tg-lbl'; lblEl.textContent=lbl;
-    const tags=document.createElement('div'); tags.className='tags';
-    items.forEach(item=>{ const tag=document.createElement('span'); tag.className='tag'; tag.textContent=item; tags.appendChild(tag); });
-    block.appendChild(lblEl); block.appendChild(tags); el.appendChild(block);
-  });
-  if (!any) el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No targeting data.</p>';
-}
-
-function buildRoadmap(j) {
-  const el=document.getElementById('tp-roadmap'); el.innerHTML='';
-  const rm=(j||{}).roadmap||[];
-  if (!rm.length) { el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No roadmap data.</p>'; return; }
-  rm.forEach(r=>{ const row=document.createElement('div'); row.className='rm-row'; row.innerHTML=`<div class="rm-week">${x(r.week||'')}</div><div><div class="rm-title">${x(r.title||'')}</div><div class="rm-desc">${x(r.desc||'')}</div></div>`; el.appendChild(row); });
-}
-
-function buildScript(j) {
-  const el=document.getElementById('tp-script'); el.innerHTML='';
-  const qs=(j||{}).qualificationScript||{};
-  if (qs.opening) { const card=document.createElement('div'); card.className='ad-card'; card.appendChild(mkCopyField('Opening',qs.opening)); el.appendChild(card); }
-  if ((qs.questions||[]).length) {
-    const hdr=document.createElement('div'); hdr.style.cssText='font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:14px 0 6px'; hdr.textContent='Qualifying Questions'; el.appendChild(hdr);
-    qs.questions.forEach((q,i)=>{ const card=document.createElement('div'); card.className='ad-card'; card.style.marginBottom='7px'; const num=document.createElement('div'); num.style.cssText='font-size:.6rem;color:var(--teal);font-weight:700;margin-bottom:4px'; num.textContent='Q'+(i+1); card.appendChild(num); card.appendChild(mkCopyField('',q.q||'')); const why=document.createElement('div'); why.style.cssText='font-size:.72rem;color:var(--text-muted);margin-top:4px'; why.textContent='Why: '+(q.why||''); card.appendChild(why); el.appendChild(card); });
-  }
-  if ((qs.objections||[]).length) {
-    const hdr=document.createElement('div'); hdr.style.cssText='font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin:14px 0 6px'; hdr.textContent='Objection Handling'; el.appendChild(hdr);
-    qs.objections.forEach(o=>{ const card=document.createElement('div'); card.className='ad-card'; card.style.marginBottom='7px'; const obj=document.createElement('div'); obj.style.cssText='font-size:.75rem;color:var(--red);margin-bottom:6px'; obj.textContent='❌ "'+(o.obj||'')+'"'; card.appendChild(obj); card.appendChild(mkCopyField('Response',o.response||'')); el.appendChild(card); });
-  }
-  if (!el.children.length) el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No script data.</p>';
-}
-
-function buildNotes(c) {
-  const el=document.getElementById('tp-notes'); el.innerHTML='';
-  const desc=document.createElement('p'); desc.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:10px'; desc.textContent=`Internal notes for ${c.businessName}. Not visible to the client.`; el.appendChild(desc);
-  const ta=document.createElement('textarea'); ta.className='notes-ta'; ta.id='notes-ta'; ta.value=c.notes||''; ta.placeholder='Add notes here...'; el.appendChild(ta);
-  const btn=document.createElement('button'); btn.className='notes-save-btn'; btn.textContent='💾 Save Notes'; btn.onclick=()=>saveNotes(c.id); el.appendChild(btn);
-}
-
-async function saveNotes(id) {
-  const notes=document.getElementById('notes-ta').value;
-  try {
-    const res=await fetch(API+'/update-status',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IKEY},body:JSON.stringify({slug:id,status:clients.find(c=>c.id===id)?.status||'new',notify:false,notes})});
-    const data=await res.json();
-    if (data.success) { const c=clients.find(c=>c.id===id); if(c)c.notes=notes; renderTable(); toast('💾 Notes saved!'); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function buildAccess(c) {
-  const instr=`📘 META (FACEBOOK / INSTAGRAM)\n${'─'.repeat(36)}\n1. Go to business.facebook.com\n2. Click Business → Settings ⚙️\n3. Users → Partners → Add Partner\n4. Enter our Partner Business ID\n5. Grant "Manage Campaigns" access\n6. Click Save\n\n🔵 GOOGLE ADS\n${'─'.repeat(36)}\n1. Sign in to ads.google.com\n2. Tools ⚙️ → Account Access\n3. Click "+" → Invite Users\n4. Enter: ads@astroaibots.com\n5. Set access to "Standard"\n6. Click Send Invitation\n\nCampaign launch begins within 48hrs of access.`;
-  const el=document.getElementById('tp-access'); el.innerHTML='';
-  const btns=document.createElement('div'); btns.style.cssText='display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px';
-  const cp=document.createElement('button'); cp.className='btn btn-ghost'; cp.textContent='📋 Copy Instructions'; cp.onclick=()=>navigator.clipboard.writeText(instr).then(()=>toast('📋 Copied!')); btns.appendChild(cp);
-  const email=document.createElement('button'); email.className='btn btn-ghost'; email.textContent='📧 Email to Client'; email.onclick=()=>sendAccessInstructions(c.id); btns.appendChild(email);
-  el.appendChild(btns);
-  const pre=document.createElement('div'); pre.className='plat-pre'; pre.textContent=instr; el.appendChild(pre);
-}
-
-async function sendAccessInstructions(id) {
-  const c=clients.find(x=>x.id===id); if(!c)return; toast('📧 Sending...');
-  try {
-    const res=await fetch(API+'/update-status',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IKEY},body:JSON.stringify({slug:id,status:c.status,notify:true,sendAccessInstructions:true})});
-    const data=await res.json();
-    toast(data.success?'✅ Instructions sent to '+c.clientEmail:'❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function buildOffer(c) {
-  const el=document.getElementById('tp-offer'); el.innerHTML='';
-  const note=document.createElement('p'); note.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6'; note.textContent="Set a special offer banner on this client's portal. Leave blank to use the global offer."; el.appendChild(note);
-  [['Offer Title *','offer-title','text','20% Off Your Next Month'],['Description','offer-desc','text','Exclusive for loyal clients...']].forEach(([lbl,id,type,ph])=>{ const wrap=document.createElement('div'); wrap.style.marginBottom='10px'; wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}">`; el.appendChild(wrap); });
-  const twoCol=document.createElement('div'); twoCol.className='of-2col'; twoCol.style.marginBottom='10px';
-  twoCol.innerHTML=`<div><label class="of-lbl">CTA Button Text</label><input class="of-in" id="offer-cta-text" type="text" placeholder="Claim Offer"></div><div><label class="of-lbl">Expiry Date</label><input class="of-in" id="offer-expires" type="date"></div>`; el.appendChild(twoCol);
-  const urlWrap=document.createElement('div'); urlWrap.style.marginBottom='14px'; urlWrap.innerHTML='<label class="of-lbl">Claim Link *</label><input class="of-in" id="offer-url" type="url" placeholder="https://link.astroaibots.com/...">'; el.appendChild(urlWrap);
-  const acts=document.createElement('div'); acts.className='of-acts';
-  const save=document.createElement('button'); save.className='of-btn ofb-save'; save.textContent='💾 Save for This Client'; save.onclick=()=>saveOffer(c.id,false);
-  const glob=document.createElement('button'); glob.className='of-btn ofb-glob'; glob.textContent='🌐 Set as Global Offer'; glob.onclick=()=>saveOffer('global',false);
-  const clr=document.createElement('button'); clr.className='of-btn ofb-clear'; clr.textContent='🗑 Clear Offer'; clr.onclick=()=>saveOffer(c.id,true);
-  acts.appendChild(save); acts.appendChild(glob); acts.appendChild(clr); el.appendChild(acts);
-}
-
-async function saveOffer(targetSlug,clear) {
-  let ctaUrl=(document.getElementById('offer-url')?.value||'').trim();
-  if (ctaUrl&&!ctaUrl.startsWith('http')) ctaUrl='https://'+ctaUrl;
-  const title=(document.getElementById('offer-title')?.value||'').trim();
-  if (!clear&&(!title||!ctaUrl)) { toast('❌ Title and URL required'); return; }
-  try {
-    const res=await fetch(API+'/set-offer',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IKEY},body:JSON.stringify(clear?{title:'_cleared',ctaUrl:'#',targetSlug:targetSlug==='global'?null:targetSlug,active:false}:{title,description:(document.getElementById('offer-desc')?.value||'').trim(),ctaText:(document.getElementById('offer-cta-text')?.value||'Claim Offer').trim(),ctaUrl,expiresAt:document.getElementById('offer-expires')?.value||'',targetSlug:targetSlug==='global'?null:targetSlug,active:true})});
-    const data=await res.json();
-    toast(data.success?(clear?'🗑 Cleared':'✅ Offer saved!'):'❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-async function loadClientFiles() {
-  const el=document.getElementById('tp-files');
-  if (!curClient) { el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No client.</p>'; return; }
-  el.innerHTML='<div style="padding:10px 0;color:var(--text-muted);font-size:.8rem"><div class="spinner"></div>Loading...</div>';
-  try {
-    const res=await fetch(API+'/list-files?slug='+encodeURIComponent(curClient.id));
-    const data=await res.json(); el.innerHTML='';
-    if (!data.files||!data.files.length) { el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem">No files uploaded yet.</p>'; return; }
-    const countEl=document.createElement('p'); countEl.style.cssText='font-size:.7rem;color:var(--text-muted);margin-bottom:10px;font-family:var(--mono)'; countEl.textContent=data.files.length+' file'+(data.files.length!==1?'s':''); el.appendChild(countEl);
-    data.files.forEach(f=>{ const row=document.createElement('div'); row.className='file-row'; const ext=(f.name||'').split('.').pop().toLowerCase(); const icon=['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':['xls','xlsx'].includes(ext)?'📊':['mp4','mov'].includes(ext)?'🎬':ext==='zip'?'📦':'📎'; const bytes=parseInt(f.size)||0; const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB'; row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info"><div class="file-name">${x(f.name||'')}</div><div class="file-meta">${size}${f.uploadedAt?' · '+new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div></div>${f.url?`<a class="file-dl" href="${x(f.url)}" target="_blank">↓ Download</a>`:''}`; el.appendChild(row); });
-  } catch(e) { el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${x(e.message)}</p>`; }
-}
-
-async function generateDallePrompt(data) {
-  const res=await fetch(API+'/generate-prompt',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IKEY},body:JSON.stringify(data)});
-  const r=await res.json(); if(!r.prompt) throw new Error(r.error||'Failed to generate prompt'); return r.prompt;
-}
-
-async function copyImgPrompt(btn,adId) {
-  const data=(window._AP||{})[adId]; if(!data){toast('❌ Ad data not found');return;}
-  const orig=btn.textContent; btn.textContent='⏳...'; btn.disabled=true;
-  try { const p=await generateDallePrompt(data); await navigator.clipboard.writeText(p); btn.textContent='✓ Copied!'; setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},2500); }
-  catch(e) { toast('❌ '+e.message); btn.textContent=orig; btn.disabled=false; }
-}
-
-async function generateImage(adId) {
-  const data=(window._AP||{})[adId]; if(!data){toast('❌ Ad data not found');return;}
-  const wrap=document.getElementById(adId+'-img'); const btn=document.querySelector('#'+adId+' .aa-gen'); if(!wrap||!btn)return;
-  btn.disabled=true; btn.textContent='⏳ Writing prompt...'; wrap.style.display='block';
-  wrap.innerHTML='<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:.78rem">✍️ Crafting image prompt...</div>';
-  let prompt;
-  try { prompt=await generateDallePrompt(data); }
-  catch(e) { wrap.innerHTML=`<div style="color:var(--red);font-size:.78rem;padding:8px">❌ ${x(e.message)}</div>`; btn.disabled=false; btn.textContent='⚡ Generate Image'; return; }
-  btn.textContent='⏳ Generating...';
-  wrap.innerHTML='<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:.78rem">⚡ DALL-E 3 generating... (~15s)</div>';
-  try {
-    const res=await fetch(API+'/generate-image',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IKEY},body:JSON.stringify({prompt})});
-    const d=await res.json();
-    if (d.imageUrl) { wrap.innerHTML=`<img src="${d.imageUrl}" alt="Generated ad image"><a class="img-dl" href="${d.imageUrl}" download="ad-image.png" target="_blank">⬇️ Download Image</a>`; }
-    else { wrap.innerHTML=`<div style="color:var(--red);font-size:.78rem;padding:8px">❌ ${x(d.error||'Generation failed')}</div>`; }
-  } catch(e) { wrap.innerHTML=`<div style="color:var(--red);font-size:.78rem;padding:8px">❌ ${x(e.message)}</div>`; }
-  finally { btn.disabled=false; btn.textContent='⚡ Generate Image'; }
-}
-
-async function reloadClientJSON() {
-  if(!curClient)return; toast('🔄 Re-fetching client data...');
-  try {
-    const res=await fetch(API+'/get-clients',{headers:{'x-internal-key':IKEY}});
-    const data=await res.json();
-    const fresh=(data.clients||[]).find(c=>c.id===curClient.id);
-    if (fresh) { const idx=clients.findIndex(c=>c.id===curClient.id); if(idx>=0)clients[idx]=fresh; curClient=fresh; const pane=document.getElementById('tp-ads'); pane.dataset.loaded='0'; ensureAds(); }
-    else toast('❌ Client not found in fresh data');
-  } catch(e) { toast('❌ '+e.message); }
-}
-
-function x(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function xa(s) { return String(s||'').replace(/'/g,"\\'").replace(/\n/g,' '); }
-function v(id) { return (document.getElementById(id)?.value||'').trim(); }
-
-function copySummary() {
-  if(!curClient)return; const c=curClient;
-  navigator.clipboard.writeText(`CLIENT BRIEF — ${c.businessName}\n${'─'.repeat(40)}\nOwner: ${c.clientName}\nEmail: ${c.clientEmail}\nPhone: ${c.phone}\nIndustry: ${c.industry}\nService: ${c.primaryService}\nBudget: $${c.adBudget}/mo\nPlatforms: ${c.adPlatforms}\nGoal: ${c.goal90}\nDashboard: ${c.dashboardUrl}`).then(()=>toast('📋 Brief copied!'));
-}
-
-function toast(msg) {
-  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
-  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3500);
-}
-
-setInterval(loadClients, 5*60*1000);
-if (sessionStorage.getItem('auth')==='1') loadClients();
 </script>
 </body>
-</html>
+</html>`;
+}
+
+// ── SEND WELCOME EMAIL ──────────────────────────────────────────
+async function sendWelcome(agency, client, planUrl, portalUrl) {
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({ service:'gmail', auth:{ user:process.env.GMAIL_USER, pass:process.env.GMAIL_PASS } });
+  const brand = agency.brandName || agency.name || 'Astro AI';
+  const color = agency.brandColor || '#00d9a3';
+  await transporter.sendMail({
+    from: `"${brand}" <${process.env.GMAIL_USER}>`,
+    to: client.clientEmail,
+    subject: `🎉 Your AI Marketing Plan is Ready, ${client.firstName}!`,
+    html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px">
+      <h2 style="color:${color}">${brand}</h2>
+      <p>Hi ${client.firstName},</p>
+      <p>Your personalized AI marketing plan for <strong>${client.businessName}</strong> is ready!</p>
+      ${agency.welcomeMsg ? `<p>${agency.welcomeMsg}</p>` : ''}
+      <div style="margin:24px 0">
+        <a href="${planUrl}" style="background:${color};color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;margin-right:12px">📊 View Plan</a>
+        <a href="${portalUrl}" style="background:#f5f5f5;color:#333;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block">👤 Your Portal</a>
+      </div>
+      <p style="color:#888;font-size:12px">Powered by Astro AI · ${brand}</p>
+    </div>`,
+  });
+}
+
+// ── MAIN ────────────────────────────────────────────────────────
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'POST only' }) };
+
+  let data;
+  try { data = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
+
+  const { agencyId } = data;
+  if (!agencyId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'agencyId required' }) };
+
+  // Validate required fields
+  const required = ['firstName','lastName','email','businessName','industry','primaryService','adBudget','adPlatforms','goal90Days'];
+  for (const f of required) {
+    if (!data[f]) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: `${f} is required` }) };
+  }
+
+  try {
+    const agency = await fsGet('agencies', agencyId);
+    if (!agency) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Agency not found' }) };
+    if (agency.status === 'suspended') return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: 'Agency suspended' }) };
+
+    // Build client record
+    const clientId = data.businessName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)
+      + '-' + Date.now().toString(36);
+
+    const clientData = {
+      agencyId,
+      clientId,
+      firstName:      data.firstName,
+      lastName:       data.lastName,
+      clientName:     `${data.firstName} ${data.lastName}`.trim(),
+      clientEmail:    data.email,
+      businessName:   data.businessName,
+      phone:          data.phone || '',
+      industry:       data.industry,
+      primaryService: data.primaryService,
+      adBudget:       data.adBudget,
+      adPlatforms:    data.adPlatforms,
+      serviceAreaType:data.serviceAreaType || '',
+      serviceDetails: data.serviceDetails || '',
+      website:        data.website || '',
+      companySize:    data.companySize || '',
+      goal90:         data.goal90Days,
+      status:         'new',
+      statusLabel:    '🆕 New',
+      createdAt:      new Date().toISOString(),
+      dashboardURL:   '',
+      dashboardJSON:  '{}',
+      notes:          '',
+    };
+
+    // Save initial record immediately
+    await fsSetSub(agencyId, 'clients', clientId, clientData);
+
+    // Generate AI plan
+    console.log(`[agency-process-plan] Generating plan for ${data.businessName} (agency: ${agencyId})`);
+    const rawJSON = await callClaude(buildPrompt(data, agency));
+
+    let dashJSON = {};
+    try {
+      const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
+      dashJSON = JSON.parse(cleaned);
+    } catch(e) {
+      console.error('[agency-process-plan] JSON parse failed:', e.message);
+      // Try extracting JSON block
+      const m = rawJSON.match(/\{[\s\S]*\}/);
+      if (m) { try { dashJSON = JSON.parse(m[0]); } catch(e2) {} }
+    }
+
+    // Build HTML plan
+    const planHTML   = buildPlanHTML(dashJSON, data, agency);
+    const planSlug   = clientId;
+    const planUrl    = `https://marketingplan.astroaibots.com/plans/${agencyId}/${planSlug}.html`;
+    const portalUrl  = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${clientId}`;
+
+    // Save plan to GitHub
+    try { await saveToGitHub(planSlug, agencyId, planHTML); } 
+    catch(e) { console.error('[agency-process-plan] GitHub save failed:', e.message); }
+
+    // Update client record with plan data
+    await fsSetSub(agencyId, 'clients', clientId, {
+      ...clientData,
+      dashboardUrl:  planUrl,
+      dashboardJSON: JSON.stringify(dashJSON),
+      status:        'active',
+      statusLabel:   '📋 Plan Ready',
+      generatedAt:   new Date().toISOString(),
+    });
+
+    // Update agency client count
+    await fsGet('agencies', agencyId).then(a => {
+      if (a) fsGet('agencies', agencyId).then(ag => {
+        // Simple: just let it be, count dynamically
+      });
+    }).catch(() => {});
+
+    // Send welcome email
+    try { await sendWelcome(agency, { ...clientData, firstName: data.firstName }, planUrl, portalUrl); }
+    catch(e) { console.error('[agency-process-plan] Welcome email failed:', e.message); }
+
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, clientId, planUrl, portalUrl }) };
+
+  } catch(err) {
+    console.error('[agency-process-plan]', err.message, err.stack);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
+  }
+};
