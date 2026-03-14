@@ -67,12 +67,12 @@
 # Friendly URLs for public pages
 [[redirects]]
   from = "/join"
-  to = "/saas.html"
+  to = "/join.html"
   status = 301
 
 [[redirects]]
   from = "/signup"
-  to = "/saas.html"
+  to = "/join.html"
   status = 301
 
 [[redirects]]
