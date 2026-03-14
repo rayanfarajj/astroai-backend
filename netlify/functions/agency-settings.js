@@ -4,20 +4,20 @@
 const { fsGet, fsSet } = require('./_firebase');
 const { verifyToken, unauth, err, ok, CORS } = require('./_auth');
 
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
 
   const auth = await verifyToken(req);
   if (auth.error) return unauth(auth.error);
 
-  const agencyId = req.method === 'POST'
-    ? (await req.json().catch(() => ({}))).agencyId || auth.agencyId
+  const agencyId = event.httpMethod === 'POST'
+    ? (JSON.parse(event.body || '{}').catch(() => ({}))).agencyId || auth.agencyId
     : new URL(req.url).searchParams.get('agencyId') || auth.agencyId;
 
   // Non-admins can only access their own agency
   if (!auth.isAdmin && agencyId !== auth.agencyId) return unauth('Forbidden');
 
-  if (req.method === 'GET') {
+  if (event.httpMethod === 'GET') {
     try {
       const agency = await fsGet('agencies', agencyId);
       if (!agency) return err('Agency not found', 404);
@@ -27,9 +27,9 @@ export default async (req) => {
     } catch(e) { return err(e.message); }
   }
 
-  if (req.method === 'POST') {
+  if (event.httpMethod === 'POST') {
     let body;
-    try { body = await req.json(); } catch { return err('Invalid JSON', 400); }
+    try { body = JSON.parse(event.body || '{}'); } catch { return err('Invalid JSON', 400); }
 
     const allowed = [
       'name','brandName','brandColor','brandLogo',
@@ -51,5 +51,3 @@ export default async (req) => {
 
   return err('Method not allowed', 405);
 };
-
-export const config = { path: '/api/agency/settings' };
