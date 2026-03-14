@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AstroAI Platform Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --surface: #0d1117;
+  --surface2: #141a24;
+  --border: rgba(255,255,255,.07);
+  --teal: #00d9a3;
+  --teal-dim: rgba(0,217,163,.12);
+  --text: #eef2f7;
+  --muted: #6b7a99;
+  --dim: #1e2535;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,217,163,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,217,163,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.logo {
+  width: 42px;
+  height: 42px;
+  background: var(--teal);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 0 24px rgba(0,217,163,.35);
+  flex-shrink: 0;
+}
+
+.header-text h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+.header-text p {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Section label */
+.section-label {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section { margin-bottom: 28px; }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+/* Cards */
+.card {
+  display: block;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .2s, transform .15s, box-shadow .2s;
+  animation: fadeUp .4s ease both;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+}
+
+/* Tag colors */
+.card[data-tag="public"]   { }
+.card[data-tag="public"]:hover   { border-color: rgba(0,217,163,.4); box-shadow: 0 8px 32px rgba(0,217,163,.08); }
+.card[data-tag="public"]::before { background: var(--teal); }
+.card[data-tag="public"]:hover::before { opacity: 1; }
+
+.card[data-tag="auth"]:hover   { border-color: rgba(99,102,241,.4); box-shadow: 0 8px 32px rgba(99,102,241,.08); }
+.card[data-tag="auth"]::before { background: #6366f1; }
+.card[data-tag="auth"]:hover::before { opacity: 1; }
+
+.card[data-tag="yours"]:hover   { border-color: rgba(245,158,11,.4); box-shadow: 0 8px 32px rgba(245,158,11,.08); }
+.card[data-tag="yours"]::before { background: #f59e0b; }
+.card[data-tag="yours"]:hover::before { opacity: 1; }
+
+.card[data-tag="client"]:hover  { border-color: rgba(236,72,153,.4); box-shadow: 0 8px 32px rgba(236,72,153,.08); }
+.card[data-tag="client"]::before { background: #ec4899; }
+.card[data-tag="client"]:hover::before { opacity: 1; }
+
+.card[data-tag="api"]   { cursor: default; }
+.card[data-tag="api"]:hover     { border-color: rgba(148,163,184,.25); transform: none; box-shadow: none; }
+
+/* Card content */
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+
+.card[data-tag="public"]  .card-icon { background: rgba(0,217,163,.12); }
+.card[data-tag="auth"]    .card-icon { background: rgba(99,102,241,.12); }
+.card[data-tag="yours"]   .card-icon { background: rgba(245,158,11,.12); }
+.card[data-tag="client"]  .card-icon { background: rgba(236,72,153,.12); }
+.card[data-tag="api"]     .card-icon { background: rgba(148,163,184,.08); }
+
+.tag-pill {
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.card[data-tag="public"]  .tag-pill { background: rgba(0,217,163,.12); color: var(--teal); }
+.card[data-tag="auth"]    .tag-pill { background: rgba(99,102,241,.12); color: #a5b4fc; }
+.card[data-tag="yours"]   .tag-pill { background: rgba(245,158,11,.12); color: #fbbf24; }
+.card[data-tag="client"]  .tag-pill { background: rgba(236,72,153,.12); color: #f9a8d4; }
+.card[data-tag="api"]     .tag-pill { background: rgba(148,163,184,.08); color: var(--muted); }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.card-desc {
+  font-size: .74rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.card-url {
+  font-family: monospace;
+  font-size: .65rem;
+  color: rgba(107,122,153,.6);
+  background: var(--surface2);
+  border-radius: 5px;
+  padding: 4px 8px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* API cards — compact */
+.card-api-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.method-badge {
+  font-family: monospace;
+  font-size: .62rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(148,163,184,.08);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.method-badge.post { color: #6ee7b7; background: rgba(110,231,183,.06); border-color: rgba(110,231,183,.12); }
+.method-badge.get  { color: #93c5fd; background: rgba(147,197,253,.06); border-color: rgba(147,197,253,.12); }
+.method-badge.both { color: #c4b5fd; background: rgba(196,181,253,.06); border-color: rgba(196,181,253,.12); }
+
+.api-text { min-width: 0; }
+.api-title { font-size: .78rem; font-weight: 500; color: var(--text); }
+.api-url   { font-family: monospace; font-size: .65rem; color: var(--muted); margin-top: 2px; }
+
+/* Arrow icon */
+.arrow-icon {
+  position: absolute;
+  top: 16px; right: 16px;
+  font-size: .75rem;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity .2s, transform .2s;
+}
+
+.card:hover .arrow-icon { opacity: 1; transform: translate(2px,-2px); }
+.card[data-tag="api"] .arrow-icon { display: none; }
+
+/* Staggered animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card:nth-child(1) { animation-delay: .05s; }
+.card:nth-child(2) { animation-delay: .10s; }
+.card:nth-child(3) { animation-delay: .15s; }
+.card:nth-child(4) { animation-delay: .20s; }
+.card:nth-child(5) { animation-delay: .25s; }
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .7rem;
+  color: var(--muted);
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 680px) {
+  .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
+}
+@media (min-width: 481px) and (max-width: 680px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-5 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">🚀</div>
+    <div class="header-text">
+      <h1>AstroAI Platform</h1>
+      <p>All links and endpoints in one place</p>
+    </div>
+  </div>
+
+  <!-- Public Pages -->
+  <div class="section">
+    <div class="section-label">Public pages</div>
+    <div class="grid-2">
+
+      <a class="card" data-tag="public" href="https://marketingplan.astroaibots.com/saas.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">🌐</div>
+          <span class="tag-pill">Public</span>
+        </div>
+        <div class="card-title">SaaS Landing Page</div>
+        <div class="card-desc">Agency signup, pricing tiers, and login. Share this URL to acquire new agencies.</div>
+        <span class="card-url">marketingplan.astroaibots.com/saas.html</span>
+      </a>
+
+      <a class="card" data-tag="public" href="https://marketingplan.astroaibots.com/onboard.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">📋</div>
+          <span class="tag-pill">Public</span>
+        </div>
+        <div class="card-title">Client Onboarding Form</div>
+        <div class="card-desc">Clients fill this out to get their AI marketing plan auto-generated in ~2 minutes.</div>
+        <span class="card-url">marketingplan.astroaibots.com/onboard.html</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Agency Dashboards -->
+  <div class="section">
+    <div class="section-label">Agency dashboards</div>
+    <div class="grid-2">
+
+      <a class="card" data-tag="auth" href="https://marketingplan.astroaibots.com/saas-dashboard.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">📊</div>
+          <span class="tag-pill">Auth required</span>
+        </div>
+        <div class="card-title">SaaS Agency Dashboard</div>
+        <div class="card-desc">White-label agencies manage their own clients. Requires email + password login.</div>
+        <span class="card-url">marketingplan.astroaibots.com/saas-dashboard.html</span>
+      </a>
+
+      <a class="card" data-tag="yours" href="https://marketingplan.astroaibots.com/agency-dashboard.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">⚡</div>
+          <span class="tag-pill">Your agency</span>
+        </div>
+        <div class="card-title">AstroAI Main Dashboard</div>
+        <div class="card-desc">Your original dashboard — manage all your own clients, run plans, update statuses.</div>
+        <span class="card-url">marketingplan.astroaibots.com/agency-dashboard.html</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Client Facing -->
+  <div class="section">
+    <div class="section-label">Client-facing</div>
+    <div class="grid-2">
+
+      <a class="card" data-tag="client" href="https://marketingplan.astroaibots.com/client-portal.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">👤</div>
+          <span class="tag-pill">Client</span>
+        </div>
+        <div class="card-title">Client Portal</div>
+        <div class="card-desc">Clients view their marketing plan, upload files, and message your agency.</div>
+        <span class="card-url">marketingplan.astroaibots.com/client-portal.html</span>
+      </a>
+
+      <a class="card" data-tag="client" href="https://marketingplan.astroaibots.com/onboarding.html" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">📝</div>
+          <span class="tag-pill">Client</span>
+        </div>
+        <div class="card-title">Original Onboarding Form</div>
+        <div class="card-desc">Your pre-SaaS AstroAI client intake form. Still active for direct AstroAI clients.</div>
+        <span class="card-url">marketingplan.astroaibots.com/onboarding.html</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- API Endpoints -->
+  <div class="section">
+    <div class="section-label">API endpoints</div>
+    <div class="grid-3">
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge post">POST</span>
+          <div class="api-text">
+            <div class="api-title">Agency register</div>
+            <div class="api-url">/api/agency/register</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge post">POST</span>
+          <div class="api-text">
+            <div class="api-title">Agency login</div>
+            <div class="api-url">/api/agency/login</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge both">GET/POST</span>
+          <div class="api-text">
+            <div class="api-title">Agency settings</div>
+            <div class="api-url">/api/agency/settings</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge get">GET</span>
+          <div class="api-text">
+            <div class="api-title">Agency clients</div>
+            <div class="api-url">/api/agency/clients</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge post">POST</span>
+          <div class="api-text">
+            <div class="api-title">Process plan</div>
+            <div class="api-url">/api/agency/process-plan</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge post">POST</span>
+          <div class="api-text">
+            <div class="api-title">Update client</div>
+            <div class="api-url">/api/agency/update-client</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div> Public — anyone can access</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div> Auth required — login needed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Your agency — AstroAI internal</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ec4899"></div> Client-facing — shared with clients</div>
+  </div>
+
+</div>
+</body>
+</html>
