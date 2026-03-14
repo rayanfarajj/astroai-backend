@@ -25,7 +25,7 @@ async function sendWelcomeEmail(agency) {
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
   });
-  const dashUrl = `https://marketingplan.astroaibots.com/agency-dashboard.html?a=${agency.agencyId}`;
+  const dashUrl = `https://marketingplan.astroaibots.com/saas-dashboard.html?a=${agency.agencyId}`;
   const onbUrl  = `https://marketingplan.astroaibots.com/onboard/${agency.agencyId}`;
   await transporter.sendMail({
     from: `"Astro AI" <${process.env.GMAIL_USER}>`,
@@ -101,7 +101,7 @@ exports.handler = async function(event) {
     return { statusCode: 200, headers: CORS, body: JSON.stringify({
       success: true,
       agencyId,
-      dashboardUrl: `https://marketingplan.astroaibots.com/agency-dashboard.html?a=${agencyId}`,
+      dashboardUrl: `https://marketingplan.astroaibots.com/saas-dashboard.html?a=${agencyId}`,
       onboardingUrl: `https://marketingplan.astroaibots.com/onboard/${agencyId}`,
     }) };
 
