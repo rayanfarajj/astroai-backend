@@ -814,7 +814,8 @@ function buildOffer(c) {
   const el=document.getElementById('pt-offer'); el.innerHTML='';
   // Parse existing offer
   let existing={};
-  if(c.offer){try{existing=typeof c.offer==='string'?JSON.parse(c.offer):c.offer;}catch(e){}}
+  if(c.offer){try{existing=typeof c.offer==='string'?JSON.parse(c.offer):c.offer;}catch(e){existing={};}}
+  console.log('[buildOffer] client:', c._id||c.id, 'offer field:', c.offer, 'parsed:', existing);
   const hasOffer=existing&&existing.title;
   const note=document.createElement('p');note.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6';
   note.textContent=hasOffer?'✅ Active offer set. Edit below or clear it.':'Set a special offer banner on this client's portal.';el.appendChild(note);
@@ -825,7 +826,8 @@ function buildOffer(c) {
   }
   [['Offer Title *','offer-title','text','20% Off Your Next Month'],['Description','offer-desc','text','Exclusive for loyal clients...']].forEach(([lbl,id,type,ph])=>{
     const wrap=document.createElement('div');wrap.style.marginBottom='10px';
-    wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}" value="${esc(existing[id.replace('offer-','')]||'')}">`;el.appendChild(wrap);
+    const fieldKey = id==='offer-title'?'title':id==='offer-desc'?'description':id.replace('offer-','');
+    wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}" value="${esc(existing[fieldKey]||'')}">`;el.appendChild(wrap);
   });
   const twoCol=document.createElement('div');twoCol.className='of-2col';
   twoCol.innerHTML=`<div><label class="of-lbl">CTA Button Text</label><input class="of-in" id="offer-cta-text" placeholder="Claim Offer" value="${esc(existing.ctaText||'')}"></div><div><label class="of-lbl">Expiry Date</label><input class="of-in" id="offer-expires" type="date" value="${esc(existing.expiresAt||'')}"></div>`;el.appendChild(twoCol);
