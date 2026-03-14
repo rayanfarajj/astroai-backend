@@ -180,8 +180,7 @@ td{padding:11px 14px;vertical-align:middle}
       <div><div class="lbox-name" id="login-agency-name">Astro AI</div><div class="lbox-sub">Agency Dashboard</div></div>
     </div>
     <h2>Sign In</h2>
-    <p id="login-sub">Enter your email and password</p>
-    <input class="lin" id="l-email" type="email" placeholder="Email address" onkeydown="if(event.key==='Enter')doLogin()">
+    <p id="login-sub">Enter your agency password</p>
     <input class="lin" id="pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="lbtn" onclick="doLogin()" id="login-btn">Sign In →</button>
     <div class="lerr" id="lerr"></div>
@@ -378,11 +377,12 @@ async function doLogin() {
   try {
     const res  = await fetch(API + '/agency/login', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email: (document.getElementById('l-email')?.value||'').trim(), agencyId, password: pw }),
+      body: JSON.stringify({ agencyId, password: pw }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error||'Incorrect password');
     token       = data.token;
+    agencyId    = data.agencyId || agencyId;
     agencyConfig= data.agency;
     sessionStorage.setItem('saas_token', token);
     sessionStorage.setItem('saas_agency_id', agencyId);
