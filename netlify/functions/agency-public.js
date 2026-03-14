@@ -10,20 +10,20 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
 
   const agencyId = new URL(req.url).searchParams.get('id');
-  if (!agencyId) return new Response(JSON.stringify({ error: 'id required' }), { status: 400, headers: CORS });
+  if (!agencyId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'id required' }) };
 
   try {
     const agency = await fsGet('agencies', agencyId);
     if (!agency || agency.status === 'suspended') {
-      return new Response(JSON.stringify({ error: 'Agency not found' }), { status: 404, headers: CORS });
+      return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Agency not found' }) };
     }
 
     // Only return public-safe fields
-    return new Response(JSON.stringify({
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({
       agencyId:        agency.agencyId || agencyId,
       name:            agency.name,
       brandName:       agency.brandName || agency.name,
@@ -34,11 +34,9 @@ export default async (req) => {
       termsText:       agency.termsText || '',
       termsUrl:        agency.termsUrl  || '',
       plan:            agency.plan,
-    }), { status: 200, headers: CORS });
+    }) };
 
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: CORS });
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
   }
 };
-
-export const config = { path: '/api/agency/public' };
