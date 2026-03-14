@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -26,74 +25,74 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 .form-wrap{max-width:640px;margin:32px auto;padding:0 16px 60px}
 
-.step-indicator{display:flex;align-items:center;gap:0;margin-bottom:28px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);overflow:hidden}
-.step-tab{flex:1;padding:10px;text-align:center;font-size:.7rem;font-weight:700;color:var(–muted);border-right:1px solid var(–border);transition:all .2s}
+.step-indicator{display:flex;align-items:center;gap:0;margin-bottom:28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.step-tab{flex:1;padding:10px;text-align:center;font-size:.7rem;font-weight:700;color:var(--muted);border-right:1px solid var(--border);transition:all .2s}
 .step-tab:last-child{border-right:none}
-.step-tab.active{background:var(–brand);color:#fff}
-.step-tab.done{background:#f0fff9;color:var(–brand)}
+.step-tab.active{background:var(--brand);color:#fff}
+.step-tab.done{background:#f0fff9;color:var(--brand)}
 
-.card{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:28px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:16px}
 .card-title{font-size:.95rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:8px}
 .card-icon{font-size:1.1rem}
 
 .field{margin-bottom:14px}
-.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(–muted);margin-bottom:5px}
-.field label .req{color:var(–brand)}
+.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px}
+.field label .req{color:var(--brand)}
 .field input,.field select,.field textarea{
-width:100%;padding:10px 13px;
-background:#f9fafc;border:1.5px solid var(–border);
-border-radius:8px;color:var(–text);font-size:.88rem;
-font-family:‘Plus Jakarta Sans’,sans-serif;outline:none;
-transition:border-color .2s;
+  width:100%;padding:10px 13px;
+  background:#f9fafc;border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.88rem;
+  font-family:'Plus Jakarta Sans',sans-serif;outline:none;
+  transition:border-color .2s;
 }
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(–brand);background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand);background:#fff}
 .field textarea{resize:vertical;min-height:80px;line-height:1.6}
 .field input::placeholder,.field textarea::placeholder{color:#bcc4d4}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
-.btn{padding:12px 24px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;border:none;font-family:‘Plus Jakarta Sans’,sans-serif;transition:all .2s}
-.btn-brand{background:var(–brand);color:#fff;width:100%}
+.btn{padding:12px 24px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s}
+.btn-brand{background:var(--brand);color:#fff;width:100%}
 .btn-brand:hover{opacity:.9;transform:translateY(-1px)}
-.btn-back{background:#f0f2f7;color:var(–muted);border:1px solid var(–border);margin-right:10px}
+.btn-back{background:#f0f2f7;color:var(--muted);border:1px solid var(--border);margin-right:10px}
 .btn-back:hover{background:#e8eaf0}
 
 .step-btns{display:flex;align-items:center;justify-content:flex-end;margin-top:20px}
 
 .checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
 .cb-option{
-padding:7px 13px;border:1.5px solid var(–border);border-radius:20px;
-font-size:.78rem;font-weight:600;cursor:pointer;
-transition:all .2s;color:var(–muted);background:#f9fafc;
-user-select:none;
+  padding:7px 13px;border:1.5px solid var(--border);border-radius:20px;
+  font-size:.78rem;font-weight:600;cursor:pointer;
+  transition:all .2s;color:var(--muted);background:#f9fafc;
+  user-select:none;
 }
-.cb-option.selected{background:rgba(0,217,163,.1);border-color:var(–brand);color:var(–brand)}
+.cb-option.selected{background:rgba(0,217,163,.1);border-color:var(--brand);color:var(--brand)}
 
 .terms-wrap{
-background:#f9fafc;border:1px solid var(–border);
-border-radius:8px;padding:14px;
-font-size:.78rem;color:var(–muted);line-height:1.6;
-max-height:120px;overflow-y:auto;margin-bottom:10px;
+  background:#f9fafc;border:1px solid var(--border);
+  border-radius:8px;padding:14px;
+  font-size:.78rem;color:var(--muted);line-height:1.6;
+  max-height:120px;overflow-y:auto;margin-bottom:10px;
 }
 .terms-check{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;cursor:pointer}
-.terms-check input[type=checkbox]{margin-top:2px;accent-color:var(–brand);width:16px;height:16px;flex-shrink:0}
+.terms-check input[type=checkbox]{margin-top:2px;accent-color:var(--brand);width:16px;height:16px;flex-shrink:0}
 
-.progress-bar{height:3px;background:var(–border);border-radius:2px;margin-bottom:20px;overflow:hidden}
-.progress-fill{height:100%;background:var(–brand);border-radius:2px;transition:width .3s}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.progress-fill{height:100%;background:var(--brand);border-radius:2px;transition:width .3s}
 
 .error-msg{color:#ef4444;font-size:.78rem;margin-top:8px;display:none}
 
 /* Loader */
 .loading-screen{
-display:none;position:fixed;inset:0;background:var(–bg);
-z-index:999;flex-direction:column;align-items:center;justify-content:center;
-text-align:center;padding:32px;
+  display:none;position:fixed;inset:0;background:var(--bg);
+  z-index:999;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:32px;
 }
 .loading-screen.show{display:flex}
-.spinner{width:48px;height:48px;border:3px solid var(–border);border-top-color:var(–brand);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:20px}
+.spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:20px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-screen h2{font-size:1.3rem;font-weight:800;margin-bottom:8px}
-.loading-screen p{color:var(–muted);font-size:.85rem;max-width:380px;line-height:1.6}
+.loading-screen p{color:var(--muted);font-size:.85rem;max-width:380px;line-height:1.6}
 .loading-dots span{animation:dots 1.4s infinite;opacity:0}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
@@ -103,19 +102,17 @@ text-align:center;padding:32px;
 .success-screen{display:none;text-align:center;padding:40px 20px}
 .success-screen.show{display:block}
 .success-icon{font-size:3rem;margin-bottom:16px}
-.success-screen h2{font-family:‘Plus Jakarta Sans’,sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:8px}
-.success-screen p{color:var(–muted);font-size:.9rem;line-height:1.6;margin-bottom:20px}
+.success-screen h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:8px}
+.success-screen p{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:20px}
 .success-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .success-btn{padding:11px 24px;border-radius:8px;font-size:.85rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:inherit}
 
 @media(max-width:500px){.two-col,.three-col{grid-template-columns:1fr}}
 </style>
-
 </head>
 <body>
 
 <!-- LOADING -->
-
 <div class="loading-screen" id="loading">
   <div class="spinner"></div>
   <h2>Loading<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h2>
@@ -123,7 +120,6 @@ text-align:center;padding:32px;
 </div>
 
 <!-- GENERATING -->
-
 <div class="loading-screen" id="generating">
   <div class="spinner" style="border-top-color:var(--brand)"></div>
   <h2>Building Your Plan<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h2>
@@ -150,136 +146,133 @@ text-align:center;padding:32px;
       <div class="step-tab" id="tab-4">④ Confirm</div>
     </div>
 
-```
-<!-- STEP 1 -->
-<div id="step-1">
-  <div class="card">
-    <div class="card-title"><span class="card-icon">🏢</span> Tell us about your business</div>
-    <div class="two-col">
-      <div class="field"><label>Business Name <span class="req">*</span></label><input id="f-biz" placeholder="Acme Roofing Co."></div>
-      <div class="field"><label>Industry <span class="req">*</span></label>
-        <select id="f-industry">
-          <option value="">Select industry...</option>
-          <option>Roofing</option><option>HVAC</option><option>Plumbing</option>
-          <option>Electrical</option><option>Landscaping</option><option>Cleaning</option>
-          <option>Pest Control</option><option>Painting</option><option>Flooring</option>
-          <option>Remodeling</option><option>Real Estate</option><option>Insurance</option>
-          <option>Law Firm</option><option>Dental</option><option>Med Spa</option>
-          <option>Fitness / Gym</option><option>Restaurant</option><option>Retail</option>
-          <option>E-commerce</option><option>Consulting</option><option>Other</option>
-        </select>
+    <!-- STEP 1 -->
+    <div id="step-1">
+      <div class="card">
+        <div class="card-title"><span class="card-icon">🏢</span> Tell us about your business</div>
+        <div class="two-col">
+          <div class="field"><label>Business Name <span class="req">*</span></label><input id="f-biz" placeholder="Acme Roofing Co."></div>
+          <div class="field"><label>Industry <span class="req">*</span></label>
+            <select id="f-industry">
+              <option value="">Select industry...</option>
+              <option>Roofing</option><option>HVAC</option><option>Plumbing</option>
+              <option>Electrical</option><option>Landscaping</option><option>Cleaning</option>
+              <option>Pest Control</option><option>Painting</option><option>Flooring</option>
+              <option>Remodeling</option><option>Real Estate</option><option>Insurance</option>
+              <option>Law Firm</option><option>Dental</option><option>Med Spa</option>
+              <option>Fitness / Gym</option><option>Restaurant</option><option>Retail</option>
+              <option>E-commerce</option><option>Consulting</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Primary Service / Product <span class="req">*</span></label><input id="f-service" placeholder="e.g. Storm Damage Roof Replacement"></div>
+        <div class="field"><label>Website</label><input id="f-website" placeholder="https://yoursite.com"></div>
+        <div class="field"><label>Company Size</label>
+          <select id="f-size">
+            <option value="">Select...</option>
+            <option>Solo / 1 person</option><option>2–5 employees</option>
+            <option>6–15 employees</option><option>16–50 employees</option><option>50+ employees</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-icon">📍</span> Service area</div>
+        <div class="field"><label>Service Area Type</label>
+          <div class="checkbox-group" id="area-type">
+            <div class="cb-option" onclick="selectOne(this,'area-type')">Local (city)</div>
+            <div class="cb-option" onclick="selectOne(this,'area-type')">Regional (metro)</div>
+            <div class="cb-option" onclick="selectOne(this,'area-type')">Statewide</div>
+            <div class="cb-option" onclick="selectOne(this,'area-type')">National</div>
+            <div class="cb-option" onclick="selectOne(this,'area-type')">Online / Remote</div>
+          </div>
+        </div>
+        <div class="field"><label>Service Area Details</label><input id="f-area" placeholder="e.g. San Antonio & surrounding suburbs"></div>
+      </div>
+      <div class="step-btns"><button class="btn btn-brand" onclick="goStep(2)">Next: Goals & Budget →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step-2" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-icon">🎯</span> Your 90-day goal</div>
+        <div class="field"><label>What's your #1 goal for the next 90 days? <span class="req">*</span></label>
+          <textarea id="f-goal" placeholder="e.g. Get 50 qualified leads per month and book 20 jobs"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-icon">💰</span> Advertising budget & platforms</div>
+        <div class="field"><label>Monthly Ad Budget <span class="req">*</span></label>
+          <select id="f-budget">
+            <option value="">Select range...</option>
+            <option value="500">$500/month</option><option value="1000">$1,000/month</option>
+            <option value="1500">$1,500/month</option><option value="2500">$2,500/month</option>
+            <option value="5000">$5,000/month</option><option value="10000">$10,000+/month</option>
+          </select>
+        </div>
+        <div class="field"><label>Ad Platforms <span class="req">*</span></label>
+          <div class="checkbox-group" id="platforms">
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">Facebook</div>
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">Instagram</div>
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">Google</div>
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">YouTube</div>
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">TikTok</div>
+            <div class="cb-option" onclick="toggleMulti(this,'platforms')">LinkedIn</div>
+          </div>
+        </div>
+      </div>
+      <div class="error-msg" id="step2-err"></div>
+      <div class="step-btns">
+        <button class="btn btn-back" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-brand" onclick="goStep(3)">Next: Your Info →</button>
       </div>
     </div>
-    <div class="field"><label>Primary Service / Product <span class="req">*</span></label><input id="f-service" placeholder="e.g. Storm Damage Roof Replacement"></div>
-    <div class="field"><label>Website</label><input id="f-website" placeholder="https://yoursite.com"></div>
-    <div class="field"><label>Company Size</label>
-      <select id="f-size">
-        <option value="">Select...</option>
-        <option>Solo / 1 person</option><option>2–5 employees</option>
-        <option>6–15 employees</option><option>16–50 employees</option><option>50+ employees</option>
-      </select>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title"><span class="card-icon">📍</span> Service area</div>
-    <div class="field"><label>Service Area Type</label>
-      <div class="checkbox-group" id="area-type">
-        <div class="cb-option" onclick="selectOne(this,'area-type')">Local (city)</div>
-        <div class="cb-option" onclick="selectOne(this,'area-type')">Regional (metro)</div>
-        <div class="cb-option" onclick="selectOne(this,'area-type')">Statewide</div>
-        <div class="cb-option" onclick="selectOne(this,'area-type')">National</div>
-        <div class="cb-option" onclick="selectOne(this,'area-type')">Online / Remote</div>
+
+    <!-- STEP 3 -->
+    <div id="step-3" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-icon">👤</span> Your contact info</div>
+        <div class="two-col">
+          <div class="field"><label>First Name <span class="req">*</span></label><input id="f-fn" placeholder="Jane"></div>
+          <div class="field"><label>Last Name <span class="req">*</span></label><input id="f-ln" placeholder="Smith"></div>
+        </div>
+        <div class="field"><label>Email Address <span class="req">*</span></label><input id="f-email" type="email" placeholder="jane@yourbiz.com"></div>
+        <div class="field"><label>Phone Number</label><input id="f-phone" type="tel" placeholder="(512) 555-0000"></div>
+      </div>
+      <div class="error-msg" id="step3-err"></div>
+      <div class="step-btns">
+        <button class="btn btn-back" onclick="goStep(2)">← Back</button>
+        <button class="btn btn-brand" onclick="goStep(4)">Next: Review →</button>
       </div>
     </div>
-    <div class="field"><label>Service Area Details</label><input id="f-area" placeholder="e.g. San Antonio & surrounding suburbs"></div>
-  </div>
-  <div class="step-btns"><button class="btn btn-brand" onclick="goStep(2)">Next: Goals & Budget →</button></div>
-</div>
 
-<!-- STEP 2 -->
-<div id="step-2" style="display:none">
-  <div class="card">
-    <div class="card-title"><span class="card-icon">🎯</span> Your 90-day goal</div>
-    <div class="field"><label>What's your #1 goal for the next 90 days? <span class="req">*</span></label>
-      <textarea id="f-goal" placeholder="e.g. Get 50 qualified leads per month and book 20 jobs"></textarea>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title"><span class="card-icon">💰</span> Advertising budget & platforms</div>
-    <div class="field"><label>Monthly Ad Budget <span class="req">*</span></label>
-      <select id="f-budget">
-        <option value="">Select range...</option>
-        <option value="500">$500/month</option><option value="1000">$1,000/month</option>
-        <option value="1500">$1,500/month</option><option value="2500">$2,500/month</option>
-        <option value="5000">$5,000/month</option><option value="10000">$10,000+/month</option>
-      </select>
-    </div>
-    <div class="field"><label>Ad Platforms <span class="req">*</span></label>
-      <div class="checkbox-group" id="platforms">
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Facebook</div>
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Instagram</div>
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">Google</div>
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">YouTube</div>
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">TikTok</div>
-        <div class="cb-option" onclick="toggleMulti(this,'platforms')">LinkedIn</div>
+    <!-- STEP 4 - CONFIRM -->
+    <div id="step-4" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-icon">✅</span> Review & Submit</div>
+        <div id="review-content" style="font-size:.83rem;color:var(--muted);line-height:2"></div>
+      </div>
+      <div class="card" id="terms-card">
+        <div class="card-title"><span class="card-icon">📄</span> Terms & Authorization</div>
+        <div class="terms-wrap" id="terms-text"></div>
+        <label class="terms-check"><input type="checkbox" id="terms-cb"><span>I have read and agree to the terms above and authorize the agency to manage my marketing campaigns.</span></label>
+      </div>
+      <div class="error-msg" id="step4-err"></div>
+      <div class="step-btns">
+        <button class="btn btn-back" onclick="goStep(3)">← Back</button>
+        <button class="btn btn-brand" onclick="submitForm()" id="submit-btn">🚀 Generate My Plan!</button>
       </div>
     </div>
-  </div>
-  <div class="error-msg" id="step2-err"></div>
-  <div class="step-btns">
-    <button class="btn btn-back" onclick="goStep(1)">← Back</button>
-    <button class="btn btn-brand" onclick="goStep(3)">Next: Your Info →</button>
-  </div>
-</div>
 
-<!-- STEP 3 -->
-<div id="step-3" style="display:none">
-  <div class="card">
-    <div class="card-title"><span class="card-icon">👤</span> Your contact info</div>
-    <div class="two-col">
-      <div class="field"><label>First Name <span class="req">*</span></label><input id="f-fn" placeholder="Jane"></div>
-      <div class="field"><label>Last Name <span class="req">*</span></label><input id="f-ln" placeholder="Smith"></div>
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">🎉</div>
+      <h2>Your Plan is Being Built!</h2>
+      <p id="success-msg">Your AI marketing plan will be ready in about 2 minutes. Check your email — we're sending it directly to you.</p>
+      <div class="success-btns">
+        <a id="success-plan-btn" href="#" class="success-btn" style="background:var(--brand);color:#fff;display:none">View My Plan →</a>
+        <a id="success-portal-btn" href="#" class="success-btn" style="background:#f0f2f7;color:var(--text)">Go to My Portal →</a>
+      </div>
     </div>
-    <div class="field"><label>Email Address <span class="req">*</span></label><input id="f-email" type="email" placeholder="jane@yourbiz.com"></div>
-    <div class="field"><label>Phone Number</label><input id="f-phone" type="tel" placeholder="(512) 555-0000"></div>
-  </div>
-  <div class="error-msg" id="step3-err"></div>
-  <div class="step-btns">
-    <button class="btn btn-back" onclick="goStep(2)">← Back</button>
-    <button class="btn btn-brand" onclick="goStep(4)">Next: Review →</button>
-  </div>
-</div>
-
-<!-- STEP 4 - CONFIRM -->
-<div id="step-4" style="display:none">
-  <div class="card">
-    <div class="card-title"><span class="card-icon">✅</span> Review & Submit</div>
-    <div id="review-content" style="font-size:.83rem;color:var(--muted);line-height:2"></div>
-  </div>
-  <div class="card" id="terms-card">
-    <div class="card-title"><span class="card-icon">📄</span> Terms & Authorization</div>
-    <div class="terms-wrap" id="terms-text"></div>
-    <label class="terms-check"><input type="checkbox" id="terms-cb"><span>I have read and agree to the terms above and authorize the agency to manage my marketing campaigns.</span></label>
-  </div>
-  <div class="error-msg" id="step4-err"></div>
-  <div class="step-btns">
-    <button class="btn btn-back" onclick="goStep(3)">← Back</button>
-    <button class="btn btn-brand" onclick="submitForm()" id="submit-btn">🚀 Generate My Plan!</button>
-  </div>
-</div>
-
-<!-- SUCCESS -->
-<div class="success-screen" id="success-screen">
-  <div class="success-icon">🎉</div>
-  <h2>Your Plan is Being Built!</h2>
-  <p id="success-msg">Your AI marketing plan will be ready in about 2 minutes. Check your email — we're sending it directly to you.</p>
-  <div class="success-btns">
-    <a id="success-plan-btn" href="#" class="success-btn" style="background:var(--brand);color:#fff;display:none">View My Plan →</a>
-    <a id="success-portal-btn" href="#" class="success-btn" style="background:#f0f2f7;color:var(--text)">Go to My Portal →</a>
-  </div>
-</div>
-```
-
   </div>
 </div>
 
@@ -287,13 +280,18 @@ text-align:center;padding:32px;
 const API = 'https://marketingplan.astroaibots.com/api';
 let agencyId = '', agencyConfig = {};
 
-// Get agencyId from URL: /onboard/agency-id
+// Get agencyId from URL: /onboard/abc123 OR /onboard.html?a=abc123
 async function init() {
   document.getElementById('loading').classList.add('show');
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  agencyId = parts[parts.length - 1];
+  const _p = new URLSearchParams(window.location.search);
+  agencyId = _p.get('a') || '';
+  if (!agencyId) {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last && last !== 'onboard' && last !== 'onboard.html') agencyId = last;
+  }
 
-  if (!agencyId || agencyId === 'onboard') {
+  if (!agencyId) {
     document.getElementById('loading').classList.remove('show');
     document.getElementById('main').style.display = 'block';
     return;
@@ -464,5 +462,5 @@ async function submitForm() {
 
 init();
 </script>
-
 </body>
+</html>
