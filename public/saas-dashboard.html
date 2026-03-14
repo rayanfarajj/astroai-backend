@@ -161,6 +161,19 @@ td{padding:11px 14px;vertical-align:middle}
 .of-in:focus{border-color:var(--teal)}
 .of-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .of-btn{padding:8px 14px;border-radius:7px;font-size:.76rem;font-weight:700;border:none;cursor:pointer;font-family:var(--font)}
+.leads-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;backdrop-filter:blur(4px)}
+.lead-pool-card{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:border-color .15s}
+.lead-pool-card:hover{border-color:var(--border-2)}
+.lead-pool-card.claimed{opacity:.5;pointer-events:none}
+.lpc-service{font-size:.7rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.lpc-biz{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.lpc-location{font-size:.75rem;color:var(--text-dim);margin-bottom:10px}
+.lpc-hidden{font-size:.75rem;color:var(--text-muted);background:var(--surface-3);border-radius:6px;padding:8px 10px;margin-bottom:12px;letter-spacing:.05em;font-family:var(--mono)}
+.lpc-price{font-size:.85rem;font-weight:700;color:var(--teal);margin-bottom:12px}
+.lpc-claim-btn{width:100%;padding:10px;background:var(--teal);color:#0a0e1a;border:none;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.lpc-claim-btn:hover{background:#00ffbf;transform:translateY(-1px)}
+.lpc-claim-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.lpc-free{color:var(--text-muted);font-size:.75rem;margin-bottom:12px}
 .ofb-save{background:var(--teal);color:#0a0e1a}
 .ofb-clear{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2)}
 .file-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;margin-bottom:7px}
@@ -224,6 +237,7 @@ td{padding:11px 14px;vertical-align:middle}
     </div>
     <div class="tb-right">
       <span style="font-size:.68rem;color:var(--text-muted);font-family:var(--mono)" id="last-updated"></span>
+      <button class="btn btn-ghost" onclick="openLeadPool()">🎯 Lead Pool</button>
       <button class="btn btn-ghost" onclick="openSettings()">⚙️ Settings</button>
       <button class="btn btn-ghost" onclick="openBlast()">📣 Message</button>
       <button class="btn btn-teal" onclick="openAddClient()">+ Add Client</button>
@@ -968,6 +982,73 @@ async function saveOffer(clientId, clear) {
   } catch(e){toast('❌ '+e.message);}
 }
 
+// ── LEAD POOL ─────────────────────────────────────────────────
+function openLeadPool() {
+  document.getElementById('leads-overlay').style.display='block';
+  document.getElementById('leads-sheet').style.display='flex';
+  document.getElementById('leads-sheet').style.flexDirection='column';
+  loadLeadPool();
+}
+function closeLeadPool() {
+  document.getElementById('leads-overlay').style.display='none';
+  document.getElementById('leads-sheet').style.display='none';
+}
+// ── LEAD POOL ─────────────────────────────────────────────────
+let _leadPoolLoaded = false;
+async function loadLeadPool(force) {
+  if (_leadPoolLoaded && !force) return;
+  _leadPoolLoaded = true;
+  const grid = document.getElementById('lead-pool-grid');
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);grid-column:1/-1"><div class="spinner"></div></div>';
+  try {
+    const res  = await fetch('https://marketingplan.astroaibots.com/api/admin/leads', {
+      headers: { 'x-agency-token': token }
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    const leads = data.leads || [];
+    if (!leads.length) {
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);grid-column:1/-1;font-size:.85rem">🎯 No leads available right now.<br><span style="font-size:.75rem;opacity:.6">Check back soon — new leads are added regularly.</span></div>';
+      return;
+    }
+    grid.innerHTML = leads.map(l => `
+      <div class="lead-pool-card" id="lpc-${esc(l.id)}">
+        <div class="lpc-service">${esc(l.service)}</div>
+        <div class="lpc-biz">${esc(l.businessName)}</div>
+        <div class="lpc-location">📍 ${esc(l.location)}</div>
+        <div class="lpc-hidden">👤 ${esc(l.contactName)} &nbsp;·&nbsp; 📞 ${esc(l.phone)} &nbsp;·&nbsp; ✉️ ${esc(l.email)}</div>
+        ${l.price>0?`<div class="lpc-price">$${l.price} per lead</div>`:'<div class="lpc-free">Free lead</div>'}
+        <button class="lpc-claim-btn" id="lpc-btn-${esc(l.id)}" onclick="claimLead('${esc(l.id)}','${esc(l.businessName)}')">🎯 Claim This Lead</button>
+      </div>`).join('');
+  } catch(e) {
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);grid-column:1/-1">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+async function claimLead(leadId, bizName) {
+  if (!confirm(`Claim "${bizName}"?\n\nThis lead will be added to your client list and removed from the pool.`)) return;
+  const btn = document.getElementById('lpc-btn-'+leadId);
+  if (btn) { btn.textContent = '⏳ Claiming...'; btn.disabled = true; }
+  try {
+    const res  = await fetch('https://marketingplan.astroaibots.com/api/admin/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-agency-token': token },
+      body: JSON.stringify({ action: 'claim', leadId }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    // Remove card from grid
+    const card = document.getElementById('lpc-'+leadId);
+    if (card) { card.style.opacity='0'; card.style.transform='scale(.95)'; card.style.transition='all .3s'; setTimeout(()=>card.remove(),300); }
+    toast(`✅ Lead claimed! ${bizName} added to your clients.`);
+    // Refresh clients list
+    await loadClients();
+  } catch(e) {
+    toast('❌ '+e.message);
+    if (btn) { btn.textContent='🎯 Claim This Lead'; btn.disabled=false; }
+  }
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 function copyOnboardUrl() {
   const url = `https://marketingplan.astroaibots.com/onboard/${agencyId}`;
@@ -990,9 +1071,10 @@ async function init() {
     try {
       const res  = await fetch(`${API}/agency/public?id=${encodeURIComponent(agencyId)}`);
       const data = await res.json();
-      if (data.name) {
+      const displayName = data.brandName || data.name || '';
+      if (displayName) {
         document.getElementById('login-icon').style.background = data.brandColor||'#00d9a3';
-        document.getElementById('login-agency-name').textContent = data.brandName||data.name;
+        document.getElementById('login-agency-name').textContent = displayName;
       }
     } catch(e) {}
   }
@@ -1023,5 +1105,21 @@ async function init() {
 init();
 setInterval(()=>{ if(token) loadClients(); }, 5*60*1000);
 </script>
+<!-- LEAD POOL SHEET -->
+<div class="sheet-overlay" id="leads-overlay" onclick="closeLeadPool()" style="display:none"></div>
+<div class="sheet" id="leads-sheet" style="display:none">
+  <div class="sheet-header">
+    <div>
+      <div class="sheet-title">🎯 Lead Pool</div>
+      <div class="sheet-sub">Claim leads and add them directly to your clients</div>
+    </div>
+    <button class="sheet-close" onclick="closeLeadPool()">✕</button>
+  </div>
+  <div style="padding:0 20px 20px">
+    <div id="lead-pool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:4px">
+      <div style="text-align:center;padding:40px;color:var(--text-muted);grid-column:1/-1"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
