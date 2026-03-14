@@ -66,6 +66,11 @@
 
 # Friendly URLs for public pages
 [[redirects]]
+  from = "/admin"
+  to = "/admin-dashboard.html"
+  status = 301
+
+[[redirects]]
   from = "/join"
   to = "/join.html"
   status = 301
