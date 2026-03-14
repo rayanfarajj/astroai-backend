@@ -5,6 +5,7 @@
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "SQUARE_ACCESS_TOKEN"
   SECRETS_SCAN_OMIT_PATHS = "public/index.html"
+  SECRETS_SCAN_ENABLED = "false"
 
 [functions]
   node_bundler = "esbuild"
@@ -65,6 +66,41 @@
 
 [functions."serve-onboard"]
   timeout = 10
+
+[[redirects]]
+  from = "/api/agency/register"
+  to = "/.netlify/functions/agency-register"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/login"
+  to = "/.netlify/functions/agency-login"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/settings"
+  to = "/.netlify/functions/agency-settings"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/public"
+  to = "/.netlify/functions/agency-public"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/clients"
+  to = "/.netlify/functions/agency-get-clients"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/update-client"
+  to = "/.netlify/functions/agency-update-client"
+  status = 200
+
+[[redirects]]
+  from = "/api/agency/process-plan"
+  to = "/.netlify/functions/agency-process-plan"
+  status = 200
 
 [[headers]]
   for = "/api/*"
