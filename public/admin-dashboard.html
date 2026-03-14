@@ -212,6 +212,18 @@ tr:hover td { background:rgba(255,255,255,.02); }
         <div class="stat-value" id="stat-leads">—</div>
         <div class="stat-sub">Unclaimed in pool</div>
       </div>
+      <div class="stat-card" style="--accent-color:var(--orange-dim)">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-label">Pending Review</div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-sub">From HighLevel • needs approval</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--teal-dim)">
+        <div class="stat-icon">📊</div>
+        <div class="stat-label">7-Day FB CPL</div>
+        <div class="stat-value" id="stat-cpl">—</div>
+        <div class="stat-sub" id="stat-cpl-sub">Facebook ad cost per lead</div>
+      </div>
     </div>
 
     <!-- Recent Signups -->
@@ -247,6 +259,15 @@ tr:hover td { background:rgba(255,255,255,.02); }
   <!-- LEADS TAB -->
   <div id="tab-leads" class="main tab-pane" style="display:none">
     <!-- Add Lead Form -->
+    <!-- PENDING QUEUE -->
+    <div id="pending-section" style="margin-bottom:28px;display:none">
+      <div class="section-header" style="margin-bottom:12px">
+        <div><div class="section-title" style="color:var(--orange)">⏳ Pending Approval</div><div class="section-sub">These leads came from HighLevel and need your review before going live</div></div>
+        <button onclick="loadLeads()" style="font-size:.7rem;font-weight:600;color:var(--teal);background:none;border:1px solid rgba(0,217,163,.2);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--mono)">↺ Refresh</button>
+      </div>
+      <div id="pending-list"></div>
+    </div>
+
     <div class="section-header" style="margin-bottom:16px">
       <div><div class="section-title">Add Lead to Pool</div><div class="section-sub">All agencies will see this lead and can claim it</div></div>
     </div>
@@ -316,7 +337,7 @@ function showTab(btn, id) {
 
 // ── LOAD ALL ──────────────────────────────────────────────────
 async function loadAll() {
-  await Promise.all([loadAgencies(), loadLeads()]);
+  await Promise.all([loadAgencies(), loadLeads(), loadFBCPL()]);
 }
 
 async function loadAgencies() {
@@ -423,9 +444,45 @@ async function deleteAgency(agencyId, name) {
 // ── LEADS ─────────────────────────────────────────────────────
 function renderLeads() {
   const el = document.getElementById('leads-list');
-  document.getElementById('leads-count-sub').textContent = `${allLeads.length} leads total · ${allLeads.filter(l=>!l.claimedBy).length} unclaimed`;
-  if (!allLeads.length) { el.innerHTML = '<div class="leads-empty">No leads in pool yet. Add one above.</div>'; return; }
-  el.innerHTML = allLeads.map(l => `
+  const pending = allLeads.filter(l => l.status === 'pending');
+  const active  = allLeads.filter(l => l.status !== 'pending');
+  const unclaimed = active.filter(l => !l.claimedBy).length;
+
+  document.getElementById('leads-count-sub').textContent = `${active.length} active · ${unclaimed} unclaimed · ${pending.length} pending`;
+  document.getElementById('stat-pending').textContent = pending.length;
+
+  // Show/hide pending section
+  const pendingSection = document.getElementById('pending-section');
+  if (pending.length) {
+    pendingSection.style.display = 'block';
+    document.getElementById('pending-list').innerHTML = pending.map(l => `
+      <div class="lead-card" style="border-color:rgba(255,107,53,.3);margin-bottom:10px">
+        <div>
+          <div style="font-size:.6rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">⏳ Pending — From HighLevel</div>
+          <div class="lead-biz">${esc(l.businessName||'—')}</div>
+          <div class="lead-contact">📞 ${esc(l.phone||'—')} · ✉️ ${esc(l.email||'—')} · 👤 ${esc(l.contactName||'—')}</div>
+          <div class="lead-meta">
+            <span class="lead-tag lead-tag-service">${esc(l.service||'—')}</span>
+            <span class="lead-tag lead-tag-location">📍 ${esc(l.location||'—')}</span>
+            <span class="lead-tag lead-tag-price">Auto-priced: $${l.price||0}</span>
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:.72rem;color:var(--text-muted)">Price: $</span>
+            <input id="price-${esc(l.id)}" type="number" value="${l.price||0}" style="width:80px;padding:4px 8px;background:var(--surface3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:.78rem;outline:none">
+          </div>
+        </div>
+        <div class="lead-actions">
+          <button onclick="approveLead('${esc(l.id||'')}')" style="padding:6px 12px;font-size:.7rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.3);border-radius:6px;cursor:pointer;font-family:var(--mono);white-space:nowrap">✅ Approve</button>
+          <button onclick="rejectLead('${esc(l.id||'')}','${esc(l.businessName||'')}')" style="padding:6px 12px;font-size:.7rem;font-weight:700;background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:6px;cursor:pointer;font-family:var(--mono);white-space:nowrap">🗑 Reject</button>
+        </div>
+      </div>`).join('');
+  } else {
+    pendingSection.style.display = 'none';
+  }
+
+  document.getElementById('leads-count-sub').textContent = `${active.length} active leads · ${unclaimed} unclaimed`;
+  if (!active.length) { el.innerHTML = '<div class="leads-empty">No active leads yet. Add one above or approve pending leads.</div>'; return; }
+  el.innerHTML = active.map(l => `
     <div class="lead-card">
       <div>
         <div class="lead-biz">${esc(l.businessName||'—')}</div>
@@ -484,6 +541,33 @@ async function deleteLead(leadId) {
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
+async function approveLead(leadId) {
+  const priceInput = document.getElementById('price-'+leadId);
+  const price = priceInput ? parseFloat(priceInput.value)||0 : 0;
+  try {
+    const res = await fetch(`https://marketingplan.astroaibots.com/api/admin/leads/approve?id=${encodeURIComponent(leadId)}&key=AstroAdmin2024!&price=${price}`);
+    if (res.ok) { toast('✅ Lead approved and live!'); await loadLeads(); }
+    else toast('❌ Approve failed');
+  } catch(e) { toast('❌ '+e.message); }
+}
+async function rejectLead(leadId, name) {
+  if (!confirm(`Reject and delete "${name}"?`)) return;
+  try {
+    const res = await fetch(`https://marketingplan.astroaibots.com/api/admin/leads/approve?id=${encodeURIComponent(leadId)}&key=AstroAdmin2024!&action=reject`);
+    if (res.ok) { toast('🗑 Lead rejected'); await loadLeads(); }
+    else toast('❌ Failed');
+  } catch(e) { toast('❌ '+e.message); }
+}
+async function loadFBCPL() {
+  try {
+    const res  = await fetch('https://marketingplan.astroaibots.com/api/admin/fb-cpl', { headers: { 'x-admin-key': PASS } });
+    const data = await res.json();
+    if (data.cpl) {
+      document.getElementById('stat-cpl').textContent = '$'+data.cpl.toFixed(2);
+      document.getElementById('stat-cpl-sub').textContent = `7-day avg · ${data.markup}x markup → $${data.suggestedPrice}/lead`;
+    }
+  } catch(e) { console.log('No CPL data yet'); }
+}
 function v(id) { return (document.getElementById(id)?.value||'').trim(); }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } catch(e){ return '—'; } }
