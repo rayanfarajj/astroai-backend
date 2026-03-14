@@ -64,6 +64,13 @@
 [functions."serve-onboard"]
   timeout = 10
 
+# Portal MUST come before the generic /onboard/:agencyId rule
+[[redirects]]
+  from = "/onboard/portal"
+  to = "/client-portal.html"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/onboard/:agencyId"
   to = "/onboard.html?a=:agencyId"
