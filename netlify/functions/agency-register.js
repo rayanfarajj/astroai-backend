@@ -110,3 +110,4 @@ exports.handler = async function(event) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
   }
 };
+

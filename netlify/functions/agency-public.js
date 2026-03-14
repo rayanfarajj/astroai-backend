@@ -1,6 +1,5 @@
 // netlify/functions/agency-public.js
-// GET /api/agency/public?id=agencyId — returns public branding config (no auth needed)
-// Used by the onboarding form to load agency name, colors, terms, etc.
+// GET /api/agency/public?id=agencyId — no auth required, returns public branding
 const { fsGet } = require('./_firebase');
 
 const CORS = {
@@ -13,29 +12,28 @@ const CORS = {
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
 
-  const agencyId = new URL(req.url).searchParams.get('id');
+  const agencyId = (event.queryStringParameters || {}).id || '';
   if (!agencyId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'id required' }) };
 
   try {
     const agency = await fsGet('agencies', agencyId);
-    if (!agency || agency.status === 'suspended') {
-      return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Agency not found' }) };
-    }
+    if (!agency) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Agency not found' }) };
 
-    // Only return public-safe fields
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({
-      agencyId:        agency.agencyId || agencyId,
-      name:            agency.name,
-      brandName:       agency.brandName || agency.name,
-      brandColor:      agency.brandColor || '#00d9a3',
-      brandLogo:       agency.brandLogo || '',
-      onboardingTitle: agency.onboardingTitle || `${agency.name} — Get Your AI Marketing Plan`,
-      welcomeMsg:      agency.welcomeMsg || '',
-      termsText:       agency.termsText || '',
-      termsUrl:        agency.termsUrl  || '',
-      plan:            agency.plan,
-    }) };
-
+    return {
+      statusCode: 200,
+      headers: CORS,
+      body: JSON.stringify({
+        agencyId,
+        name:            agency.name,
+        brandName:       agency.brandName       || agency.name,
+        brandColor:      agency.brandColor       || '#00d9a3',
+        brandLogo:       agency.brandLogo        || '',
+        onboardingTitle: agency.onboardingTitle  || 'Get Your AI Marketing Plan',
+        welcomeMsg:      agency.welcomeMsg       || '',
+        termsText:       agency.termsText        || '',
+        termsUrl:        agency.termsUrl         || '',
+      }),
+    };
   } catch(e) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
   }
