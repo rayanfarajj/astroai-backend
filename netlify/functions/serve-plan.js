@@ -63,7 +63,7 @@ export default async (req) => {
   }
 
   // ── Known page redirects ──────────────────────────────────────────────────
-  const PAGE_REDIRECTS = { 'join': '/saas.html', 'signup': '/saas.html', 'login': '/saas.html' };
+  const PAGE_REDIRECTS = { 'join': '/join.html', 'signup': '/join.html', 'login': '/saas.html' };
   if (PAGE_REDIRECTS[slug]) {
     return new Response(null, { status: 301, headers: { 'Location': PAGE_REDIRECTS[slug] } });
   }
