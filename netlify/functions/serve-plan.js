@@ -63,7 +63,7 @@ export default async (req) => {
   }
 
   // ── Known page redirects ──────────────────────────────────────────────────
-  const PAGE_REDIRECTS = { 'join': '/join.html', 'signup': '/join.html', 'login': '/saas.html' };
+  const PAGE_REDIRECTS = { 'join': '/join.html', 'signup': '/join.html', 'login': '/saas.html', 'admin': '/admin-dashboard.html' };
   if (PAGE_REDIRECTS[slug]) {
     return new Response(null, { status: 301, headers: { 'Location': PAGE_REDIRECTS[slug] } });
   }
@@ -106,6 +106,6 @@ export default async (req) => {
 
 export const config = {
   path: '/*',
-  excludedPath: ['/api/*', '/api/agency/*', '/.netlify/*', '/join', '/signup', '/login', '/saas.html', '/saas-dashboard.html', '/onboard.html', '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html'],
+  excludedPath: ['/api/*', '/api/agency/*', '/api/admin/*', '/.netlify/*', '/join', '/signup', '/login', '/admin', '/saas.html', '/saas-dashboard.html', '/onboard.html', '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html', '/admin-dashboard.html'],
   preferStatic: true,
 };
