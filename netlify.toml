@@ -64,24 +64,23 @@
 [functions."serve-onboard"]
   timeout = 10
 
+# Friendly URLs for public pages
 [[redirects]]
   from = "/join"
   to = "/saas.html"
-  status = 200
-  force = true
+  status = 301
 
 [[redirects]]
   from = "/signup"
   to = "/saas.html"
-  status = 200
-  force = true
+  status = 301
 
 [[redirects]]
   from = "/login"
   to = "/saas.html"
-  status = 200
-  force = true
+  status = 301
 
+# Portal MUST come before the generic /onboard/:agencyId rule
 [[redirects]]
   from = "/onboard/portal"
   to = "/client-portal.html"
