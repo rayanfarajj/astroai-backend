@@ -812,28 +812,50 @@ Campaign launch begins within 48hrs of access.`;
 // ── SPECIAL OFFER TAB ─────────────────────────────────────────
 function buildOffer(c) {
   const el=document.getElementById('pt-offer'); el.innerHTML='';
-  const note=document.createElement('p');note.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6';note.textContent="Set a special offer banner on this client's portal. Leave blank to clear.";el.appendChild(note);
+  // Parse existing offer
+  let existing={};
+  if(c.offer){try{existing=typeof c.offer==='string'?JSON.parse(c.offer):c.offer;}catch(e){}}
+  const hasOffer=existing&&existing.title;
+  const note=document.createElement('p');note.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6';
+  note.textContent=hasOffer?'✅ Active offer set. Edit below or clear it.':'Set a special offer banner on this client's portal.';el.appendChild(note);
+  if(hasOffer){
+    const curr=document.createElement('div');curr.style.cssText='background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:.8rem';
+    curr.innerHTML=`<div style="font-weight:700;color:var(--teal);margin-bottom:4px">Current: ${esc(existing.title)}</div><div style="color:var(--text-dim)">${esc(existing.description||'')} · <a href="${esc(existing.ctaUrl||'#')}" target="_blank" style="color:var(--teal)">${esc(existing.ctaText||'Claim')}</a></div>`;
+    el.appendChild(curr);
+  }
   [['Offer Title *','offer-title','text','20% Off Your Next Month'],['Description','offer-desc','text','Exclusive for loyal clients...']].forEach(([lbl,id,type,ph])=>{
     const wrap=document.createElement('div');wrap.style.marginBottom='10px';
-    wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}">`;el.appendChild(wrap);
+    wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}" value="${esc(existing[id.replace('offer-','')]||'')}">`;el.appendChild(wrap);
   });
   const twoCol=document.createElement('div');twoCol.className='of-2col';
-  twoCol.innerHTML=`<div><label class="of-lbl">CTA Button Text</label><input class="of-in" id="offer-cta-text" placeholder="Claim Offer"></div><div><label class="of-lbl">Expiry Date</label><input class="of-in" id="offer-expires" type="date"></div>`;el.appendChild(twoCol);
-  const urlWrap=document.createElement('div');urlWrap.style.marginBottom='14px';urlWrap.innerHTML='<label class="of-lbl">Claim Link *</label><input class="of-in" id="offer-url" type="url" placeholder="https://...">';el.appendChild(urlWrap);
+  twoCol.innerHTML=`<div><label class="of-lbl">CTA Button Text</label><input class="of-in" id="offer-cta-text" placeholder="Claim Offer" value="${esc(existing.ctaText||'')}"></div><div><label class="of-lbl">Expiry Date</label><input class="of-in" id="offer-expires" type="date" value="${esc(existing.expiresAt||'')}"></div>`;el.appendChild(twoCol);
+  const urlWrap=document.createElement('div');urlWrap.style.marginBottom='14px';urlWrap.innerHTML=`<label class="of-lbl">Claim Link *</label><input class="of-in" id="offer-url" type="url" placeholder="https://..." value="${esc(existing.ctaUrl||'')}">`;el.appendChild(urlWrap);
   const acts=document.createElement('div');acts.style.cssText='display:flex;gap:7px;flex-wrap:wrap';
   const save=document.createElement('button');save.className='of-btn ofb-save';save.textContent='💾 Save Offer';save.onclick=()=>saveOffer(c._id||c.id,false);
-  const clr=document.createElement('button');clr.className='of-btn ofb-clear';clr.textContent='🗑 Clear Offer';clr.onclick=()=>saveOffer(c._id||c.id,true);
-  acts.appendChild(save);acts.appendChild(clr);el.appendChild(acts);
+  acts.appendChild(save);
+  if(hasOffer){const clr=document.createElement('button');clr.className='of-btn ofb-clear';clr.textContent='🗑 Clear Offer';clr.onclick=()=>saveOffer(c._id||c.id,true);acts.appendChild(clr);}
+  el.appendChild(acts);
 }
 async function saveOffer(clientId, clear) {
   let ctaUrl=(document.getElementById('offer-url')?.value||'').trim();
   if(ctaUrl&&!ctaUrl.startsWith('http'))ctaUrl='https://'+ctaUrl;
   const title=(document.getElementById('offer-title')?.value||'').trim();
   if(!clear&&(!title||!ctaUrl)){toast('❌ Title and URL required');return;}
+  const offerData = clear ? null : {
+    title, ctaUrl,
+    description:(document.getElementById('offer-desc')?.value||'').trim(),
+    ctaText:(document.getElementById('offer-cta-text')?.value||'Claim Offer').trim(),
+    expiresAt:document.getElementById('offer-expires')?.value||'',
+  };
   try {
-    const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,offer:clear?null:{title,description:(document.getElementById('offer-desc')?.value||'').trim(),ctaText:(document.getElementById('offer-cta-text')?.value||'Claim Offer').trim(),ctaUrl,expiresAt:document.getElementById('offer-expires')?.value||''},notify:false,status:clients.find(c=>c._id===clientId)?.status||'new'})});
+    const c=clients.find(x=>x._id===clientId);
+    const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,offer:offerData,notify:false,status:c?.status||'new'})});
     const data=await res.json();
-    toast(data.success?(clear?'🗑 Offer cleared':'✅ Offer saved!'):'❌ '+(data.error||'Failed'));
+    if(data.success){
+      if(c) c.offer = offerData ? JSON.stringify(offerData) : '';
+      buildOffer(c||{_id:clientId,offer:offerData?JSON.stringify(offerData):''});
+      toast(clear?'🗑 Offer cleared':'✅ Offer saved!');
+    } else toast('❌ '+(data.error||'Failed'));
   } catch(e){toast('❌ '+e.message);}
 }
 
