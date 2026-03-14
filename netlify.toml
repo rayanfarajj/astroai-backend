@@ -7,9 +7,6 @@
   SECRETS_SCAN_OMIT_PATHS = "public/index.html"
   SECRETS_SCAN_ENABLED = "false"
 
-[functions]
-  node_bundler = "esbuild"
-
 [functions."generate-plan"]
   timeout = 30
 
