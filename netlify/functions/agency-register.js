@@ -46,19 +46,19 @@ async function sendWelcomeEmail(agency) {
   });
 }
 
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
-  if (req.method !== 'POST')    return new Response(JSON.stringify({ error: 'POST only' }), { status: 405, headers: CORS });
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'POST only' }) };
 
   let body;
-  try { body = await req.json(); } catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: CORS }); }
+  try { body = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
   const { agencyName, ownerName, ownerEmail, password, phone, website } = body;
   if (!agencyName || !ownerName || !ownerEmail || !password) {
-    return new Response(JSON.stringify({ error: 'agencyName, ownerName, ownerEmail and password are required' }), { status: 400, headers: CORS });
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'agencyName, ownerName, ownerEmail and password are required' }) };
   }
   if (password.length < 8) {
-    return new Response(JSON.stringify({ error: 'Password must be at least 8 characters' }), { status: 400, headers: CORS });
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Password must be at least 8 characters' }) };
   }
 
   // Generate a unique agencyId
@@ -98,17 +98,15 @@ export default async (req) => {
     // Send welcome email (non-blocking)
     sendWelcomeEmail({ ...agencyData, plainPassword: password }).catch(e => console.error('Welcome email failed:', e.message));
 
-    return new Response(JSON.stringify({
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({
       success: true,
       agencyId,
       dashboardUrl: `https://marketingplan.astroaibots.com/agency-dashboard.html?a=${agencyId}`,
       onboardingUrl: `https://marketingplan.astroaibots.com/onboard/${agencyId}`,
-    }), { status: 200, headers: CORS });
+    }) };
 
   } catch(err) {
     console.error('[agency-register]', err.message);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
   }
 };
-
-export const config = { path: '/api/agency/register' };
