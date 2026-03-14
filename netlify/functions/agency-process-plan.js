@@ -174,7 +174,7 @@ export default async (req, context) => {
   };
 
   const planUrl  = `https://marketingplan.astroaibots.com/plans/${agencyId}/${clientId}.html`;
-  const portalUrl = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${clientId}`;
+  const portalUrl = `https://marketingplan.astroaibots.com/client-portal.html?s=${clientId}&a=${agencyId}`;
 
   // Save client immediately so contact exists
   await fsSetSub(agencyId, 'clients', clientId, clientData);
