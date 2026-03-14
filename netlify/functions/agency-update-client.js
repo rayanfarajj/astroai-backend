@@ -42,9 +42,18 @@ exports.handler = async function(event) {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return err('Invalid JSON', 400); }
 
-  const { agencyId, clientId, status, notify, notes, customMessage, customSubject } = body;
+  const { agencyId, clientId, status, notify, notes, customMessage, customSubject, _delete } = body;
   if (!agencyId || !clientId) return err('agencyId and clientId required', 400);
   if (!auth.isAdmin && agencyId !== auth.agencyId) return unauth('Forbidden');
+
+  // Handle delete
+  if (_delete) {
+    try {
+      const { fsDeleteSub } = require('./_firebase');
+      await fsDeleteSub(agencyId, 'clients', clientId);
+      return ok({ success: true });
+    } catch(e) { return err(e.message); }
+  }
 
   try {
     const { fsGet } = require('./_firebase');
