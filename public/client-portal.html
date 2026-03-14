@@ -414,7 +414,9 @@ textarea.finput{resize:vertical;line-height:1.6;}
 
 <script>
 const API  = 'https://marketingplan.astroaibots.com/api';
-const slug = new URLSearchParams(location.search).get('s') || '';
+const _urlp = new URLSearchParams(location.search);
+const slug = _urlp.get('s') || _urlp.get('slug') || '';
+const _agencyId = _urlp.get('a') || '';
 let C = null;
 
 const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-refer':'Refer a Friend','s-message':'Message Us'};
@@ -573,7 +575,7 @@ document.getElementById('msg-btn').addEventListener('click',async()=>{
 async function init() {
   if(!slug){document.getElementById('loading').classList.add('out');document.getElementById('h-biz').textContent='Portal not found';return;}
   try{
-    const res=await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}`);
+    const res=await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}${_agencyId?'&a='+encodeURIComponent(_agencyId):''}`);
     const data=await res.json();
     if(!data.client)throw new Error(data.error||'Client not found');
     C=data.client;
