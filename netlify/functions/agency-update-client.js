@@ -42,7 +42,7 @@ exports.handler = async function(event) {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return err('Invalid JSON', 400); }
 
-  const { agencyId, clientId, status, notify, notes, customMessage, customSubject, _delete } = body;
+  const { agencyId, clientId, status, notify, notes, customMessage, customSubject, _delete, offer } = body;
   if (!agencyId || !clientId) return err('agencyId and clientId required', 400);
   if (!auth.isAdmin && agencyId !== auth.agencyId) return unauth('Forbidden');
 
@@ -64,6 +64,7 @@ exports.handler = async function(event) {
       ...client,
       ...(status  ? { status, statusLabel: status, statusUpdated: new Date().toISOString() } : {}),
       ...(notes !== undefined ? { notes } : {}),
+      ...(offer !== undefined ? { offer: offer ? JSON.stringify(offer) : '' } : {}),
       updatedAt: new Date().toISOString(),
     };
 
