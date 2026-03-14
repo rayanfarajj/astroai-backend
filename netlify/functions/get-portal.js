@@ -95,27 +95,46 @@ export default async (req) => {
 
     const client = extractClient(clientDoc.fields, slug);
 
-    // Get offer
+    // Get offer — first check client record's offer field (SaaS agencies store it there)
     let offer = null;
-    const offerPaths = agencyId
-      ? [`agencies/${agencyId}/offers/${slug}`, `offers/${slug}`, `offers/global`]
-      : [`offers/${slug}`, `offers/global`];
-
-    for (const p of offerPaths) {
+    const offerField = clientDoc.fields.offer?.stringValue || '';
+    if (offerField) {
       try {
-        const doc = await firestoreGet(token, p);
-        if (doc.fields && doc.fields.active?.booleanValue !== false) {
-          const of = doc.fields;
+        const parsed = JSON.parse(offerField);
+        if (parsed && parsed.title && parsed.ctaUrl) {
           offer = {
-            title:       of.title?.stringValue||'',
-            description: of.description?.stringValue||'',
-            ctaText:     of.ctaText?.stringValue||'Claim Offer',
-            ctaUrl:      of.ctaUrl?.stringValue||'',
-            expiresAt:   of.expiresAt?.stringValue||'',
+            title:       parsed.title || '',
+            description: parsed.description || '',
+            ctaText:     parsed.ctaText || 'Claim Offer',
+            ctaUrl:      parsed.ctaUrl || '',
+            expiresAt:   parsed.expiresAt || '',
           };
-          break;
         }
       } catch(e) {}
+    }
+
+    // Fall back to separate offers collection
+    if (!offer) {
+      const offerPaths = agencyId
+        ? [`agencies/${agencyId}/offers/${slug}`, `offers/${slug}`, `offers/global`]
+        : [`offers/${slug}`, `offers/global`];
+
+      for (const p of offerPaths) {
+        try {
+          const doc = await firestoreGet(token, p);
+          if (doc.fields && doc.fields.active?.booleanValue !== false) {
+            const of = doc.fields;
+            offer = {
+              title:       of.title?.stringValue||'',
+              description: of.description?.stringValue||'',
+              ctaText:     of.ctaText?.stringValue||'Claim Offer',
+              ctaUrl:      of.ctaUrl?.stringValue||'',
+              expiresAt:   of.expiresAt?.stringValue||'',
+            };
+            break;
+          }
+        } catch(e) {}
+      }
     }
 
     return new Response(JSON.stringify({client,offer}),{status:200,headers:CORS});
