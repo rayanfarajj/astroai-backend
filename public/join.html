@@ -390,8 +390,8 @@ footer{
 <div class="modal-bg" id="login-modal" onclick="if(event.target===this)closeLogin()">
   <div class="modal">
     <h2>🔐 Agency Login</h2>
-    <p>Enter your agency ID and password to access your dashboard.</p>
-    <div class="field"><label>Agency ID</label><input id="l-id" placeholder="your-agency-name-abc123"></div>
+    <p>Enter your email and password to access your dashboard.</p>
+    <div class="field"><label>Email Address</label><input id="l-email" type="email" placeholder="you@agency.com"></div>
     <div class="field"><label>Password</label><input id="l-pw" type="password" placeholder="••••••••"></div>
     <div class="form-err" id="l-err"></div>
     <div class="form-footer">
@@ -456,15 +456,15 @@ function goToDashboard() {
 }
 
 async function submitLogin() {
-  const id = v('l-id'), pw = v('l-pw');
+  const email = v('l-email'), pw = v('l-pw');
   const err = s => { const el = document.getElementById('l-err'); el.textContent = s; el.style.display = 'block'; };
-  if (!id || !pw) return err('Agency ID and password required.');
+  if (!email || !pw) return err('Email and password required.');
   const btn = document.getElementById('l-btn');
   btn.textContent = '⏳...'; btn.disabled = true;
   try {
     const res  = await fetch(API + '/agency/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agencyId: id, password: pw }),
+      body: JSON.stringify({ email, password: pw }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Login failed');
