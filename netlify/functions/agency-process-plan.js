@@ -1,5 +1,4 @@
 // netlify/functions/agency-process-plan.js
-// Fast handler — saves client record, triggers background job, returns immediately
 import https from 'https';
 import crypto from 'crypto';
 
@@ -83,7 +82,6 @@ async function fsSetSub(agencyId, sub, docId, data) {
   return fsHttp('PATCH',`${BASE()}/agencies/${agencyId}/${sub}/${docId}`,{fields},t);
 }
 
-// Trigger background function
 function triggerBackground(payload) {
   return new Promise((resolve) => {
     const body = JSON.stringify(payload);
@@ -114,16 +112,13 @@ export default async (req) => {
   }
 
   try {
-    // 1. Validate agency exists
     const agency = await fsGet('agencies', agencyId);
     if (!agency) return new Response(JSON.stringify({error:'Agency not found'}),{status:404,headers:CORS});
 
-    // 2. Create client ID and URLs
     const clientId  = data.businessName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)+'-'+Date.now().toString(36);
-    const planUrl   = `https://marketingplan.astroaibots.com/plans/${agencyId}/${clientId}.html`;
+    const planUrl   = `https://marketingplan.astroaibots.com/plans/${agencyId}/${clientId}`;
     const portalUrl = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${clientId}`;
 
-    // 3. Save client record immediately (status: new)
     const clientData = {
       agencyId, clientId,
       firstName:data.firstName, lastName:data.lastName,
@@ -135,14 +130,13 @@ export default async (req) => {
       serviceDetails:data.serviceDetails||'', website:data.website||'',
       companySize:data.companySize||'', goal90:data.goal90Days,
       status:'new', createdAt:new Date().toISOString(),
-      dashboardUrl:'', dashboardJSON:'{}', notes:'',
+      dashboardUrl:planUrl, dashboardJSON:'{}', notes:'',
     };
+
     await fsSetSub(agencyId, 'clients', clientId, clientData);
 
-    // 4. Fire background job (non-blocking)
     triggerBackground({ ...data, clientId, planUrl, portalUrl }).catch(() => {});
 
-    // 5. Return immediately
     return new Response(
       JSON.stringify({success:true, clientId, planUrl, portalUrl}),
       {status:200, headers:CORS}
