@@ -71,6 +71,7 @@
   from = "/onboard/:agencyId"
   to = "/onboard.html?a=:agencyId"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/api/agency/register"
