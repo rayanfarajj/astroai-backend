@@ -58,15 +58,15 @@ function buildStatusEmail(agency, client, newStatus) {
   };
 }
 
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
-  if (req.method !== 'POST') return err('POST only', 405);
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+  if (event.httpMethod !== 'POST') return err('POST only', 405);
 
   const auth = await verifyToken(req);
   if (auth.error) return unauth(auth.error);
 
   let body;
-  try { body = await req.json(); } catch { return err('Invalid JSON', 400); }
+  try { body = JSON.parse(event.body || '{}'); } catch { return err('Invalid JSON', 400); }
 
   const { agencyId, clientId, status, notes, notify, customMessage, customSubject, messageType } = body;
   if (!agencyId || !clientId) return err('agencyId and clientId required', 400);
@@ -117,5 +117,3 @@ export default async (req) => {
     return err(e.message);
   }
 };
-
-export const config = { path: '/api/agency/update-client' };
