@@ -249,26 +249,26 @@ async function sendWelcome(agency, client, planUrl, portalUrl) {
 }
 
 // ── MAIN ────────────────────────────────────────────────────────
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
-  if (req.method !== 'POST')    return new Response(JSON.stringify({ error: 'POST only' }), { status: 405, headers: CORS });
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+  if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'POST only' }) };
 
   let data;
-  try { data = await req.json(); } catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: CORS }); }
+  try { data = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
   const { agencyId } = data;
-  if (!agencyId) return new Response(JSON.stringify({ error: 'agencyId required' }), { status: 400, headers: CORS });
+  if (!agencyId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'agencyId required' }) };
 
   // Validate required fields
   const required = ['firstName','lastName','email','businessName','industry','primaryService','adBudget','adPlatforms','goal90Days'];
   for (const f of required) {
-    if (!data[f]) return new Response(JSON.stringify({ error: `${f} is required` }), { status: 400, headers: CORS });
+    if (!data[f]) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: `${f} is required` }) };
   }
 
   try {
     const agency = await fsGet('agencies', agencyId);
-    if (!agency) return new Response(JSON.stringify({ error: 'Agency not found' }), { status: 404, headers: CORS });
-    if (agency.status === 'suspended') return new Response(JSON.stringify({ error: 'Agency suspended' }), { status: 403, headers: CORS });
+    if (!agency) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Agency not found' }) };
+    if (agency.status === 'suspended') return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: 'Agency suspended' }) };
 
     // Build client record
     const clientId = data.businessName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)
@@ -349,12 +349,10 @@ export default async (req) => {
     try { await sendWelcome(agency, { ...clientData, firstName: data.firstName }, planUrl, portalUrl); }
     catch(e) { console.error('[agency-process-plan] Welcome email failed:', e.message); }
 
-    return new Response(JSON.stringify({ success: true, clientId, planUrl, portalUrl }), { status: 200, headers: CORS });
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, clientId, planUrl, portalUrl }) };
 
   } catch(err) {
     console.error('[agency-process-plan]', err.message, err.stack);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
   }
 };
-
-export const config = { path: '/api/agency/process-plan' };
