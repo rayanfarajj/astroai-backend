@@ -267,9 +267,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="success-screen" id="success-screen">
       <div class="success-icon">🎉</div>
       <h2>Your Plan is Being Built!</h2>
-      <p id="success-msg">Your AI marketing plan will be ready in about 2 minutes. Check your email — we're sending it directly to you.</p>
+      <p id="success-msg">Your AI marketing plan is generating now — usually ready in 2 minutes. Check your email, we'll send it directly to you when it's done!</p>
       <div class="success-btns">
-        <a id="success-plan-btn" href="#" class="success-btn" style="background:var(--brand);color:#fff;display:none">View My Plan →</a>
+        <a id="success-plan-btn" href="#" class="success-btn" style="background:var(--brand);color:#fff;display:none" target="_blank">View My Plan →</a>
         <a id="success-portal-btn" href="#" class="success-btn" style="background:#f0f2f7;color:var(--text)">Go to My Portal →</a>
       </div>
     </div>
@@ -448,9 +448,9 @@ async function submitForm() {
       pb.href = data.planUrl; pb.style.display = 'inline-flex';
     }
     if (data.portalUrl) {
-      document.getElementById('success-portal-btn').href = data.portalUrl;
+      document.getElementById('success-portal-btn').href = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${data.clientId}`;
     } else if (data.clientId) {
-      document.getElementById('success-portal-btn').href = `https://marketingplan.astroaibots.com/client-portal.html?s=${data.clientId}`;
+      document.getElementById('success-portal-btn').href = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${data.clientId}`;
     }
 
   } catch(e) {
