@@ -68,6 +68,11 @@
   timeout = 10
 
 [[redirects]]
+  from = "/onboard/:agencyId"
+  to = "/onboard.html?a=:agencyId"
+  status = 200
+
+[[redirects]]
   from = "/api/agency/register"
   to = "/.netlify/functions/agency-register"
   status = 200
