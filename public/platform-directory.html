@@ -336,15 +336,15 @@ body::before {
     <div class="section-label">Public pages</div>
     <div class="grid-2">
 
-      <a class="card" data-tag="public" href="https://marketingplan.astroaibots.com/saas.html" target="_blank">
+      <a class="card" data-tag="public" href="https://marketingplan.astroaibots.com/join" target="_blank">
         <span class="arrow-icon">↗</span>
         <div class="card-top">
           <div class="card-icon">🌐</div>
           <span class="tag-pill">Public</span>
         </div>
-        <div class="card-title">SaaS Landing Page</div>
-        <div class="card-desc">Agency signup, pricing tiers, and login. Share this URL to acquire new agencies.</div>
-        <span class="card-url">marketingplan.astroaibots.com/saas.html</span>
+        <div class="card-title">Agency Landing Page</div>
+        <div class="card-desc">Share this link to acquire new agencies. Features, pricing, and signup all in one page.</div>
+        <span class="card-url">marketingplan.astroaibots.com/join</span>
       </a>
 
       <a class="card" data-tag="public" href="https://marketingplan.astroaibots.com/onboard.html" target="_blank">
@@ -386,6 +386,17 @@ body::before {
         <div class="card-title">AstroAI Main Dashboard</div>
         <div class="card-desc">Your original dashboard — manage all your own clients, run plans, update statuses.</div>
         <span class="card-url">marketingplan.astroaibots.com/agency-dashboard.html</span>
+      </a>
+
+      <a class="card" data-tag="yours" href="https://marketingplan.astroaibots.com/admin" target="_blank">
+        <span class="arrow-icon">↗</span>
+        <div class="card-top">
+          <div class="card-icon">🛡️</div>
+          <span class="tag-pill">Your agency</span>
+        </div>
+        <div class="card-title">Platform Admin</div>
+        <div class="card-desc">Super admin panel — all agencies, stats, and Lead Pool manager. Password protected.</div>
+        <span class="card-url">marketingplan.astroaibots.com/admin</span>
       </a>
 
     </div>
@@ -482,6 +493,36 @@ body::before {
           <div class="api-text">
             <div class="api-title">Update client</div>
             <div class="api-url">/api/agency/update-client</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge post">POST</span>
+          <div class="api-text">
+            <div class="api-title">Delete client</div>
+            <div class="api-url">/api/agency/delete-client</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge both">GET/POST</span>
+          <div class="api-text">
+            <div class="api-title">Lead pool</div>
+            <div class="api-url">/api/admin/leads</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-tag="api">
+        <div class="card-api-row">
+          <span class="method-badge get">GET</span>
+          <div class="api-text">
+            <div class="api-title">All agencies (admin)</div>
+            <div class="api-url">/api/admin/agencies</div>
           </div>
         </div>
       </div>
