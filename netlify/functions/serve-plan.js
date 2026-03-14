@@ -62,6 +62,12 @@ export default async (req) => {
     return new Response('<h1>Not Found</h1>', { status: 404, headers: HTML_HEADERS });
   }
 
+  // ── Known page redirects ──────────────────────────────────────────────────
+  const PAGE_REDIRECTS = { 'join': '/saas.html', 'signup': '/saas.html', 'login': '/saas.html' };
+  if (PAGE_REDIRECTS[slug]) {
+    return new Response(null, { status: 301, headers: { 'Location': PAGE_REDIRECTS[slug] } });
+  }
+
   // ── Empty slug — homepage ───────────────────────────────────────────────────
   if (!slug) {
     return new Response(`<!DOCTYPE html><html>
