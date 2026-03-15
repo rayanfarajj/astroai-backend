@@ -29,9 +29,9 @@ function getFirebaseToken() {
 
 const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
-function fsReq(token, path) {
+function fsGet(token, docPath) {
   return new Promise((resolve,reject)=>{
-    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${path}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${docPath}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
       let d=''; res.on('data',c=>d+=c);
       res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}});
     });
@@ -39,13 +39,23 @@ function fsReq(token, path) {
   });
 }
 
-// Decode ALL Firestore types including booleans and numbers
+function fsListPayments(token, agencyId, slug) {
+  return new Promise((resolve)=>{
+    const path = `${BASE()}/agencies/${agencyId}/clients/${slug}/payments?pageSize=100`;
+    const r = https.request({hostname:'firestore.googleapis.com',path,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
+    });
+    r.on('error',()=>resolve({})); r.end();
+  });
+}
+
 function fromFS(v) {
   if (!v) return null;
   if ('stringValue'  in v) return v.stringValue;
   if ('integerValue' in v) return Number(v.integerValue);
   if ('doubleValue'  in v) return v.doubleValue;
-  if ('booleanValue' in v) return v.booleanValue;   // returns true/false properly
+  if ('booleanValue' in v) return v.booleanValue;
   if ('nullValue'    in v) return null;
   if ('arrayValue'   in v) return (v.arrayValue.values||[]).map(fromFS);
   if ('mapValue'     in v) {
@@ -64,7 +74,6 @@ function extractAllFields(doc) {
   return o;
 }
 
-// For client records — use stringValue with fallback
 function extractClient(fields, slug) {
   const str = k => fields[k]?.stringValue || '';
   return {
@@ -104,7 +113,7 @@ export default async (req) => {
     // 1. Try agency subcollection first
     if (agencyId) {
       try {
-        const doc = await fsReq(token, `agencies/${agencyId}/clients/${slug}`);
+        const doc = await fsGet(token, `agencies/${agencyId}/clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
@@ -112,7 +121,7 @@ export default async (req) => {
     // 2. Fall back to root clients collection
     if (!clientDoc) {
       try {
-        const doc = await fsReq(token, `clients/${slug}`);
+        const doc = await fsGet(token, `clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
@@ -140,7 +149,7 @@ export default async (req) => {
         : [`offers/${slug}`, `offers/global`];
       for (const p of offerPaths) {
         try {
-          const doc = await fsReq(token, p);
+          const doc = await fsGet(token, p);
           if (doc.fields && doc.fields.active?.booleanValue !== false) {
             const f = doc.fields;
             offer = { title:f.title?.stringValue||'', description:f.description?.stringValue||'', ctaText:f.ctaText?.stringValue||'Claim Offer', ctaUrl:f.ctaUrl?.stringValue||'', expiresAt:f.expiresAt?.stringValue||'' };
@@ -151,31 +160,21 @@ export default async (req) => {
     }
 
     // ── BILLING ───────────────────────────────────────────
+    // Always return billing data if it exists — no showOnPortal gate
     let billing = null;
     if (agencyId && slug) {
       try {
-        const billingDoc = await fsReq(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
-        if (billingDoc?.fields) {
+        const billingDoc = await fsGet(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
+        if (billingDoc && billingDoc.fields) {
           const cfg = extractAllFields(billingDoc);
           if (cfg) {
-            // Always fetch and return billing data — portal tab decides what to show
-            const paymentsResp = await new Promise((resolve) => {
-              const r = https.request({
-                hostname:'firestore.googleapis.com',
-                path:`${BASE()}/agencies/${agencyId}/clients/${slug}/payments?pageSize=100`,
-                method:'GET',
-                headers:{'Authorization':'Bearer '+token}
-              },res=>{
-                let d=''; res.on('data',c=>d+=c);
-                res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
-              });
-              r.on('error',()=>resolve({})); r.end();
-            });
+            const paymentsResp = await fsListPayments(token, agencyId, slug);
             const payments = (paymentsResp.documents||[])
               .map(doc => extractAllFields(doc))
               .filter(Boolean)
               .sort((a,b) => new Date(b.dueDate||0) - new Date(a.dueDate||0));
             billing = { ...cfg, payments };
+          }
         }
       } catch(e) {
         console.log('[get-portal] billing error:', e.message);
