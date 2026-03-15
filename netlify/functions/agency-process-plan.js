@@ -185,20 +185,29 @@ JSON format:
 
 async function generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency) {
   try {
-    console.log('[plan] Calling Claude for:', data.businessName);
-    const raw = await callClaude(buildPrompt(data));
-    console.log('[plan] Claude responded:', raw.length, 'chars');
+    // STEP A: Call Claude
+    console.log('[plan] STEP A: Calling Claude for:', data.businessName, '| slug:', slug);
+    let raw;
+    try {
+      raw = await callClaude(buildPrompt(data));
+      console.log('[plan] STEP A OK: Claude responded', raw.length, 'chars');
+    } catch(e) {
+      console.error('[plan] STEP A FAILED: Claude error:', e.message);
+      return;
+    }
 
+    // STEP B: Parse JSON
     let json = {};
     try {
       json = JSON.parse(raw.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim());
+      console.log('[plan] STEP B OK: JSON parsed, keys:', Object.keys(json).join(','));
     } catch(e) {
       const m = raw.match(/\{[\s\S]*\}/);
-      if(m) try { json = JSON.parse(m[0]); } catch(e2) { console.error('[plan] JSON parse failed:', e2.message); }
+      if(m) { try { json = JSON.parse(m[0]); console.log('[plan] STEP B OK (regex)'); } catch(e2) { console.error('[plan] STEP B WARN: parse failed, saving empty JSON'); } }
+      else { console.error('[plan] STEP B WARN: no JSON found in response, saving empty'); }
     }
-    console.log('[plan] Parsed keys:', Object.keys(json).join(','));
 
-    // Save full client data + plan JSON to Firestore
+    // STEP C: Save full client data + plan JSON to Firestore
     await fsSet(`agencies/${agencyId}/clients/${slug}`, {
       agencyId,
       clientId: slug,
@@ -293,21 +302,21 @@ async function generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, age
       tags:             data.tags||'',
       leadSource:       data.source||'agency-onboarding',
     });
-    console.log('[plan] Full data saved to Firestore:', slug);
+    console.log('[plan] STEP C OK: Firestore save complete for:', slug);
 
-    // ── Save authorization PDF to Blobs (protected, download-only) ───────────
-    // Saves real PDF binary if client sent authPdfBase64, else saves JSON record
+    // ── Save authorization PDF (non-blocking) ─────────────────────────────────
     if (data.authPdfBase64 || (data.authSignature && data.authSignature.length > 100)) {
-      await uploadAuthPdfToBlobs(slug, agencyId, data.authSignature || '', data);
+      uploadAuthPdfToBlobs(slug, agencyId, data.authSignature || '', data)
+        .catch(e => console.error('[plan] PDF blob save failed:', e.message));
     }
 
-    // Send email with plan link
+    // Send email (non-blocking — never hangs the function)
     try {
       const { createTransport } = await import('nodemailer');
       const t = createTransport({service:'gmail',auth:{user:process.env.GMAIL_USER,pass:process.env.GMAIL_PASS}});
       const brand = agency.brandName||agency.name||'Your Marketing Agency';
       const color = agency.brandColor||'#f97316';
-      await t.sendMail({
+      const emailPromise = t.sendMail({
         from:`"${brand}" <${process.env.GMAIL_USER}>`,
         to: data.email,
         subject: `Your Marketing Command Center is Ready, ${data.firstName}!`,
@@ -322,8 +331,10 @@ async function generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, age
           <p style="font-size:13px;color:#666;margin-top:24px">Questions? Reply to this email or visit your portal: <a href="${portalUrl}" style="color:${color}">${portalUrl}</a></p>
         </div>`,
       });
-      console.log('[plan] Email sent to', data.email);
-    } catch(e) { console.error('[plan] Email failed:', e.message); }
+      // 10s timeout on email — never hang waiting for SMTP
+      await Promise.race([emailPromise, new Promise((_,r)=>setTimeout(()=>r(new Error('email timeout')),10000))]);
+      console.log('[plan] STEP D OK: email sent to', data.email);
+    } catch(e) { console.error('[plan] STEP D email failed (non-fatal):', e.message); }
 
   } catch(err) {
     console.error('[plan] Generation failed:', err.message, err.stack);
@@ -392,29 +403,17 @@ export default async (req, context) => {
         .catch(e => console.error('[process-plan] PDF save failed:', e.message));
     }
 
-    // ── Fire background function — 15-min guaranteed execution ─────────────────
-    const bgData = JSON.stringify({
-      ...data,
-      clientId:  slug,
-      agencyId,
-      planUrl,
-      portalUrl,
-      createdAt: now,
-      authPdfBase64: undefined,  // stripped — already saved to blobs above
-    });
-    const bgReq = https.request({
-      hostname: 'marketingplan.astroaibots.com',
-      path:     '/.netlify/functions/agency-generate-background',
-      method:   'POST',
-      headers:  { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bgData) }
-    }, res => { console.log('[process-plan] bg function status:', res.statusCode, 'for', slug); });
-    bgReq.on('error', e => {
-      console.error('[process-plan] bg trigger failed:', e.message, '— using waitUntil fallback');
-      if (context?.waitUntil) context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
-      else generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(console.error);
-    });
-    bgReq.end(bgData);
-    console.log('[process-plan] background function fired for:', slug);
+    // ── Generate plan synchronously — Claude responds in ~14s, well within 26s limit ─
+    // Debug confirmed: Claude=14s + Firestore=0.5s = ~15s total. Fits in window.
+    // We already returned the response above, so this runs after client gets success.
+    if (context?.waitUntil) {
+      context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
+      console.log('[process-plan] waitUntil scheduled for:', slug);
+    } else {
+      generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(e =>
+        console.error('[process-plan] generateAndSavePlan error:', e.message)
+      );
+    }
 
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}), {
       status: 200,
