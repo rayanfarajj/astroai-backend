@@ -61,6 +61,12 @@
 [functions."admin-delete-agency"]
   timeout = 30
 
+[functions."generate-image-ad"]
+  timeout = 60
+
+[functions."generate-prompt"]
+  timeout = 30
+
 [functions."agency-settings"]
   timeout = 10
 
