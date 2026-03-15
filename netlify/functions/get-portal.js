@@ -92,7 +92,7 @@ function extractClient(fields, slug) {
     notes:         str('notes'),
     dashboardUrl:  str('dashboardUrl'),
     authPdfUrl:    str('authPdfUrl'),
-    referralCount: str('referralCount') || '0',
+    referralCount: String(fields['referralCount']?.integerValue || fields['referralCount']?.stringValue || '0'),
     createdAt:     str('createdAt'),
   };
 }
