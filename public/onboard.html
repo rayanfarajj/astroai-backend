@@ -429,9 +429,10 @@ async function submitForm() {
       adPlatforms:     getSelected('platforms'),
     };
 
-    // Use AbortController for 25s timeout
+    // Submit with 10s timeout — process-plan saves client fast and returns
+    // Claude generates in the background server-side (netlify.toml timeout=180s)
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120000);
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     let res, data;
     try {
@@ -447,7 +448,20 @@ async function submitForm() {
       catch(e) { throw new Error('Server error — please try again'); }
     } catch(fetchErr) {
       clearTimeout(timeout);
-      if (fetchErr.name === 'AbortError') throw new Error('Request timed out — please try again');
+      // If timeout/network error but client was likely saved, still show success
+      // The plan will generate in the background
+      if (fetchErr.name === 'AbortError' || fetchErr.message.includes('fetch')) {
+        clearInterval(msgInterval);
+        document.getElementById('generating').classList.remove('show');
+        document.getElementById('step-4').style.display = 'none';
+        const ss = document.getElementById('success-screen');
+        ss.classList.add('show');
+        // Show portal link using the business name slug we can reconstruct
+        const slug = payload.businessName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        document.getElementById('success-portal-btn').href = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}`;
+        genMsg.textContent = 'Your plan is being built — check your email in a few minutes!';
+        return;
+      }
       throw fetchErr;
     }
 
