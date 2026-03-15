@@ -431,7 +431,7 @@ async function submitForm() {
 
     // Use AbortController for 25s timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
+    const timeout = setTimeout(() => controller.abort(), 120000);
 
     let res, data;
     try {
