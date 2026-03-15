@@ -236,21 +236,10 @@ ${stats.length?`<div class="stats">${stats.map(([v,l])=>`<div class="stat"><div 
     btn.textContent = '⏳ Generating...'; btn.disabled = true;
     // Store timestamp so page refresh knows we're generating
     try { localStorage.setItem(_planKey, Date.now().toString()); } catch(e){}
-    fetch('/api/agency/process-plan', {
+    fetch('/api/agency/process-plan/regenerate-plan', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        agencyId: '${agencyId}', clientId: '${clientId}',
-        firstName: '${s(client.firstName||"")}', lastName: '${s(client.lastName||"")}',
-        email: '${s(client.clientEmail||"")}', businessName: '${s(client.businessName||"")}',
-        phone: '${s(client.phone||"")}', industry: '${s(client.industry||"")}',
-        primaryService: '${s(client.primaryService||"")}', adBudget: '${s(client.adBudget||"")}',
-        adPlatforms: '${s(client.adPlatforms||"")}', goal90Days: '${s(client.goal90||client.goal90Days||"")}',
-        standOut: '${s(client.standOut||"")}', promotions: '${s(client.promotions||"")}',
-        serviceDetails: '${s(client.serviceDetails||"")}', idealCustomer: '${s(client.idealCustomer||"")}',
-        qualifyingQuestions: '${s(client.qualifyingQuestions||"")}', avgCustomerValue: '${s(client.avgCustomerValue||"")}',
-        workedWell: '${s(client.workedWell||"")}',
-      })
+      body: JSON.stringify({ agencyId: '${agencyId}', clientId: '${clientId}' })
     }).then(r => r.json()).then(d => {
       if(d.success) {
         btn.textContent = '⏳ Generating (~25s)...';
