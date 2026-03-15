@@ -78,7 +78,7 @@ async function fsSetSub(agencyId, sub, docId, data) {
 
 function callClaude(prompt) {
   return new Promise((resolve,reject)=>{
-    const body = JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]});
+    const body = JSON.stringify({model:'claude-sonnet-4-6',max_tokens:3000,messages:[{role:'user',content:prompt}]});
     const r = https.request({hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',headers:{'x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},res=>{
       let d=''; res.on('data',c=>d+=c);
       res.on('end',()=>{
@@ -136,16 +136,33 @@ function buildPlanHTML(json, data, agency) {
 }
 
 function buildPrompt(d, agency) {
-  return `You are an expert digital marketing strategist. Generate a comprehensive AI marketing plan. Return ONLY valid JSON, no markdown.
+  const n = v => v || 'N/A';
+  const brand = agency.brandName || agency.name || 'Your Agency';
+  return `You are an elite digital marketing strategist. Generate a personalized Marketing Command Center for ${n(d.businessName)}.
 
-Business: ${d.businessName} | Industry: ${d.industry} | Service: ${d.primaryService}
-Budget: $${d.adBudget}/mo | Platforms: ${d.adPlatforms} | Goal: ${d.goal90Days}
+CRITICAL: Output ONLY valid JSON. No markdown, no explanation. Start with { end with }.
+
+CLIENT DATA:
+Business: ${n(d.businessName)} | Owner: ${n(d.firstName)} ${n(d.lastName)}
+Industry: ${n(d.industry)} | Service: ${n(d.primaryService)}
+Description: ${n(d.bizDescription)}
+Goal: ${n(d.mainGoal)} | Avg Value: $${n(d.avgCustomerValue)} | Budget: $${n(d.adBudget)}/day
+Platforms: ${n(d.adPlatforms)} | Area: ${n(d.serviceAreaType)} — ${n(d.serviceDetails)}
+Ideal Customer: ${n(d.idealCustomer)} | Ages: ${n(d.ageGroups)} | Interests: ${n(d.interests)}
+Stand Out: ${n(d.standOut)} | Promos: ${n(d.promotions)}
+Qualified Lead: ${n(d.qualifiedLead)} | Bad Lead: ${n(d.badLead)}
+Qualifying Qs: ${n(d.qualifyingQuestions)} | Disqualifying Qs: ${n(d.disqualifyingQuestions)}
+90-Day Goal: ${n(d.goal90Days||d.goal90)} | Worked: ${n(d.workedWell)} | Didn't Work: ${n(d.notWorked)}
+Response Time: ${n(d.responseTime)} | Lead Destination: ${n(d.leadDestination)}
 
 Return this exact JSON:
-{"executiveSummary":"2-3 sentences","adAngles":[{"angleLabel":"Empathy","ads":[{"title":"Version A","primaryText":"3-4 sentences","headline":"short headline","description":"one line","cta":"Book Now"}]},{"angleLabel":"Pain Points","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."},{"title":"Version B","primaryText":"...","headline":"...","description":"...","cta":"..."}]},{"angleLabel":"Proof","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."}]},{"angleLabel":"Curiosity","ads":[{"title":"Version A","primaryText":"...","headline":"...","description":"...","cta":"..."}]},{"angleLabel":"Retargeting","ads":[{"title":"Warm Lead","primaryText":"...","headline":"...","description":"...","cta":"..."}]}],"targeting":{"demographics":["Age 28-55","Homeowners"],"interests1":{"label":"Primary","items":["relevant interest"]},"interests2":{"label":"Secondary","items":["relevant interest"]},"behaviors":["Recent movers"],"custom":["Website visitors"],"lookalike":["1% lookalike"]},"roadmap":[{"week":"Week 1-2","title":"Foundation","desc":"Setup tracking"},{"week":"Week 3-4","title":"Launch","desc":"Activate ads"},{"week":"Week 5-8","title":"Optimize","desc":"Scale winners"},{"week":"Week 9-12","title":"Scale","desc":"Expand audiences"}],"qualificationScript":{"opening":"Hi [Name], calling about your interest.","questions":[{"q":"What is your main challenge?","why":"Pain point"}],"objections":[{"obj":"Need to think","response":"What concern can I address now?"}]},"kpis":{"cpl":"$15-35","ctr":"1.5-3%","roas":"3-5x"}}`;
+{"tagline":"one sentence describing what ${n(d.businessName)} does","avatar":{"name":"persona name","whoTheyAre":"2-3 sentences specific to their industry","painPoints":"2-3 sentences about problems solved","desires":"2-3 sentences about what they want","qualifiers":["qualifier 1","qualifier 2","qualifier 3"],"disqualifiers":["disqualifier 1","disqualifier 2"]},"funnelSteps":[{"step":"Awareness","icon":"📡","desc":"specific to their platform"},{"step":"Interest","icon":"🎯","desc":"hook for their service"},{"step":"Lead Capture","icon":"📋","desc":"their lead form approach"},{"step":"Qualification","icon":"✅","desc":"using their qualifying questions"},{"step":"Conversion","icon":"🤝","desc":"their close process"}],"adAngles":[{"angleLabel":"Empathy / Pain","angle":"strategy","ads":[{"title":"Version A","headline":"specific headline","primaryText":"3-4 sentence ad using their offer","description":"one line","cta":"strong CTA"},{"title":"Version B","headline":"alt headline","primaryText":"3-4 sentence variation","description":"one line","cta":"CTA"}]},{"angleLabel":"Offer / Value","angle":"strategy","ads":[{"title":"Version A","headline":"offer headline","primaryText":"3-4 sentences with their promotion","description":"one line","cta":"CTA"}]},{"angleLabel":"Proof / Results","angle":"strategy","ads":[{"title":"Version A","headline":"results headline","primaryText":"3-4 sentences with proof","description":"one line","cta":"CTA"}]},{"angleLabel":"Retargeting","angle":"warm audience","ads":[{"title":"Warm Lead","headline":"follow-up headline","primaryText":"3-4 sentences for warm audience","description":"one line","cta":"CTA"}]}],"targeting":{"demographics":["demo 1","demo 2"],"interests":["interest 1","interest 2","interest 3"],"behaviors":["behavior 1","behavior 2"],"geographic":["${n(d.serviceDetails)}"],"custom":["Website visitors","Engaged audience"],"lookalike":["1% lookalike"]},"roadmap":[{"phase":"Week 1","title":"Foundation","desc":"specific setup actions"},{"phase":"Week 2","title":"Launch","desc":"launch campaigns"},{"phase":"Weeks 3-4","title":"Optimize","desc":"analyze and optimize"},{"phase":"Weeks 5-8","title":"Scale","desc":"scale winners"},{"phase":"Weeks 9-12","title":"Goal","desc":"hit: ${n(d.goal90Days||d.goal90).slice(0,60)}"}],"qualificationScript":{"opening":"2-3 sentence opening for ${n(d.businessName)}","questions":[{"q":"question from their inputs","why":"why it matters"},{"q":"second question","why":"why it matters"},{"q":"third question","why":"why it matters"}],"transition":"transition to close","objections":[{"obj":"common objection","response":"rebuttal using: ${n(d.standOut).slice(0,60)}"},{"obj":"price objection","response":"ROI using $${n(d.avgCustomerValue)} avg value"}]},"positioning":[{"tip":"Lead With Your Edge","desc":"2 sentences about: ${n(d.standOut).slice(0,80)}"},{"tip":"Own Your Area","desc":"2 sentences about: ${n(d.serviceDetails).slice(0,80)}"},{"tip":"Speed Advantage","desc":"2 sentences about ${n(d.responseTime)} response time"}],"kpis":{"cpl":"estimated CPL for ${n(d.industry)}","ctr":"expected CTR","conversionRate":"expected conversion rate","expectedLeadsPerMonth":"estimated monthly leads","projectedROI":"ROI at $${n(d.avgCustomerValue)} avg"}}`;
 }
 
+
 export default async (req) => {
+  // Background functions return 202 immediately — Netlify runs them for up to 15 minutes
+  // Accept calls from agency-process-plan (internal) only
   let data;
   try { data = await req.json(); } catch(e) {
     console.error('[bg] Failed to parse request body:', e.message);
