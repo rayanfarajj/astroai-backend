@@ -147,27 +147,28 @@ async function verifySession(sessionToken) {
 
 // ── NEXT DUE DATE ─────────────────────────────────────────────
 function calcNextDue(startDate, billingCycle, lastPaidDate) {
-  const base = new Date(lastPaidDate || startDate);
+  // Use lastPaidDate if provided, otherwise startDate
+  const base = new Date((lastPaidDate || startDate) + 'T12:00:00');
   if (isNaN(base)) return null;
-  const now = new Date();
+
   const cycleMap = {
-    monthly:   { months: 1  },
-    quarterly: { months: 3  },
-    biannual:  { months: 6  },
-    annual:    { months: 12 },
-    weekly:    { days: 7    },
-    biweekly:  { days: 14   },
+    monthly:    { months: 1  },
+    quarterly:  { months: 3  },
+    biannual:   { months: 6  },
+    annual:     { months: 12 },
+    weekly:     { days: 7    },
+    biweekly:   { days: 14   },
     'one-time': null,
   };
   const cycle = cycleMap[billingCycle];
   if (!cycle) return null;
-  let next = new Date(base);
-  let safety = 0;
-  while (next <= now && safety++ < 200) {
-    if (cycle.months) next.setMonth(next.getMonth() + cycle.months);
-    else next.setDate(next.getDate() + cycle.days);
-  }
-  return next.toISOString().slice(0,10);
+
+  // Simply add one cycle to the base date — no looping
+  const next = new Date(base);
+  if (cycle.months) next.setMonth(next.getMonth() + cycle.months);
+  else next.setDate(next.getDate() + cycle.days);
+
+  return next.toISOString().slice(0, 10);
 }
 
 // ── HANDLER ───────────────────────────────────────────────────
