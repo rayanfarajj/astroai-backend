@@ -1339,7 +1339,9 @@ async function submitConvert() {
     const tmo=setTimeout(()=>ctrl.abort(),15000);
     let res,data;
     try {
-      res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
+      const _ind = v('cv-industry')||convertLead?.industry||convertLead?.primaryService||'General Business';
+      const _svc = v('cv-industry')||convertLead?.primaryService||convertLead?.industry||'Marketing Services';
+      res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:_ind,primaryService:_svc,adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads and grow revenue',tags:'converted-lead',leadSource:'converted'})});
       clearTimeout(tmo);
       const txt=await res.text();
       try{data=JSON.parse(txt);}catch(e){throw new Error('Server error — please try again');}
@@ -1976,28 +1978,52 @@ async function regeneratePlan(clientId, event) {
     if(btn){ btn.textContent='⏳ Generating...'; }
     toast('⚡ Generating plan... takes ~20 seconds');
 
-    const res = await fetch(`${API}/agency/process-plan`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        agencyId,
-        firstName:   (c.clientName||'Client').split(' ')[0],
-        lastName:    (c.clientName||'').split(' ').slice(1).join(' ')||'',
-        email:       c.clientEmail||'noreply@example.com',
-        businessName:c.businessName,
-        phone:       c.phone||'',
-        industry:    c.industry||'General',
-        primaryService: c.primaryService||c.industry||'Marketing',
-        adBudget:    c.adBudget||'1000',
-        adPlatforms: c.adPlatforms||'Facebook, Instagram',
-        goal90Days:  c.goal90||'Generate leads and grow revenue',
-        website:     c.website||'',
-      }),
-    });
-    const text = await res.text();
+    const _ctrl = new AbortController();
+    const _tmo  = setTimeout(()=>_ctrl.abort(), 15000);
+    let regenRes, regenData;
+    try {
+      regenRes = await fetch(`${API}/agency/process-plan`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        signal: _ctrl.signal,
+        body: JSON.stringify({
+          agencyId,
+          firstName:      (c.clientName||'Client').split(' ')[0],
+          lastName:       (c.clientName||'').split(' ').slice(1).join(' ')||'',
+          email:          c.clientEmail||'noreply@example.com',
+          businessName:   c.businessName||'Business',
+          phone:          c.phone||'',
+          industry:       c.industry||c.primaryService||'General Business',
+          primaryService: c.primaryService||c.industry||'Marketing Services',
+          adBudget:       c.adBudget||'1000',
+          adPlatforms:    c.adPlatforms||'Facebook, Instagram',
+          goal90Days:     c.goal90||c.goal90Days||'Generate leads and grow revenue',
+          website:        c.website||'',
+          serviceAreaType:  c.serviceAreaType||'',
+          serviceDetails:   c.serviceDetails||'',
+          idealCustomer:    c.idealCustomer||'',
+          standOut:         c.standOut||'',
+          avgCustomerValue: c.avgCustomerValue||'',
+          mainGoal:         c.mainGoal||'',
+        }),
+      });
+      clearTimeout(_tmo);
+    } catch(fe) {
+      clearTimeout(_tmo);
+      if(fe.name==='AbortError'){
+        // Timeout is OK — plan still generates in background
+        toast('⏳ Plan generation started — refreshing in 30 seconds...');
+        setTimeout(()=>loadClients(), 30000);
+        if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+        return;
+      }
+      throw fe;
+    }
+    const text = await regenRes.text();
     let data;
     try { data = JSON.parse(text); } catch(e) { throw new Error('Server error — try again'); }
     if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
+    const res=regenRes;
 
     toast('✅ Plan generated!');
     await loadClients();
