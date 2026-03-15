@@ -440,7 +440,7 @@ async function deleteAgency(agencyId, name) {
   try {
     const res  = await fetch(API + '/admin/delete-agency', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': PASS },
       body: JSON.stringify({ agencyId }),
     });
     const data = await res.json();
