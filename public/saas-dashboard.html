@@ -1818,7 +1818,7 @@ async function generateImagePrompt(ad, angleLabel, btn) {
   try {
     const res = await fetch(API + '/generate-prompt', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'application/json', 'x-internal-key':'astroai-internal-2024'},
       body: JSON.stringify({
         headline:    ad.headline    || '',
         primaryText: ad.primaryText || '',
