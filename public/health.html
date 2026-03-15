@@ -1,103 +1,227 @@
-// netlify/functions/health-ai.js
-// Receives health check results, asks Claude to analyze, returns diagnosis
-import https from 'https';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AstroAI Health Check</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07090f;color:#e0e4f0;font-family:system-ui,sans-serif;padding:24px;min-height:100vh}
+h1{color:#00d9a3;font-size:1.3rem;margin-bottom:4px}
+.sub{color:#6b7590;font-size:.8rem;margin-bottom:24px}
+.cfg{display:flex;gap:12px;flex-wrap:wrap;background:#0f1320;border:1px solid #1e2540;border-radius:10px;padding:16px;margin-bottom:16px}
+.cfg label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4a5270;display:block;margin-bottom:4px}
+.cfg input{background:#161c30;border:1px solid #252d45;border-radius:6px;padding:7px 10px;color:#e0e4f0;font-size:.75rem;font-family:monospace;outline:none;width:220px}
+.cfg input:focus{border-color:#00d9a3}
+.btns{display:flex;gap:10px;margin-bottom:20px}
+button{border:none;border-radius:8px;padding:10px 20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:system-ui,sans-serif}
+#run-btn{background:#00d9a3;color:#07090f}
+#run-btn:disabled{opacity:.5;cursor:not-allowed}
+#ai-btn{background:#1a2540;color:#4d9fff;border:1px solid #253560}
+#ai-btn:disabled{opacity:.5;cursor:not-allowed}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.sc{background:#0f1320;border:1px solid #1e2540;border-radius:8px;padding:14px;text-align:center}
+.sc .n{font-size:1.8rem;font-weight:800;font-family:monospace}
+.sc .l{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7590;margin-top:4px}
+.pass{color:#00d9a3}.fail{color:#ff4d6a}.warn{color:#ffb84d}.total{color:#e0e4f0}
+.section-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4a5270;margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid #1a2035}
+.check{display:flex;align-items:center;gap:10px;background:#0f1320;border:1px solid #1e2540;border-left:3px solid #1e2540;border-radius:7px;padding:10px 14px;margin-bottom:5px}
+.check.pass{border-left-color:#00d9a3}
+.check.fail{border-left-color:#ff4d6a;background:#130d10}
+.check.warn{border-left-color:#ffb84d}
+.check-name{font-size:.8rem;font-weight:600;flex:1}
+.check-detail{font-size:.68rem;color:#6b7590;font-family:monospace;max-width:350px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.check-ms{font-size:.62rem;color:#4a5270;font-family:monospace;min-width:50px;text-align:right}
+.badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase}
+.bp{background:rgba(0,217,163,.12);color:#00d9a3}
+.bf{background:rgba(255,77,106,.12);color:#ff4d6a}
+.bw{background:rgba(255,184,77,.12);color:#ffb84d}
+.ai-box{background:#0d1525;border:1px solid #1e3060;border-radius:10px;margin-bottom:20px;overflow:hidden}
+.ai-hdr{background:#111d35;padding:12px 16px;font-size:.8rem;font-weight:700;color:#4d9fff;border-bottom:1px solid #1e3060}
+.ai-body{padding:16px;font-size:.82rem;line-height:1.8;color:#c8d0e8}
+.ai-body strong{color:#e0e4f0}
+.ai-body code{background:#1a2540;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:.75rem;color:#ffb84d}
+.status{background:#0f1320;border:1px solid #1e2540;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:.8rem;display:flex;align-items:center;gap:8px}
+.status.ok{border-color:rgba(0,217,163,.3);color:#00d9a3;background:rgba(0,217,163,.05)}
+.status.bad{border-color:rgba(255,77,106,.3);color:#ff4d6a;background:rgba(255,77,106,.05)}
+.ts{margin-left:auto;font-size:.65rem;color:#4a5270;font-family:monospace}
+.empty{text-align:center;padding:60px 20px;color:#4a5270}
+.empty .icon{font-size:2.5rem;margin-bottom:12px;opacity:.5}
+.empty .title{font-size:.9rem;font-weight:700;color:#6b7590;margin-bottom:6px}
+</style>
+</head>
+<body>
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Content-Type': 'application/json',
-};
+<h1>✦ AstroAI Platform Health</h1>
+<div class="sub">Run diagnostics on every feature — then ask Claude to diagnose any failures</div>
 
-function callClaude(prompt) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1200,
-      messages: [{ role: 'user', content: prompt }],
-    });
-    const r = https.request({
-      hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-      },
-    }, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => {
-        try {
-          const j = JSON.parse(d);
-          if (j.error) reject(new Error(j.error.message || JSON.stringify(j.error)));
-          else resolve(j.content?.[0]?.text || '');
-        } catch(e) { reject(e); }
-      });
-    });
-    r.on('error', reject); r.write(body); r.end();
-  });
-}
+<div class="cfg">
+  <div>
+    <label>Agency ID</label>
+    <input id="cfg-a" value="kaciekacie-mmqeijsz" placeholder="agency id">
+  </div>
+  <div>
+    <label>Client ID <span style="color:#4a5270">(optional)</span></label>
+    <input id="cfg-c" placeholder="client id for billing/plan checks">
+  </div>
+  <div>
+    <label>Session Token <span style="color:#4a5270">(optional)</span></label>
+    <input id="cfg-t" type="password" placeholder="saas_token from sessionStorage">
+  </div>
+</div>
 
-export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'POST only' }), { status: 405, headers: CORS });
+<div class="btns">
+  <button id="run-btn" onclick="runChecks()">▶ Run Checks</button>
+  <button id="ai-btn" onclick="askClaude()" disabled>✦ Ask Claude</button>
+</div>
 
-  let body;
-  try { body = await req.json(); } catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: CORS }); }
+<div id="status" style="display:none" class="status"></div>
+<div id="summary" style="display:none" class="summary"></div>
+<div id="ai-panel" style="display:none" class="ai-box"></div>
+<div id="results">
+  <div class="empty">
+    <div class="icon">◈</div>
+    <div class="title">Ready to run</div>
+    <div>Click "Run Checks" to test every feature</div>
+  </div>
+</div>
 
-  const { checks, summary } = body;
-  if (!checks) return new Response(JSON.stringify({ error: 'No checks provided' }), { status: 400, headers: CORS });
+<script>
+const BASE = 'https://marketingplan.astroaibots.com';
+const KEY  = 'AstroAdmin2024!';
+let lastData = null;
 
-  const fails = checks.filter(c => c.status === 'fail');
-  const warns = checks.filter(c => c.status === 'warn');
-  const passes = checks.filter(c => c.status === 'pass');
+async function runChecks() {
+  const runBtn = document.getElementById('run-btn');
+  const aiBtn  = document.getElementById('ai-btn');
+  runBtn.disabled = true;
+  runBtn.textContent = '⏳ Running...';
+  aiBtn.disabled = true;
+  document.getElementById('ai-panel').style.display = 'none';
+  document.getElementById('summary').style.display = 'none';
+  document.getElementById('status').style.display = 'none';
+  document.getElementById('results').innerHTML = '<div class="empty"><div class="title">Running checks...</div></div>';
 
-  const prompt = `You are a senior full-stack developer reviewing a health check report for the AstroAI Bots SaaS platform built on Netlify + Firebase + Claude API.
+  const a = document.getElementById('cfg-a').value.trim();
+  const c = document.getElementById('cfg-c').value.trim();
+  const t = document.getElementById('cfg-t').value.trim();
 
-RESULTS SUMMARY: ${passes.length} passing, ${fails.length} failing, ${warns.length} warnings
-
-FAILING CHECKS:
-${fails.length ? fails.map(c => `• ${c.name}: "${c.detail}"`).join('\n') : 'None — all passing!'}
-
-WARNING CHECKS:
-${warns.length ? warns.map(c => `• ${c.name}: "${c.detail}"`).join('\n') : 'None'}
-
-PLATFORM CONTEXT:
-- Netlify serverless functions (ESM .js format, 10s timeout unless specified in netlify.toml)
-- Firebase Firestore via REST API with JWT auth
-- Claude API (claude-sonnet-4-6) for plan generation
-- Key files: agency-process-plan.js, agency-generate-background.js, agency-get-clients.js, get-portal.js, agency-billing.js, submit-referral.js, agency-referrals.js, agency-settings.js, health-check.js
-
-KNOWN PATTERNS:
-- "Returns HTML instead of JSON" = function crashed or timed out (check netlify.toml timeout, check for syntax errors)
-- "HTTP 401" on agency endpoints = missing/expired x-agency-token header or session
-- "HTTP 401" on admin endpoints = missing x-admin-key header
-- "TIMEOUT" = function exceeds 10s limit (increase in netlify.toml or use background function)
-- Background function not running = cannot be triggered via external HTTP from another function
-- "dashboardJSON empty" = background generation failed (check agency-generate-background.js logs)
-- Firebase auth failing = FIREBASE_PRIVATE_KEY env var may have wrong newline format
-
-${fails.length === 0 ? 'Everything is passing! Confirm the platform is healthy.' : 'Please diagnose each failure with a specific cause and exact fix.'}
-
-Format your response as:
-**Overall Status**: [one sentence]
-
-${fails.length > 0 ? `**Failures to Fix** (in priority order):
-For each: name the file, what's wrong, and the exact fix` : ''}
-
-${warns.length > 0 ? `**Warnings**:
-Brief explanation of each warning and whether action is needed` : ''}
-
-${fails.length === 0 ? '**All Clear**: Brief confirmation everything looks good' : ''}
-
-Be specific. Reference exact file names. Keep it concise and actionable.`;
+  let url = `${BASE}/api/health?key=${KEY}`;
+  if (a) url += `&a=${encodeURIComponent(a)}`;
+  if (c) url += `&c=${encodeURIComponent(c)}`;
+  if (t) url += `&t=${encodeURIComponent(t)}`;
 
   try {
-    const analysis = await callClaude(prompt);
-    return new Response(JSON.stringify({ success: true, analysis }), { status: 200, headers: CORS });
+    const res  = await fetch(url);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      throw new Error('Response was not JSON. Got: ' + text.slice(0,100));
+    }
+    if (data.error) throw new Error(data.error);
+    lastData = data;
+    render(data);
+    aiBtn.disabled = false;
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: CORS });
+    document.getElementById('results').innerHTML =
+      `<div class="empty"><div class="title" style="color:#ff4d6a">Error</div><div>${e.message}</div></div>`;
   }
-};
+  runBtn.disabled = false;
+  runBtn.textContent = '↺ Run Again';
+}
 
-export const config = { path: '/api/health-ai' };
+function render(data) {
+  const { summary, checks, timestamp } = data;
+
+  // Status bar
+  const sb = document.getElementById('status');
+  sb.style.display = 'flex';
+  sb.className = `status ${summary.failed === 0 ? 'ok' : 'bad'}`;
+  sb.innerHTML = `<span>${summary.failed === 0 ? '✅ All systems healthy' : `❌ ${summary.failed} failing`}</span>
+    ${summary.warned ? `<span style="color:#ffb84d;margin-left:8px">· ${summary.warned} warnings</span>` : ''}
+    <span class="ts">${new Date(timestamp).toLocaleTimeString()}</span>`;
+
+  // Summary
+  const sm = document.getElementById('summary');
+  sm.style.display = 'grid';
+  sm.innerHTML = [
+    ['pass', summary.passed,  '✅ Passing'],
+    ['fail', summary.failed,  '❌ Failing'],
+    ['warn', summary.warned,  '⚠️ Warnings'],
+    ['total', summary.total,  '◈ Total'],
+  ].map(([cls,n,l]) => `<div class="sc"><div class="n ${cls}">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  // Group checks
+  const groups = {
+    '🏗 Infrastructure': c => ['🔥 Firebase Auth','🤖 Anthropic API','📦 GitHub Token','📧 Gmail Config'].includes(c.name),
+    '📄 Pages': c => c.name.includes('HTML'),
+    '🔌 API Endpoints': c => c.name.includes('Endpoint') || c.name.includes('Background'),
+    '🏢 Agency': c => c.name.includes('Agency') || c.name.includes('Referral') || c.name.includes('Billing') || c.name.includes('Process'),
+    '👤 Client': c => c.name.includes('Client') || c.name.includes('Portal') || c.name.includes('Plan') || c.name.includes('Dashboard URL'),
+    '🛡 Admin': c => c.name.includes('Admin'),
+  };
+
+  let html = '';
+  for (const [gname, matcher] of Object.entries(groups)) {
+    const grp = checks.filter(matcher);
+    if (!grp.length) continue;
+    const fails = grp.filter(c => c.status === 'fail').length;
+    html += `<div class="section-title">${gname}${fails ? ` <span style="color:#ff4d6a">(${fails} failing)</span>` : ''}</div>`;
+    for (const chk of grp) {
+      const icon  = chk.status === 'pass' ? '✅' : chk.status === 'fail' ? '❌' : '⚠️';
+      const badge = `<span class="badge b${chk.status[0]}">${chk.status}</span>`;
+      const ms    = chk.ms ? `<span class="check-ms">${chk.ms}ms</span>` : '';
+      html += `<div class="check ${chk.status}">
+        <span>${icon}</span>
+        <span class="check-name">${chk.name}</span>
+        <span class="check-detail" title="${chk.detail||''}">${chk.detail||''}</span>
+        ${ms}${badge}
+      </div>`;
+    }
+  }
+  document.getElementById('results').innerHTML = html;
+}
+
+async function askClaude() {
+  if (!lastData) return;
+  const aiBtn = document.getElementById('ai-btn');
+  aiBtn.disabled = true;
+  aiBtn.textContent = '⏳ Analyzing...';
+
+  const panel = document.getElementById('ai-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = '<div class="ai-hdr">✦ Claude AI Analysis</div><div class="ai-body">Analyzing your results...</div>';
+
+  try {
+    const res  = await fetch(`${BASE}/api/health-ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checks: lastData.checks, summary: lastData.summary }),
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      throw new Error('Response was not JSON: ' + text.slice(0,150));
+    }
+    if (!data.success) throw new Error(data.error || 'Unknown error');
+
+    const formatted = data.analysis
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+
+    panel.innerHTML = `<div class="ai-hdr">✦ Claude AI Analysis</div><div class="ai-body">${formatted}</div>`;
+  } catch(e) {
+    panel.innerHTML = `<div class="ai-hdr">✦ Claude AI Analysis</div><div class="ai-body" style="color:#ff4d6a">Error: ${e.message}</div>`;
+  }
+  aiBtn.disabled = false;
+  aiBtn.textContent = '✦ Ask Claude';
+}
+
+// Auto-fill from URL params
+const p = new URLSearchParams(location.search);
+if (p.get('a')) document.getElementById('cfg-a').value = p.get('a');
+if (p.get('c')) document.getElementById('cfg-c').value = p.get('c');
+</script>
+</body>
+</html>
