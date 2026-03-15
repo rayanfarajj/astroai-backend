@@ -770,7 +770,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <label class="sf-label">Onboarding Page Title</label><input class="sf-input" id="set-title" placeholder="Get Your AI Marketing Plan">
     <label class="sf-label">Welcome Message</label><textarea class="sf-ta" id="set-welcome" placeholder="Welcome..."></textarea>
     <label class="sf-label">Terms Text</label><textarea class="sf-ta" id="set-terms" placeholder="By submitting..."></textarea>
-    <label class="sf-label">Terms URL</label><input class="sf-input" id="set-terms-url" placeholder="https://">
+    <label class="sf-label">Terms & Conditions URL
+      <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">Shown on onboarding authorization form</span>
+    </label>
+    <input class="sf-input" id="set-terms-url" placeholder="https://yoursite.com/terms">
+    <label class="sf-label" style="margin-top:10px">Privacy Policy URL
+      <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">Shown on onboarding authorization form</span>
+    </label>
+    <input class="sf-input" id="set-privacy-url" placeholder="https://yoursite.com/privacy">
   </div>
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
       <label class="sf-label" style="margin-bottom:10px;display:block">🎨 Appearance</label>
@@ -1140,7 +1147,86 @@ function buildDetailOffer(c){
 function buildFiles(){
   const el=document.getElementById('dt-files');if(el.dataset.loaded==='1')return;el.dataset.loaded='1';
   if(!curClient)return;el.innerHTML='<div style="padding:10px 0;color:var(--text-muted);font-size:.8rem"><div class="spinner"></div>Loading...</div>';
-  fetch(API+'/list-files?slug='+encodeURIComponent(curClient._id||'')).then(r=>r.json()).then(data=>{el.innerHTML='';if(!data.files||!data.files.length){el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">No files uploaded yet.</p>';return;}data.files.forEach(f=>{const ext=(f.name||'').split('.').pop().toLowerCase();const icon=['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':ext==='zip'?'📦':'📎';const bytes=parseInt(f.size)||0;const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB';const row=document.createElement('div');row.className='file-row';row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info"><div class="file-name">${esc(f.name||'')}</div><div class="file-meta">${size}</div></div>${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank">↓ Download</a>`:''}`;el.appendChild(row);});}).catch(e=>{el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${esc(e.message)}</p>`;});
+  fetch(API+'/list-files?slug='+encodeURIComponent(curClient._id||'')).then(r=>r.json()).then(data=>{
+    el.innerHTML='';
+    if(!data.files||!data.files.length){
+      el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">No files yet.</p>';
+      return;
+    }
+    // Sort: protected/system files first (auth docs at top), then by date
+    const sorted = [...data.files].sort((a,b)=>{
+      if(a.systemFile && !b.systemFile) return -1;
+      if(!a.systemFile && b.systemFile) return 1;
+      return new Date(b.uploadedAt||0)-new Date(a.uploadedAt||0);
+    });
+    sorted.forEach(f=>{
+      const isProtected = f.protected || f.systemFile;
+      const isAuthDoc   = f.docType === 'authorization';
+      const ext=(f.name||'').split('.').pop().toLowerCase();
+      const icon = isAuthDoc ? '🔐' : ['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':ext==='zip'?'📦':'📎';
+      const bytes=parseInt(f.size)||0;
+      const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB';
+      const uploadedDate = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+
+      const row=document.createElement('div');
+      row.className='file-row';
+      row.style.cssText = isAuthDoc
+        ? 'border:1px solid rgba(var(--teal-rgb,0,217,163),0.3);background:rgba(var(--teal-rgb,0,217,163),0.04);border-radius:8px;margin-bottom:6px;'
+        : 'margin-bottom:4px;';
+
+      // Protected badge
+      const protectedBadge = isProtected
+        ? `<span style="font-size:.6rem;font-weight:700;color:var(--teal);background:rgba(var(--teal-rgb,0,217,163),0.12);border:1px solid rgba(var(--teal-rgb,0,217,163),0.25);border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;">🔒 Protected</span>`
+        : '';
+
+      // Actions: protected = download only, regular = download + delete
+      const actions = isProtected
+        ? (f.url ? `<a class="file-dl" href="${esc(f.url)}" target="_blank" download style="white-space:nowrap;">↓ Download</a>` : '')
+        : `${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank">↓ Download</a>`:''}<button onclick="deleteFile('${esc(f.key||'')}',this)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.75rem;padding:4px 8px;border-radius:4px;opacity:.7;transition:opacity .2s;" title="Delete file">🗑</button>`;
+
+      row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info" style="flex:1;min-width:0"><div class="file-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${esc(f.name||'')}${protectedBadge}</div><div class="file-meta">${size}${uploadedDate?' · '+uploadedDate:''}</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${actions}</div>`;
+      el.appendChild(row);
+    });
+
+    // Add upload button at bottom for non-system files
+    const uploadWrap = document.createElement('div');
+    uploadWrap.style.cssText='margin-top:14px;padding-top:12px;border-top:1px solid var(--border)';
+    uploadWrap.innerHTML=`<label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--teal);padding:7px 14px;border:1px solid rgba(var(--teal-rgb,0,217,163),.3);border-radius:7px;transition:all .2s" onmouseover="this.style.background='rgba(0,217,163,.07)'" onmouseout="this.style.background=''" >📎 Upload File<input type="file" style="display:none" onchange="handleFileUpload(event,'${esc(curClient._id||'')}')"></label>`;
+    el.appendChild(uploadWrap);
+
+  }).catch(e=>{el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${esc(e.message)}</p>`;});
+}
+
+async function deleteFile(key, btn) {
+  if(!key || !confirm('Delete this file permanently?')) return;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const res = await fetch(API + '/delete-file', { method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token}, body:JSON.stringify({key}) });
+    const data = await res.json();
+    if(data.success) {
+      const row = btn.closest('.file-row');
+      if(row) row.remove();
+      toast('🗑 File deleted');
+    } else { toast('❌ ' + (data.error||'Failed')); btn.disabled=false; btn.textContent='🗑'; }
+  } catch(e) { toast('❌ ' + e.message); btn.disabled=false; btn.textContent='🗑'; }
+}
+
+async function handleFileUpload(event, slug) {
+  const file = event.target.files?.[0];
+  if (!file || !slug) return;
+  if (file.size > 10 * 1024 * 1024) { toast('❌ File too large (max 10MB)'); return; }
+  toast('⏳ Uploading...');
+  try {
+    const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+    const resp = await fetch(API + '/upload-file', { method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token}, body:JSON.stringify({slug, fileName:file.name, fileBase64:base64, fileType:file.type, fileSize:file.size}) });
+    const data = await resp.json();
+    if(data.success) {
+      toast('✅ Uploaded!');
+      // Reload the files tab
+      const el = document.getElementById('dt-files');
+      if(el) { el.dataset.loaded='0'; buildFiles(); }
+    } else toast('❌ ' + (data.error||'Upload failed'));
+  } catch(e) { toast('❌ ' + e.message); }
 }
 
 // ── STATUS UPDATE ─────────────────────────────────────────────
@@ -1685,9 +1771,9 @@ async function saveOffer(clientId,clear){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────
-function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('settings-sheet').classList.add('open');}
+function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('set-privacy-url').value=agencyConfig.privacyUrl||'';document.getElementById('settings-sheet').classList.add('open');}
 function closeSettings(){document.getElementById('settings-sheet').classList.remove('open');}
-async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
 
 // ── BLAST ─────────────────────────────────────────────────────
 function openBlast(){document.getElementById('blast-sheet').classList.add('open');}
