@@ -397,6 +397,7 @@ async function generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, age
       notWorked:        data.notWorked||'',
       // Goals
       goal90Days:       data.goal90Days||'',
+      goal90:           data.goal90Days||'',
       limitations:      data.limitations||'',
       priorities:       data.priorities||'',
       customQ1:         data.customQ1||'',
@@ -510,6 +511,7 @@ export default async (req, context) => {
       serviceAreaType: data.serviceAreaType||'', serviceDetails: data.serviceDetails||'',
       website: data.website||'', companySize: data.companySize||'',
       goal90: data.goal90Days||'',
+      goal90Days: data.goal90Days||'',
       status: 'new', createdAt: now,
       dashboardUrl: planUrl, dashboardJSON: '{}', notes: '',
       leadSource: data.source||'agency-onboarding',
