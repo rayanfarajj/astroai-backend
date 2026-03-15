@@ -1237,7 +1237,38 @@ async function submitForm(){
       clientId  = resp.clientId  || null;
       console.log('[onboarding] Plan scheduled:', resp);
 
-      // Auth document generated server-side in agency-process-plan — no client upload needed
+      // ── Upload the REAL signed PDF now that we have clientId ──────────────
+      // Uses FileReader (browser-native, instant) — no slow forEach loop
+      if (_pdfBlob && clientId && AGENCY_ID) {
+        (async () => {
+          try {
+            const b64 = await new Promise((res, rej) => {
+              const reader = new FileReader();
+              reader.onload = () => res(reader.result.split(',')[1]);
+              reader.onerror = rej;
+              reader.readAsDataURL(_pdfBlob);
+            });
+            const fname = 'Authorization_Agreement_'
+              + (data.businessName||'Client').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30)
+              + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+            await fetch('/api/agency/process-plan/upload-auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                agencyId: AGENCY_ID,
+                clientId,
+                authPdfBase64: b64,
+                authPdfFilename: fname,
+                authSignerName: data.authSignerName || '',
+                authSignerBusiness: data.authSignerBusiness || '',
+                authTimestamp: data.authTimestamp || '',
+                authDocRef: data.authDocRef || '',
+              }),
+            });
+            console.log('[onboarding] ✅ Auth PDF saved to Files tab for:', clientId);
+          } catch(e) { console.warn('[onboarding] Auth PDF upload failed:', e.message); }
+        })();
+      }
     }
   } catch(fetchErr) {
     clearTimeout(timeout);
