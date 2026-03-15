@@ -461,6 +461,7 @@ const _urlp = new URLSearchParams(location.search);
 const slug = _urlp.get('s') || _urlp.get('slug') || '';
 const _agencyId = _urlp.get('a') || '';
 let C = null;
+let _sessionRefCount = -1; // -1 means not yet set; once set, never decremented
 
 const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-billing':'Billing','s-refer':'Refer a Friend','s-message':'Message Us'};
 const STEPS  = [
@@ -592,13 +593,12 @@ document.getElementById('ref-btn').addEventListener('click',async()=>{
     const data=await res.json();
     if(data.success){
       // Increment count permanently in DOM
-      // Increment count permanently in DOM and in C object so it persists in session
-      const rn=document.getElementById('ref-n');
-      const sr=document.getElementById('st-refs');
-      const newCount = parseInt(rn.textContent||'0') + 1;
-      rn.textContent = newCount;
-      if(sr) sr.textContent = newCount;
-      if(C) C.referralCount = String(newCount); // prevent re-load from resetting it
+      // Increment session count — this persists even if page re-fetches from Firestore
+      _sessionRefCount = (_sessionRefCount < 0 ? 0 : _sessionRefCount) + 1;
+      document.getElementById('ref-n').textContent = _sessionRefCount;
+      const sr = document.getElementById('st-refs');
+      if(sr) sr.textContent = _sessionRefCount;
+      if(C) C.referralCount = String(_sessionRefCount);
       // Show success banner temporarily
       const ok=document.getElementById('ref-ok');
       ok.classList.add('on');
@@ -652,8 +652,11 @@ async function init() {
     if(C.statusUpdated) document.getElementById('h-updated').textContent='Updated '+new Date(C.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
     // Stats
-    document.getElementById('st-refs').textContent=C.referralCount||'0';
-    document.getElementById('ref-n').textContent=C.referralCount||'0';
+    // Use whichever is higher: Firestore count or our session count (accounts for lag)
+    const _fsCount = parseInt(C.referralCount||'0');
+    if (_sessionRefCount < _fsCount) _sessionRefCount = _fsCount;
+    document.getElementById('st-refs').textContent = _sessionRefCount;
+    document.getElementById('ref-n').textContent = _sessionRefCount;
     if(C.createdAt) document.getElementById('st-days').textContent=Math.floor((Date.now()-new Date(C.createdAt))/86400000);
 
     // Timeline
