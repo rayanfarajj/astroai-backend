@@ -18,6 +18,38 @@
   --font:'DM Sans',sans-serif;--display:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --sidebar:244px;--radius:10px;
 }
+
+/* ── LIGHT MODE ─────────────────────────────────────────────── */
+html.light {
+  --bg:#f0f2f7;--surface:#ffffff;--surface-2:#f5f7fc;--surface-3:#eaecf4;
+  --border:rgba(0,0,0,.08);--border-2:rgba(0,0,0,.13);
+  --teal:#00a37a;--teal-dim:rgba(0,163,122,.1);--teal-glow:rgba(0,163,122,.2);
+  --red:#dc2626;--red-dim:rgba(220,38,38,.08);
+  --gold:#d97706;--gold-dim:rgba(217,119,6,.1);
+  --purple:#7c3aed;--purple-dim:rgba(124,58,237,.1);
+  --orange:#ea6c00;--orange-dim:rgba(234,108,0,.1);
+  --text:#0f1623;--text-dim:#3d4a63;--text-muted:#7a859e;
+}
+html.light body { background:var(--bg); color:var(--text); }
+html.light .login-card { box-shadow:0 8px 32px rgba(0,0,0,.12); }
+html.light .topbar { background:var(--surface); border-bottom:1px solid var(--border); }
+html.light .sidebar { background:var(--surface); }
+html.light .content-inner { background:var(--bg); }
+html.light .card { box-shadow:0 1px 4px rgba(0,0,0,.06); }
+html.light .stat-card { box-shadow:0 1px 4px rgba(0,0,0,.06); }
+html.light .table-row:hover { background:var(--surface-2); }
+html.light .sheet { background:var(--surface); border-color:var(--border-2); }
+html.light .sf-input, html.light .sf-sel, html.light .sf-ta { background:var(--surface-2); border-color:var(--border-2); color:var(--text); }
+html.light .ad-card { background:var(--surface-2); }
+html.light .copy-field { background:var(--surface); }
+html.light .detail-tab { color:var(--text-dim); }
+html.light .detail-tab.active { color:var(--teal); background:var(--teal-dim); }
+html.light .angle-badge { opacity:.9; }
+html.light input, html.light textarea, html.light select { color:var(--text); }
+html.light .login-btn { color:#fff; }
+html.light .nav-item.active { color:var(--teal); }
+html.light .lead-card { background:var(--surface); }
+html.light .lead-card-list { background:var(--surface); }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13.5px}
@@ -431,6 +463,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <button class="sb-copy-btn" onclick="copyOnboardUrl()">📋 Copy Link</button>
     </div>
     <div class="sb-bottom">
+      <button class="sb-action" onclick="toggleTheme()" id="theme-btn" title="Toggle light/dark mode">
+        <span class="ni" id="theme-icon">🌙</span><span id="theme-label">Dark Mode</span>
+      </button>
       <button class="sb-action danger" onclick="logout()">
         <span class="ni">🚪</span><span>Sign Out</span>
       </button>
@@ -732,6 +767,21 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <label class="sf-label">Welcome Message</label><textarea class="sf-ta" id="set-welcome" placeholder="Welcome..."></textarea>
     <label class="sf-label">Terms Text</label><textarea class="sf-ta" id="set-terms" placeholder="By submitting..."></textarea>
     <label class="sf-label">Terms URL</label><input class="sf-input" id="set-terms-url" placeholder="https://">
+  </div>
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="sf-label" style="margin-bottom:10px;display:block">🎨 Appearance</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px">
+        <div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--text)">Color Theme</div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">Switch between dark and light mode</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button id="set-dark-btn" onclick="setTheme('dark')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">🌙 Dark</button>
+          <button id="set-light-btn" onclick="setTheme('light')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">☀️ Light</button>
+          <button id="set-auto-btn" onclick="setTheme('auto')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">⚙️ Auto</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
@@ -2002,6 +2052,50 @@ async function generateAdImage(ad, angleLabel, provider, btn) {
   btn.disabled = false;
 }
 
+// ── THEME ─────────────────────────────────────────────────────
+const THEME_KEY = 'astroai_theme';
+let currentTheme = 'dark';
+
+function applyTheme(theme) {
+  const html = document.documentElement;
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  html.classList.toggle('light', !isDark);
+  if (icon) { icon.textContent = isDark ? '🌙' : '☀️'; }
+  if (label) { label.textContent = isDark ? 'Dark Mode' : 'Light Mode'; }
+  // Update settings buttons
+  ['dark','light','auto'].forEach(t => {
+    const btn = document.getElementById(`set-${t}-btn`);
+    if (!btn) return;
+    const active = theme === t;
+    btn.style.background = active ? 'var(--teal)' : 'var(--surface-3)';
+    btn.style.color = active ? (isDark ? '#07090f' : '#fff') : 'var(--text-dim)';
+    btn.style.borderColor = active ? 'var(--teal)' : 'var(--border-2)';
+  });
+}
+
+function setTheme(theme) {
+  currentTheme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme(theme);
+}
+
+function toggleTheme() {
+  const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+  setTheme(next);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  currentTheme = saved;
+  applyTheme(saved);
+  // Watch for system preference changes (auto mode)
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (currentTheme === 'auto') applyTheme('auto');
+  });
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 function copyOnboardUrl(){const url=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;navigator.clipboard.writeText(url).then(()=>toast('📋 Onboarding link copied!'));}
 function copyPortal(){if(!curClient)return;navigator.clipboard.writeText(`https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${curClient._id}`).then(()=>toast('🔗 Portal link copied!'));}
@@ -2012,6 +2106,7 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 
 // ── INIT ──────────────────────────────────────────────────────
 async function init() {
+  initTheme();
   agencyId=getAgencyIdFromUrl();
   const savedToken=sessionStorage.getItem('saas_token');const savedAgency=sessionStorage.getItem('saas_agency_id');
   if(!agencyId&&savedAgency)agencyId=savedAgency;
