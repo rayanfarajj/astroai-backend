@@ -87,7 +87,7 @@ export default async (req) => {
   try { body = await req.json(); }
   catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } }); }
 
-  const { referrerSlug, referrerName, referrerBusiness, refereeName, refereeEmail, refereePhone, refereeBusinessName, refereeNote } = body;
+  const { referrerSlug, referrerName, referrerBusiness, refereeName, refereeEmail, refereePhone, refereeBusinessName, refereeNote, agencyId } = body;
 
   if (!referrerSlug || !refereeEmail) {
     return new Response(JSON.stringify({ error: 'referrerSlug and refereeEmail required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -100,28 +100,49 @@ export default async (req) => {
     const token = await getFirebaseToken();
 
     // Save referral to Firestore
-    await firestoreSet(token, 'referrals', referralId, {
-      referralId:        { stringValue: referralId },
-      referrerSlug:      { stringValue: referrerSlug },
-      referrerName:      { stringValue: referrerName || '' },
-      referrerBusiness:  { stringValue: referrerBusiness || '' },
-      refereeName:       { stringValue: refereeName || '' },
-      refereeEmail:      { stringValue: refereeEmail },
-      refereePhone:      { stringValue: refereePhone || '' },
-      refereeBusinessName:{ stringValue: refereeBusinessName || '' },
-      refereeNote:       { stringValue: refereeNote || '' },
-      status:            { stringValue: 'pending' },
-      createdAt:         { stringValue: now },
-    });
+    const referralData = {
+      referralId:          { stringValue: referralId },
+      referrerSlug:        { stringValue: referrerSlug },
+      referrerName:        { stringValue: referrerName || '' },
+      referrerBusiness:    { stringValue: referrerBusiness || '' },
+      referrerClientName:  { stringValue: referrerName || '' },       // alias for dashboard display
+      referrerBusinessName:{ stringValue: referrerBusiness || '' },   // alias for dashboard display
+      refereeName:         { stringValue: refereeName || '' },
+      refereeEmail:        { stringValue: refereeEmail },
+      refereePhone:        { stringValue: refereePhone || '' },
+      refereeBusinessName: { stringValue: refereeBusinessName || '' },
+      refereeNote:         { stringValue: refereeNote || '' },
+      status:              { stringValue: 'pending' },
+      agencyId:            { stringValue: agencyId || '' },
+      source:              { stringValue: 'client-portal' },
+      createdAt:           { stringValue: now },
+    };
+    await firestoreSet(token, 'referrals', referralId, referralData);
 
-    // Update referral count on client record
-    const clientDoc = await firestoreGet(token, 'clients', referrerSlug);
-    if (clientDoc.fields) {
-      const currentCount = parseInt(clientDoc.fields.referralCount?.integerValue || '0') + 1;
-      await firestoreSet(token, 'clients', referrerSlug, {
-        ...clientDoc.fields,
-        referralCount: { integerValue: String(currentCount) },
-      });
+    // Update referral count — check agency subcollection first, fall back to root clients
+    let countUpdated = false;
+    if (agencyId) {
+      try {
+        const agencyClientDoc = await firestoreGet(token, `agencies/${agencyId}/clients`, referrerSlug);
+        if (agencyClientDoc && agencyClientDoc.fields) {
+          const currentCount = parseInt(agencyClientDoc.fields.referralCount?.integerValue || '0') + 1;
+          await firestoreSet(token, `agencies/${agencyId}/clients`, referrerSlug, {
+            ...agencyClientDoc.fields,
+            referralCount: { integerValue: String(currentCount) },
+          });
+          countUpdated = true;
+        }
+      } catch(e) {}
+    }
+    if (!countUpdated) {
+      const clientDoc = await firestoreGet(token, 'clients', referrerSlug);
+      if (clientDoc && clientDoc.fields) {
+        const currentCount = parseInt(clientDoc.fields.referralCount?.integerValue || '0') + 1;
+        await firestoreSet(token, 'clients', referrerSlug, {
+          ...clientDoc.fields,
+          referralCount: { integerValue: String(currentCount) },
+        });
+      }
     }
 
     // Email agency
