@@ -87,7 +87,7 @@ export default async (req) => {
     const dashboardJSON = get('dashboardJSON');
 
     if (!dashboardJSON || dashboardJSON === '{}') {
-      return new Response(`<!DOCTYPE html><html><body style="font-family:sans-serif;padding:40px;text-align:center"><h2>Plan Generating...</h2><p style="color:#666;margin-top:12px">Your AI marketing plan is being built. Check your email — we'll send it directly when ready!</p><meta http-equiv="refresh" content="15"></body></html>`, {status:200,headers:{'Content-Type':'text/html'}});
+      return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="10"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8f9fa;text-align:center}.box{background:#fff;border-radius:16px;padding:48px 40px;max-width:460px;box-shadow:0 4px 24px rgba(0,0,0,.08)}.spinner{width:40px;height:40px;border:3px solid #eee;border-top-color:#00d9a3;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="box"><div class="spinner"></div><h2 style="font-size:1.3rem;font-weight:800;color:#111;margin-bottom:8px">Building Your Plan...</h2><p style="color:#666;line-height:1.6;font-size:.9rem">Your AI marketing plan is being generated right now. This page refreshes every 10 seconds automatically.</p><p style="margin-top:12px;font-size:.8rem;color:#aaa">We will also send it to your email when ready.</p></div></body></html>`, {status:200,headers:{'Content-Type':'text/html;charset=UTF-8'}});
     }
 
     const client = {};
