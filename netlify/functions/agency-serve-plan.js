@@ -149,8 +149,8 @@ function renderPlan(j, client, agency, agencyId, clientId) {
     <div class="card" ${hasError?'style="border:2px solid #fbbf24;background:#fffbeb"':''}>
       <div class="card-title">${hasError?'⚠️ Generation Issue':'✨ Campaign Overview'}</div>
       <p style="font-size:1rem;line-height:1.8;color:#333;margin:0 0 ${hasError?'16px':'0'}">${s(j.tagline||j.executiveSummary)}</p>
-      ${hasError?`<a href="javascript:history.back()" style="display:inline-block;background:#f97316;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.88rem;margin-right:8px">← Go Back</a>
-      <span style="font-size:.8rem;color:#888">Or contact support to regenerate this plan.</span>`:''}
+      ${hasError?`<a href="/onboard/portal?a=${agencyId}&s=${clientId}" style="display:inline-block;background:#f97316;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.88rem;margin-right:8px">← Back to My Portal</a>
+      <span style="font-size:.8rem;color:#888">Your plan can be regenerated from your portal.</span>`:''}
     </div>` : '';
 
   // ── Stats bar ────────────────────────────────────────────────────────────────
@@ -224,33 +224,72 @@ ${stats.length?`<div class="stats">${stats.map(([v,l])=>`<div class="stat"><div 
     <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Ready to Launch? 🚀</h2>
     <p style="color:#666;margin-bottom:18px">Your Marketing Command Center for ${s(client.businessName||'your business')} is live.</p>
     ${agency.bookingUrl?`<a href="${s(agency.bookingUrl)}" style="background:${color};color:#fff;padding:11px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-block;margin-right:8px">📅 Schedule Strategy Call</a>`:''}
-    <button onclick="regeneratePlan()" style="background:#f3f4f6;color:#444;border:1px solid #e5e7eb;padding:10px 20px;border-radius:50px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">⚡ Regenerate Plan</button>
+    <button id="regenBtn" onclick="regeneratePlan()" style="background:#f3f4f6;color:#444;border:1px solid #e5e7eb;padding:10px 20px;border-radius:50px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">⚡ Regenerate Plan</button>
   </div>
   <script>
+  const _planKey = 'regen_${agencyId}_${clientId}';
+  const _portalUrl = '/onboard/portal?a=${agencyId}&s=${clientId}';
+
   function regeneratePlan() {
-    if(!confirm('Regenerate this marketing plan? This will take ~20 seconds.')) return;
-    const btn = document.querySelector('button[onclick="regeneratePlan()"]');
-    btn.textContent = '⏳ Regenerating...'; btn.disabled = true;
+    if(!confirm('Regenerate this marketing plan? It takes ~25 seconds.')) return;
+    const btn = document.getElementById('regenBtn');
+    btn.textContent = '⏳ Generating...'; btn.disabled = true;
+    // Store timestamp so page refresh knows we're generating
+    try { localStorage.setItem(_planKey, Date.now().toString()); } catch(e){}
     fetch('/api/agency/process-plan', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         agencyId: '${agencyId}', clientId: '${clientId}',
-        firstName: '${s(client.firstName||'')}', lastName: '${s(client.lastName||'')}',
-        email: '${s(client.clientEmail||'')}', businessName: '${s(client.businessName||'')}',
-        phone: '${s(client.phone||'')}', industry: '${s(client.industry||'')}',
-        primaryService: '${s(client.primaryService||'')}', adBudget: '${s(client.adBudget||'')}',
-        adPlatforms: '${s(client.adPlatforms||'')}', goal90Days: '${s(client.goal90||client.goal90Days||'')}',
-        standOut: '${s(client.standOut||'')}', promotions: '${s(client.promotions||'')}',
-        serviceDetails: '${s(client.serviceDetails||'')}', idealCustomer: '${s(client.idealCustomer||'')}',
-        qualifyingQuestions: '${s(client.qualifyingQuestions||'')}', avgCustomerValue: '${s(client.avgCustomerValue||'')}',
-        workedWell: '${s(client.workedWell||'')}',
+        firstName: '${s(client.firstName||"")}', lastName: '${s(client.lastName||"")}',
+        email: '${s(client.clientEmail||"")}', businessName: '${s(client.businessName||"")}',
+        phone: '${s(client.phone||"")}', industry: '${s(client.industry||"")}',
+        primaryService: '${s(client.primaryService||"")}', adBudget: '${s(client.adBudget||"")}',
+        adPlatforms: '${s(client.adPlatforms||"")}', goal90Days: '${s(client.goal90||client.goal90Days||"")}',
+        standOut: '${s(client.standOut||"")}', promotions: '${s(client.promotions||"")}',
+        serviceDetails: '${s(client.serviceDetails||"")}', idealCustomer: '${s(client.idealCustomer||"")}',
+        qualifyingQuestions: '${s(client.qualifyingQuestions||"")}', avgCustomerValue: '${s(client.avgCustomerValue||"")}',
+        workedWell: '${s(client.workedWell||"")}',
       })
     }).then(r => r.json()).then(d => {
-      if(d.success) { setTimeout(() => location.reload(), 25000); btn.textContent = '⏳ Generating (~25s)...'; }
-      else { btn.textContent = '❌ Failed — try again'; btn.disabled = false; }
-    }).catch(() => { btn.textContent = '❌ Error — try again'; btn.disabled = false; });
+      if(d.success) {
+        btn.textContent = '⏳ Generating (~25s)...';
+        // Auto-reload every 10s until plan is ready
+        setInterval(() => location.reload(), 10000);
+      } else {
+        btn.textContent = '❌ Failed — try again';
+        btn.disabled = false;
+        try { localStorage.removeItem(_planKey); } catch(e){}
+      }
+    }).catch(() => {
+      btn.textContent = '❌ Error — try again';
+      btn.disabled = false;
+      try { localStorage.removeItem(_planKey); } catch(e){}
+    });
   }
+
+  // On page load: check if we were generating — if so, keep showing spinner
+  (function() {
+    try {
+      const ts = localStorage.getItem(_planKey);
+      if (ts) {
+        const elapsed = Date.now() - parseInt(ts);
+        if (elapsed < 120000) {
+          // Less than 2 minutes ago — still generating, disable button
+          const btn = document.getElementById('regenBtn');
+          if (btn) {
+            btn.textContent = '⏳ Generating... (~' + Math.max(5, Math.round((90000-elapsed)/1000)) + 's left)';
+            btn.disabled = true;
+            // Auto-reload every 10s
+            setInterval(() => location.reload(), 10000);
+          }
+        } else {
+          // More than 2 min — clear the flag, generation must have completed or failed
+          localStorage.removeItem(_planKey);
+        }
+      }
+    } catch(e){}
+  })();
   </script>
 </div>
 <footer>${s(brand)} · Marketing Command Center · ${s(client.businessName||'')}</footer>
