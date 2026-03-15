@@ -182,8 +182,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
 .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
 .info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.info-card.wide{grid-column:1/-1}
 .info-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:5px}
-.info-val{font-size:.82rem;color:var(--text);line-height:1.4}
+.info-val{font-size:.82rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
 
 /* ANGLE BADGES + AD CARDS */
 .angle-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.62rem;font-weight:700;margin:10px 0 8px}
@@ -1030,7 +1031,32 @@ function dTab(btn,id){
 }
 function buildDetailInfo(c) {
   const el=document.getElementById('dt-info');
-  el.innerHTML=`<div class="info-grid">${[['Business',c.businessName],['Owner',c.clientName],['Email',c.clientEmail],['Phone',c.phone],['Industry',c.industry],['Service',c.primaryService],['Budget','$'+(c.adBudget||'?')+'/mo'],['Platforms',c.adPlatforms],['Goal',c.goal90],['Status',c.status]].map(([l,v])=>`<div class="info-card"><div class="info-lbl">${l}</div><div class="info-val">${esc(v||'—')}</div></div>`).join('')}</div>`;
+  if(!el) return;
+  const WIDE_FIELDS = new Set(['Description','What Sets Them Apart','Promotions/Offers','Ideal Customer','Interests',
+    'Qualifying Questions','Disqualifying Questions','What Worked',"What Didn't Work",
+    'Limitations/Avoid','Priorities','90-Day Goal','Qualified Lead','Bad Fit / Disqualifiers',
+    'Final Notes','Custom Q1','Custom Q2','Custom Q3','Mailing Address']);
+  const sec = (title, rows) => {
+    const filled = rows.filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=='—');
+    if(!filled.length) return '';
+    const cards = filled.map(([l,v])=>{
+      const isWide = WIDE_FIELDS.has(l) || String(v).length > 60;
+      return `<div class="info-card${isWide?' wide':''}"><div class="info-lbl">${l}</div><div class="info-val">${esc(String(v||'—'))}</div></div>`;
+    }).join('');
+    return `<div style="margin-bottom:18px"><div style="font-size:.6rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)">${title}</div><div class="info-grid">${cards}</div></div>`;
+  };
+  const addr = [c.mailingAddr1,c.mailingAddr2,c.mailingCity,c.mailingState,c.mailingZip].filter(Boolean).join(', ');
+  el.innerHTML =
+    sec('Contact & Business',[['Business',c.businessName],['Owner',c.clientName],['Email',c.clientEmail],['Phone',c.phone||c.bizPhone],['Website',c.website],['Company Size',c.companySize],['Industry',c.industry],['Primary Service',c.primaryService],['Description',c.bizDescription],['Mailing Address',addr],['Status',c.status],['Lead Source',c.leadSource]]) +
+    sec('Offer & Audience',[['Main Goal',c.mainGoal],['Avg Job Value',c.avgCustomerValue?'$'+c.avgCustomerValue:''],['What Sets Them Apart',c.standOut],['Promotions/Offers',c.promotions],['Ideal Customer',c.idealCustomer],['Age Groups',c.ageGroups],['Language',c.language],['Interests',c.interests],['Gender Preference',c.genderPref]]) +
+    sec('Budget & Platforms',[['Ad Budget',c.adBudget?'$'+c.adBudget+'/day':''],['Platforms',c.adPlatforms],['Open to Scale Budget',c.budgetIncrease],['Service Area Type',c.serviceAreaType],['Service Area Details',c.serviceDetails]]) +
+    sec('90-Day Goals',[['90-Day Goal',c.goal90||c.goal90Days],['Limitations/Avoid',c.limitations],['Priorities',c.priorities]]) +
+    sec('Lead Qualification',[['Qualified Lead',c.qualifiedLead],['Bad Fit / Disqualifiers',c.badLead],['Qualifying Questions',c.qualifyingQuestions],['Disqualifying Questions',c.disqualifyingQuestions],['Custom Q1',c.customQ1],['Custom Q2',c.customQ2],['Custom Q3',c.customQ3]]) +
+    sec('Lead Handoff',[['Lead Destination',c.leadDestination],['Lead Email',c.leadEmail],['Lead Phone',c.leadPhone],['Response Time',c.responseTime],['Dedicated Person',c.dedicatedPerson]]) +
+    sec('Past Marketing',[['Paid Ads Before',c.paidAdsBefore],['Platforms Used Before',c.platformsUsedBefore],['What Worked',c.workedWell],["What Didn't Work",c.notWorked]]) +
+    sec('Ad Account Access',[['Platforms',c.adPlatforms],['Access Method',c.accessMethod]]) +
+    sec('Authorization',[['Signer Name',c.authSignerName],['Signer Business',c.authSignerBusiness],['Signed At',c.authTimestamp?new Date(c.authTimestamp).toLocaleString():''],['Doc Reference',c.authDocRef],['IP Address',c.authIP]]) +
+    sec('Referral & Notes',[['Referred By',c.referredBy],['Referral Friend Name',c.referralFriendName||c.referralContact],['Referral Friend Email',c.referralFriendEmail],['Open to Upgrade',c.openToUpgrade],['Final Notes',c.finalNotes]]);
 }
 function buildAds(){
   const pane=document.getElementById('dt-ads');if(pane.dataset.loaded==='1')return;pane.dataset.loaded='1';
