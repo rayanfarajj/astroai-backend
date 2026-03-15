@@ -1,12 +1,9 @@
 // netlify/functions/debug-billing.js
-// TEMPORARY debug endpoint — delete after fixing
 import https from 'https';
 import crypto from 'crypto';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-admin-key',
   'Content-Type': 'application/json',
 };
 
@@ -30,57 +27,55 @@ function getToken() {
 
 const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
-function fsRaw(token, path) {
+function fsRaw(token, docPath) {
   return new Promise((resolve)=>{
-    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${path}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${docPath}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
       let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({error:e.message,raw:d})}});
+      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({parseError:e.message})}});
     });
-    r.on('error',(e)=>resolve({error:e.message})); r.end();
+    r.on('error',(e)=>resolve({networkError:e.message})); r.end();
   });
 }
 
 export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('',{status:200,headers:CORS});
-  if (url.searchParams.get('key') !== 'AstroAdmin2024!') {
-    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:CORS});
-  }
-
-  const url = new URL(req.url);
+  const url      = new URL(req.url);
+  const key      = url.searchParams.get('key') || '';
   const agencyId = url.searchParams.get('a') || '';
   const clientId = url.searchParams.get('c') || '';
 
+  if (key !== 'AstroAdmin2024!') {
+    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:CORS});
+  }
   if (!agencyId || !clientId) {
-    return new Response(JSON.stringify({error:'Need ?a=agencyId&c=clientId'}),{status:400,headers:CORS});
+    return new Response(JSON.stringify({error:'Need ?key=...&a=agencyId&c=clientId'}),{status:400,headers:CORS});
   }
 
   try {
     const token = await getToken();
 
-    // Check all the paths
     const [clientDoc, billingDoc, paymentsDoc] = await Promise.all([
       fsRaw(token, `agencies/${agencyId}/clients/${clientId}`),
       fsRaw(token, `agencies/${agencyId}/clients/${clientId}/billing/config`),
       fsRaw(token, `agencies/${agencyId}/clients/${clientId}/payments`),
     ]);
 
-    // Extract showOnPortal raw value
     const showOnPortalRaw = billingDoc?.fields?.showOnPortal;
 
     return new Response(JSON.stringify({
-      clientExists: !!clientDoc?.fields,
-      billingDocExists: !!billingDoc?.fields,
-      billingDocError: billingDoc?.error || null,
-      showOnPortalRaw,  // exact raw Firestore value
-      showOnPortalType: showOnPortalRaw ? Object.keys(showOnPortalRaw)[0] : 'missing',
-      showOnPortalValue: showOnPortalRaw ? Object.values(showOnPortalRaw)[0] : null,
-      paymentsCount: (paymentsDoc?.documents||[]).length,
-      billingFields: billingDoc?.fields ? Object.fromEntries(
-        Object.entries(billingDoc.fields).map(([k,v]) => [k, Object.keys(v)[0] + ':' + Object.values(v)[0]])
-      ) : null,
-    }, null, 2), {status:200,headers:CORS});
+      clientExists:       !!clientDoc?.fields,
+      billingDocExists:   !!billingDoc?.fields,
+      billingDocError:    billingDoc?.error || billingDoc?.networkError || null,
+      showOnPortalRaw,
+      showOnPortalType:   showOnPortalRaw ? Object.keys(showOnPortalRaw)[0] : 'MISSING_FIELD',
+      showOnPortalValue:  showOnPortalRaw ? Object.values(showOnPortalRaw)[0] : null,
+      paymentsCount:      (paymentsDoc?.documents||[]).length,
+      allBillingFields:   billingDoc?.fields ? Object.fromEntries(
+        Object.entries(billingDoc.fields).map(([k,v]) => [k, Object.keys(v)[0]+':'+JSON.stringify(Object.values(v)[0])])
+      ) : 'NO_BILLING_DOC',
+    }, null, 2),{status:200,headers:CORS});
+
   } catch(e) {
-    return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
+    return new Response(JSON.stringify({error:e.message, stack:e.stack}),{status:500,headers:CORS});
   }
 };
 
