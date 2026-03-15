@@ -511,20 +511,48 @@ export default async (req, context) => {
     });
     console.log('[process-plan] Initial client record saved:', slug);
 
-    // ── Save auth PDF to Blobs IMMEDIATELY (before waitUntil) ─────────────────
-    // This guarantees the PDF is saved even if Claude call times out
+    // ── Save auth PDF to Blobs IMMEDIATELY ──────────────────────────────────────
     if (data.authPdfBase64 || (data.authSignature && data.authSignature.length > 100)) {
       uploadAuthPdfToBlobs(slug, agencyId, data.authSignature||'', data)
         .catch(e => console.error('[process-plan] PDF save failed:', e.message));
     }
 
-    // Run Claude + full Firestore save in background after response
-    if (context?.waitUntil) {
-      context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
-      console.log('[process-plan] waitUntil scheduled for:', slug);
-    } else {
-      generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(console.error);
-    }
+    // ── Fire background function (guaranteed 15-min execution, no timeout issues) ─
+    // Background functions bypass waitUntil limitations on Netlify
+    const bgPayload = JSON.stringify({
+      ...data,
+      clientId:  slug,
+      agencyId,
+      planUrl,
+      portalUrl,
+      createdAt: now,
+      // Strip large base64 fields to keep payload small for background function
+      authPdfBase64: undefined,
+    });
+
+    // Call background function via internal Netlify URL
+    const bgUrl = 'https://marketingplan.astroaibots.com/.netlify/functions/agency-generate-background';
+    https.request({
+      hostname: 'marketingplan.astroaibots.com',
+      path:     '/.netlify/functions/agency-generate-background',
+      method:   'POST',
+      headers:  {
+        'Content-Type':   'application/json',
+        'Content-Length': Buffer.byteLength(bgPayload),
+        'x-internal-key': process.env.INTERNAL_KEY || 'astroai-internal-2024',
+      }
+    }, res => {
+      console.log('[process-plan] Background function triggered, status:', res.statusCode);
+    }).on('error', e => {
+      // Background trigger failed — fall back to waitUntil
+      console.error('[process-plan] Background trigger failed:', e.message, '— falling back to waitUntil');
+      if (context?.waitUntil) {
+        context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
+      } else {
+        generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(console.error);
+      }
+    }).end(bgPayload);
+    console.log('[process-plan] Background function fired for:', slug);
 
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}), {
       status: 200,
