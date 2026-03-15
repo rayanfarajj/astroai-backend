@@ -8,7 +8,14 @@ exports.handler = async function(event) {
   const auth = await verifyToken(event);
   if (auth.error) return unauth(auth.error);
 
-  const agencyId = (event.queryStringParameters || {}).agencyId || auth.agencyId;
+  // Read agencyId from query string, body, or session token
+  let agencyId = (event.queryStringParameters || {}).agencyId || auth.agencyId;
+  if (!agencyId && event.httpMethod === 'POST') {
+    try {
+      const bodyParsed = JSON.parse(event.body || '{}');
+      agencyId = bodyParsed.agencyId || auth.agencyId;
+    } catch(e) {}
+  }
   if (!auth.isAdmin && agencyId !== auth.agencyId) return unauth('Forbidden');
 
   if (event.httpMethod === 'GET') {
@@ -34,6 +41,8 @@ exports.handler = async function(event) {
         welcomeMsg:      body.welcomeMsg       !== undefined ? body.welcomeMsg : agency.welcomeMsg,
         termsText:       body.termsText        !== undefined ? body.termsText  : agency.termsText,
         termsUrl:        body.termsUrl         || agency.termsUrl,
+        referralBonus:   body.referralBonus     !== undefined ? body.referralBonus   : (agency.referralBonus||''),
+        referralResources: body.referralResources !== undefined ? body.referralResources : (agency.referralResources||''),
         updatedAt:       new Date().toISOString(),
       };
       await fsSet('agencies', agencyId, updated);
