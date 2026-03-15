@@ -1003,14 +1003,16 @@ function buildAds(){
       promptBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, promptBtn);
 
       const openaiBtn = document.createElement('button');
-      openaiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(16,163,127,.1);color:#10a37f;border:1px solid rgba(16,163,127,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
-      openaiBtn.textContent = '⚡ ChatGPT';
-      openaiBtn.onclick = () => generateAdImage(ad, angle.angleLabel, 'openai', openaiBtn);
+      openaiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(16,163,127,.06);color:#6b9e94;border:1px solid rgba(16,163,127,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
+      openaiBtn.textContent = '🔒 ChatGPT — Soon';
+      openaiBtn.title = 'Coming soon';
+      openaiBtn.disabled = true;
 
       const geminiBtn = document.createElement('button');
-      geminiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(66,133,244,.1);color:#4285f4;border:1px solid rgba(66,133,244,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
-      geminiBtn.textContent = '✦ Gemini';
-      geminiBtn.onclick = () => generateAdImage(ad, angle.angleLabel, 'gemini', geminiBtn);
+      geminiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(66,133,244,.06);color:#7090c0;border:1px solid rgba(66,133,244,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
+      geminiBtn.textContent = '🔒 Gemini — Soon';
+      geminiBtn.title = 'Coming soon';
+      geminiBtn.disabled = true;
 
       imgRow.appendChild(promptBtn);
       imgRow.appendChild(openaiBtn);
