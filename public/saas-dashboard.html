@@ -991,7 +991,16 @@ function buildAds(){
         const vEl=document.createElement('div');vEl.className='copy-val';vEl.textContent=val||'';
         const b=document.createElement('button');b.className='copy-btn';b.textContent='Copy';b.onclick=()=>navigator.clipboard.writeText(val||'').then(()=>{b.textContent='✓';setTimeout(()=>b.textContent='Copy',2000)});
         r.appendChild(vEl);r.appendChild(b);f.appendChild(l);f.appendChild(r);card.appendChild(f);
-      });pane.appendChild(card);
+      });
+
+      // Image prompt button
+      const imgBtn = document.createElement('button');
+      imgBtn.style.cssText = 'margin-top:10px;width:100%;padding:7px;font-size:.72rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:6px;cursor:pointer;font-family:var(--font);transition:all .15s';
+      imgBtn.textContent = '🎨 Generate Image Prompt';
+      imgBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, imgBtn);
+      card.appendChild(imgBtn);
+
+      pane.appendChild(card);
     });
   });
 }
@@ -1765,7 +1774,8 @@ async function regeneratePlan(clientId, event) {
   if(btn){ btn.textContent='⏳ Starting...'; btn.disabled=true; }
 
   try {
-    if(btn){ btn.textContent='⏳ Queuing...'; }
+    if(btn){ btn.textContent='⏳ Generating...'; }
+    toast('⚡ Generating plan... takes ~20 seconds');
 
     const res = await fetch(`${API}/agency/process-plan`, {
       method:'POST',
@@ -1785,35 +1795,62 @@ async function regeneratePlan(clientId, event) {
         website:     c.website||'',
       }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Server error — try again'); }
     if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
 
-    // Plan is generating in background — poll every 5s until dashboardJSON appears
-    toast('⚡ Plan generating... checking every 5 seconds');
-    if(btn){ btn.textContent='⏳ Generating...'; }
-    let attempts = 0;
-    const targetId = data.clientId || clientId;
-    const poll = setInterval(async () => {
-      attempts++;
-      await loadClients();
-      const updated = clients.find(x=>(x._id||x.id)===targetId||(x._id||x.id)===clientId);
-      const hasPlan = updated?.dashboardJSON && updated.dashboardJSON !== '{}' &&
-                      typeof updated.dashboardJSON === 'object' && Object.keys(updated.dashboardJSON).length > 2;
-      if(hasPlan || attempts >= 24) {
-        clearInterval(poll);
-        if(hasPlan){
-          toast('✅ Plan ready!');
-          if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
-        } else {
-          toast('⚠️ Still generating — check back in a moment');
-        }
-        if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
-      }
-    }, 5000);
+    toast('✅ Plan generated!');
+    await loadClients();
+    const updated = clients.find(x=>(x._id||x.id)===clientId);
+    if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
+    if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
   } catch(e) {
     toast('❌ '+e.message);
     if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
   }
+}
+
+// ── IMAGE PROMPT GENERATOR ───────────────────────────────────
+async function generateImagePrompt(ad, angleLabel, btn) {
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(API + '/generate-prompt', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        headline:    ad.headline    || '',
+        primaryText: ad.primaryText || '',
+        cta:         ad.cta         || '',
+        description: ad.description || '',
+        angleLabel:  angleLabel     || '',
+        businessName: curClient?.businessName || '',
+        industry:    curClient?.industry      || '',
+      }),
+    });
+    const data = await res.json();
+    if (!data.prompt) throw new Error(data.error || 'No prompt returned');
+
+    // Show prompt in a modal-style overlay on the card
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+    overlay.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px">🎨 Image Prompt — ${esc(angleLabel)}</div>
+        <div id="prompt-text" style="font-size:.8rem;line-height:1.75;color:var(--text);background:var(--surface-2);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:var(--mono)">${esc(data.prompt)}</div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button onclick="navigator.clipboard.writeText(${JSON.stringify(data.prompt)}).then(()=>{this.textContent='✓ Copied!';setTimeout(()=>this.textContent='📋 Copy Prompt',2000)})" style="flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font)">📋 Copy Prompt</button>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)">✕ Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+  btn.textContent = '🎨 Generate Image Prompt';
+  btn.disabled = false;
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
