@@ -993,12 +993,29 @@ function buildAds(){
         r.appendChild(vEl);r.appendChild(b);f.appendChild(l);f.appendChild(r);card.appendChild(f);
       });
 
-      // Image prompt button
-      const imgBtn = document.createElement('button');
-      imgBtn.style.cssText = 'margin-top:10px;width:100%;padding:7px;font-size:.72rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:6px;cursor:pointer;font-family:var(--font);transition:all .15s';
-      imgBtn.textContent = '🎨 Generate Image Prompt';
-      imgBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, imgBtn);
-      card.appendChild(imgBtn);
+      // Image generation buttons row
+      const imgRow = document.createElement('div');
+      imgRow.style.cssText = 'display:flex;gap:6px;margin-top:10px;flex-wrap:wrap';
+
+      const promptBtn = document.createElement('button');
+      promptBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
+      promptBtn.textContent = '🎨 Get Prompt';
+      promptBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, promptBtn);
+
+      const openaiBtn = document.createElement('button');
+      openaiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(16,163,127,.1);color:#10a37f;border:1px solid rgba(16,163,127,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
+      openaiBtn.textContent = '⚡ ChatGPT';
+      openaiBtn.onclick = () => generateAdImage(ad, angle.angleLabel, 'openai', openaiBtn);
+
+      const geminiBtn = document.createElement('button');
+      geminiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(66,133,244,.1);color:#4285f4;border:1px solid rgba(66,133,244,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
+      geminiBtn.textContent = '✦ Gemini';
+      geminiBtn.onclick = () => generateAdImage(ad, angle.angleLabel, 'gemini', geminiBtn);
+
+      imgRow.appendChild(promptBtn);
+      imgRow.appendChild(openaiBtn);
+      imgRow.appendChild(geminiBtn);
+      card.appendChild(imgRow);
 
       pane.appendChild(card);
     });
@@ -1874,7 +1891,97 @@ async function generateImagePrompt(ad, angleLabel, btn) {
   } catch(e) {
     toast('❌ ' + e.message);
   }
-  btn.textContent = '🎨 Generate Image Prompt';
+  btn.textContent = '🎨 Get Prompt';
+  btn.disabled = false;
+}
+
+async function generateAdImage(ad, angleLabel, provider, btn) {
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  // First generate the prompt, then use it to generate the image
+  try {
+    // Step 1: get prompt
+    const promptRes = await fetch(`${API}/generate-prompt`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-internal-key':'astroai-internal-2024'},
+      body: JSON.stringify({
+        headline:    ad.headline    || '',
+        primaryText: ad.primaryText || '',
+        cta:         ad.cta         || '',
+        description: ad.description || '',
+        angleLabel,
+        businessName: curClient?.businessName || '',
+        industry:    curClient?.industry      || '',
+      }),
+    });
+    const promptData = await promptRes.json();
+    if (!promptData.prompt) throw new Error(promptData.error || 'Failed to generate prompt');
+
+    // Step 2: generate image
+    btn.textContent = '🖼 Creating image...';
+    const imgRes = await fetch(`${API}/generate-image-ad`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-internal-key':'astroai-internal-2024'},
+      body: JSON.stringify({ prompt: promptData.prompt, provider }),
+    });
+    const imgData = await imgRes.json();
+    if (!imgData.imageUrl) throw new Error(imgData.error || 'No image returned');
+
+    // Show image in overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:20px;max-width:560px;width:100%';
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
+    title.textContent = (provider === 'openai' ? '⚡ ChatGPT (gpt-image-1)' : '✦ Gemini Imagen 3') + ' — ' + angleLabel;
+
+    const img = document.createElement('img');
+    img.src = imgData.imageUrl;
+    img.style.cssText = 'width:100%;border-radius:8px;display:block;margin-bottom:14px';
+    img.alt = 'Generated Ad';
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px';
+
+    const dlBtn = document.createElement('a');
+    dlBtn.href = imgData.imageUrl;
+    dlBtn.download = `ad-${provider}-${angleLabel.toLowerCase().replace(/\s+/g,'-')}.png`;
+    dlBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);text-align:center;text-decoration:none';
+    dlBtn.textContent = '⬇ Download';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    closeBtn.textContent = '✕ Close';
+    closeBtn.onclick = () => overlay.remove();
+
+    const promptToggle = document.createElement('button');
+    promptToggle.style.cssText = 'padding:9px 14px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    promptToggle.textContent = 'View Prompt';
+    const promptEl = document.createElement('div');
+    promptEl.style.cssText = 'display:none;margin-top:10px;font-size:.72rem;line-height:1.6;color:var(--text-dim);background:var(--surface-2);border-radius:7px;padding:10px;font-family:var(--mono);white-space:pre-wrap';
+    promptEl.textContent = promptData.prompt;
+    promptToggle.onclick = () => { promptEl.style.display = promptEl.style.display === 'none' ? 'block' : 'none'; };
+
+    btnRow.appendChild(dlBtn);
+    btnRow.appendChild(promptToggle);
+    btnRow.appendChild(closeBtn);
+    box.appendChild(title);
+    box.appendChild(img);
+    box.appendChild(btnRow);
+    box.appendChild(promptEl);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+  btn.textContent = origText;
   btn.disabled = false;
 }
 
