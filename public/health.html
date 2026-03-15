@@ -89,7 +89,7 @@
   <div class="config-bar">
     <div>
       <label>Agency ID <span style="color:var(--text-muted)">(optional — enables agency-specific tests)</span></label>
-      <input id="cfg-agency" placeholder="e.g. kaciekacie-mmqeijsz" value="">
+      <input id="cfg-agency" placeholder="e.g. kaciekacie-mmqeijsz" value="kaciekacie-mmqeijsz" value="">
     </div>
     <div>
       <label>Client ID <span style="color:var(--text-muted)">(optional — enables client/billing tests)</span></label>
@@ -102,9 +102,9 @@
   </div>
 
   <div class="hint-box">
-    <strong>How to use:</strong> Fill in an Agency ID + Client ID to run the full suite of checks including billing, plan data, referrals, and client portal. Leave blank for basic infrastructure checks only.<br>
-    To get a session token: open the agency dashboard, open browser DevTools → Application → Session Storage → copy <code>saas_token</code>.<br>
-    <strong>Bookmark this URL for quick access:</strong>
+    <strong>Quick start:</strong> Just click "Run All Checks" — no login needed for infrastructure, API, and page checks.<br>
+    <strong>Full agency check:</strong> Add an Agency ID + Client ID to also test billing, plan generation, referrals, and the client portal.<br>
+    Session Token is optional — only needed for agency-specific tests. Get it from DevTools → Application → Session Storage → <code>saas_token</code>.
     <button class="copy-url" onclick="copyUrl(this)">https://marketingplan.astroaibots.com/health.html</button>
   </div>
 
