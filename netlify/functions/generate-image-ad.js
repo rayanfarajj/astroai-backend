@@ -22,40 +22,53 @@ function httpsPost(hostname, path, headers, body) {
 }
 
 async function generateWithOpenAI(prompt) {
-  const res = await httpsPost('api.openai.com', '/v1/images/generations', {
-    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-    'Content-Type': 'application/json',
-  }, {
-    model: 'gpt-image-1',
-    prompt,
-    n: 1,
-    size: '1024x1024',
-    quality: 'standard',
-    response_format: 'b64_json',
-  });
-  if (res.body.error) throw new Error('OpenAI: ' + res.body.error.message);
-  const b64 = res.body.data?.[0]?.b64_json;
-  if (!b64) throw new Error('No image returned from OpenAI');
-  return `data:image/png;base64,${b64}`;
+  // Try gpt-image-1 first, fall back to dall-e-3 if org not verified
+  for (const model of ['gpt-image-1', 'dall-e-3']) {
+    const body = model === 'gpt-image-1'
+      ? { model, prompt, n: 1, size: '1024x1024', quality: 'standard', response_format: 'b64_json' }
+      : { model, prompt, n: 1, size: '1024x1024', response_format: 'b64_json' };
+
+    const res = await httpsPost('api.openai.com', '/v1/images/generations', {
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    }, body);
+
+    if (res.body.error) {
+      // If 403 org verification error, try next model
+      if (res.body.error.message?.includes('verified') || res.status === 403) {
+        console.log(`[image-ad] ${model} needs org verification, trying fallback...`);
+        continue;
+      }
+      throw new Error('OpenAI: ' + res.body.error.message);
+    }
+
+    const b64 = res.body.data?.[0]?.b64_json;
+    if (!b64) throw new Error('No image returned from OpenAI');
+    console.log(`[image-ad] Generated with ${model}`);
+    return `data:image/png;base64,${b64}`;
+  }
+  throw new Error('OpenAI image generation failed — please verify your organization at platform.openai.com/settings/organization/general');
 }
 
 async function generateWithGemini(prompt) {
-  // Gemini Imagen 3 via Google AI API
+  // Gemini image generation via generateContent with responseModalities
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not set in environment variables');
 
   const res = await httpsPost('generativelanguage.googleapis.com',
-    `/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
+    `/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`,
     { 'Content-Type': 'application/json' },
     {
-      instances: [{ prompt }],
-      parameters: { sampleCount: 1, aspectRatio: '1:1', safetySetting: 'block_only_high' }
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
     }
   );
   if (res.body.error) throw new Error('Gemini: ' + (res.body.error.message || JSON.stringify(res.body.error)));
-  const b64 = res.body.predictions?.[0]?.bytesBase64Encoded;
-  if (!b64) throw new Error('No image returned from Gemini');
-  return `data:image/png;base64,${b64}`;
+  // Find the inline image part in the response
+  const parts = res.body.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData);
+  if (!imgPart) throw new Error('No image in Gemini response. Parts: ' + JSON.stringify(parts).slice(0,200));
+  return 'data:' + imgPart.inlineData.mimeType + ';base64,' + imgPart.inlineData.data;
 }
 
 export default async (req) => {
