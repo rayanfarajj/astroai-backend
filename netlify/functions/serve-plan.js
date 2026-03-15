@@ -45,13 +45,12 @@ export default async (req) => {
     slug = url.pathname.replace(/^\/+/, '').trim();
   }
 
-  // Strip .html extension if present for plan lookups
   const isHtmlFile = slug.endsWith('.html');
   console.log('serve-plan — slug:', slug, 'isHtmlFile:', isHtmlFile);
 
   const HTML_HEADERS = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' };
 
-  // ── Static HTML files served directly ──────────────────────────────────────
+  // ── Static HTML files served directly from GitHub ──────────────────────────
   if (isHtmlFile) {
     try {
       const html = await fetchFromGitHub(`public/${slug}`);
@@ -62,7 +61,7 @@ export default async (req) => {
     return new Response('<h1>Not Found</h1>', { status: 404, headers: HTML_HEADERS });
   }
 
-  // ── Known page redirects ──────────────────────────────────────────────────
+  // ── Known page redirects ────────────────────────────────────────────────────
   const PAGE_REDIRECTS = { 'join': '/join.html', 'signup': '/join.html', 'login': '/saas.html', 'admin': '/admin-dashboard.html' };
   if (PAGE_REDIRECTS[slug]) {
     return new Response(null, { status: 301, headers: { 'Location': PAGE_REDIRECTS[slug] } });
@@ -79,7 +78,6 @@ export default async (req) => {
 
   // ── Plan pages ──────────────────────────────────────────────────────────────
   try {
-    // Try plans/ subfolder first, then root public/
     let html = await fetchFromGitHub(`public/plans/${slug}.html`);
     if (!html) html = await fetchFromGitHub(`public/${slug}.html`);
 
@@ -109,7 +107,7 @@ export const config = {
   excludedPath: [
     // API routes
     '/api/*', '/api/agency/*', '/api/admin/*', '/.netlify/*',
-    // All static HTML pages
+    // All static HTML pages — these are served directly by Netlify, NOT by this function
     '/onboarding.html', '/onboard.html', '/saas.html', '/saas-dashboard.html',
     '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html',
     '/admin-dashboard.html', '/health.html', '/join.html', '/index.html',
