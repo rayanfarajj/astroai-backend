@@ -689,15 +689,15 @@ canvas#sigPad{display:block;width:100%;height:140px;cursor:crosshair;touch-actio
           </div>
           <div class="term-item on" onclick="toggleTerm(this)">
             <div class="term-cb"></div>
-            <div><div class="term-title">Campaign Performance</div><div class="term-body">You understand that campaign performance is based on multiple factors, and AGENCY_NAME_PLACEHOLDER has no control over or affiliation with Facebook, Meta, Google, TikTok, or any other ad platform.</div></div>
+            <div><div class="term-title">Campaign Performance</div><div class="term-body">You understand that campaign performance is based on multiple factors, and <span class="agency-name-inline"></span> has no control over or affiliation with Facebook, Meta, Google, TikTok, or any other ad platform.</div></div>
           </div>
           <div class="term-item on" onclick="toggleTerm(this)">
             <div class="term-cb"></div>
-            <div><div class="term-title">No Responsibility for Payments</div><div class="term-body">All payments for ad spend and extra messaging fees are made directly to the ad platforms and not through AGENCY_NAME_PLACEHOLDER. We are not liable for any of these fees.</div></div>
+            <div><div class="term-title">No Responsibility for Payments</div><div class="term-body">All payments for ad spend and extra messaging fees are made directly to the ad platforms and not through <span class="agency-name-inline"></span>. We are not liable for any of these fees.</div></div>
           </div>
           <div class="term-item on" onclick="toggleTerm(this)">
             <div class="term-cb"></div>
-            <div><div class="term-title">Liability Waiver</div><div class="term-body">AGENCY_NAME_PLACEHOLDER is not responsible for any outcomes, issues, or costs related to your advertising campaigns, including but not limited to ad performance, budget management, or third-party fees.</div></div>
+            <div><div class="term-title">Liability Waiver</div><div class="term-body"><span class="agency-name-inline"></span> is not responsible for any outcomes, issues, or costs related to your advertising campaigns, including but not limited to ad performance, budget management, or third-party fees.</div></div>
           </div>
         </div>
         <div class="terms-err" id="termsErr">⚠️ Please check all boxes above to confirm each term before continuing.</div>
@@ -731,7 +731,7 @@ canvas#sigPad{display:block;width:100%;height:140px;cursor:crosshair;touch-actio
 
         <div class="contract-meta">
           <strong>Owner/Authorizer Confirmation:</strong><br>
-          I, <span id="contractNameDisplay" style="color:var(--text);font-weight:600;"></span> am the legal owner and authorized representative of <span id="contractBizDisplay" style="color:var(--text);font-weight:600;"></span> and have full authority to grant AGENCY_NAME_PLACEHOLDER the permission to manage advertising campaigns on behalf of this business. I confirm that I have read and agree to the Privacy Policy and Terms &amp; Conditions.<br><br>
+          I, <span id="contractNameDisplay" style="color:var(--text);font-weight:600;"></span> am the legal owner and authorized representative of <span id="contractBizDisplay" style="color:var(--text);font-weight:600;"></span> and have full authority to grant <span class="agency-name-inline"></span> the permission to manage advertising campaigns on behalf of this business. I confirm that I have read and agree to the Privacy Policy and Terms &amp; Conditions.<br><br>
           <strong>Date:</strong> <span id="contractDate"></span> &nbsp;|&nbsp; <strong>IP:</strong> <span id="contractIP">Capturing…</span><br>
           <strong>User Agent:</strong> <span id="contractUA" style="font-size:10px;word-break:break-all;"></span>
         </div>
@@ -748,7 +748,7 @@ canvas#sigPad{display:block;width:100%;height:140px;cursor:crosshair;touch-actio
       <div class="card">
         <div class="card-tag">Section 16 · Referral Program</div>
         <span class="card-icon">🎁</span>
-        <div class="card-title">Earn Up to <em>3 Months Free</em><br>or a $200 Gift Card</div>
+        <div class="card-title" id="refRewardTitle">Refer a Friend & <em>Get Rewarded</em></div>
         <div class="card-desc">Refer a business owner friend — when they sign up, you both win.</div>
 
         <div class="ref-card">
@@ -758,11 +758,8 @@ canvas#sigPad{display:block;width:100%;height:140px;cursor:crosshair;touch-actio
               <h3>Refer a Business &<br><em>Get Rewarded</em></h3>
             </div>
           </div>
-          <div class="ref-perks">
-            <div class="perk"><span class="perk-i">🎁</span>Up to $200 gift card</div>
-            <div class="perk"><span class="perk-i">📅</span>Up to 3 months free</div>
-            <div class="perk"><span class="perk-i">🆓</span>Friend gets 2 weeks free</div>
-            <div class="perk"><span class="perk-i">✉️</span>We send the invite for you</div>
+          <div id="refBonusDisplay" class="ref-perks">
+            <div class="perk"><span class="perk-i">🎁</span>Referral rewards available — ask us for details</div>
           </div>
           <div class="ref-note">Enter your friend's info below. We'll send them a personalized invitation on your behalf. When they sign up, your reward is applied automatically.</div>
         </div>
@@ -944,9 +941,9 @@ function initContractSlide(){
   const techBody = document.getElementById('termTechBody');
   if(techBody){
     if(accessMethod === 'zoom'){
-      techBody.textContent = 'You acknowledge that you have scheduled (or will schedule) a free technical setup session via Zoom screen-share, during which AGENCY_NAME_PLACEHOLDER will set up your ad account with your permission and assistance.';
+      techBody.textContent = 'You acknowledge that you have scheduled (or will schedule) a free technical setup session via Zoom screen-share, during which '+CFG.agencyName+' will set up your ad account with your permission and assistance.';
     } else {
-      techBody.textContent = 'You acknowledge that you have requested email instructions for technical setup and understand that AGENCY_NAME_PLACEHOLDER will provide step-by-step guidance to help you grant ad account access at your own pace.';
+      techBody.textContent = 'You acknowledge that you have requested email instructions for technical setup and understand that '+CFG.agencyName+' will provide step-by-step guidance to help you grant ad account access at your own pace.';
     }
   }
   // Attach live update listeners (safe to add multiple times)
@@ -1525,13 +1522,13 @@ function generateAuthPDF(data){
     ? 'Technical Setup: A free Zoom screen-share session will be scheduled to connect the client ad account with full permission.'
     : 'Technical Setup: Email instructions for technical setup have been requested; client will grant ad account access at own pace.';
   const termsList = [
-    'Campaign Creation: Ads created based on information provided through the onboarding survey on the AGENCY_NAME_PLACEHOLDER website.',
+    'Campaign Creation: Ads created based on information provided through the onboarding survey on the '+CFG.agencyName+' website.',
     'Platform Authorization: Client grants permission to run marketing campaigns on chosen platforms (Facebook, Google, TikTok, etc.).',
     techTerm,
-    'Full Access: Client maintains full owner access to all accounts; AGENCY_NAME_PLACEHOLDER acts as admin for campaign management only.',
-    'Campaign Performance: Client understands performance depends on multiple factors; AGENCY_NAME_PLACEHOLDER has no control over or affiliation with any ad platform.',
-    'No Responsibility for Payments: All ad spend and messaging fees paid directly to platforms; AGENCY_NAME_PLACEHOLDER bears no liability for these fees.',
-    'Liability Waiver: AGENCY_NAME_PLACEHOLDER is not responsible for any outcomes, issues, or costs related to advertising campaigns, including ad performance, budget management, or third-party fees.',
+    'Full Access: Client maintains full owner access to all accounts; '+CFG.agencyName+' acts as admin for campaign management only.',
+    'Campaign Performance: Client understands performance depends on multiple factors; '+CFG.agencyName+' has no control over or affiliation with any ad platform.',
+    'No Responsibility for Payments: All ad spend and messaging fees paid directly to platforms; '+CFG.agencyName+' bears no liability for these fees.',
+    'Liability Waiver: '+CFG.agencyName+' is not responsible for any outcomes, issues, or costs related to advertising campaigns, including ad performance, budget management, or third-party fees.',
   ];
   termsList.forEach((t,i)=>{
     checkPage(14);
@@ -1581,9 +1578,9 @@ function generateAuthPDF(data){
   const confText = 'I, '+( data.authSignerName||'')
     +', am the legal owner and authorized representative of '
     +(data.authSignerBusiness||'')
-    +' and have full authority to grant AGENCY_NAME_PLACEHOLDER the permission to manage advertising '
+    +' and have full authority to grant '+CFG.agencyName+' the permission to manage advertising '
     +'campaigns on behalf of this business. I confirm that I have read, understood, and agree to '
-    +'the Privacy Policy and Terms & Conditions of AGENCY_NAME_PLACEHOLDER.';
+    +'the Privacy Policy and Terms & Conditions of '+CFG.agencyName+'.';
   const confLines = doc.splitTextToSize(confText, maxW-6);
   const boxH = confLines.length * (9.5*0.43+1.8) + 8;
   checkPage(boxH+4);
@@ -1727,12 +1724,24 @@ updateProg(1);
       if (agency.bookingUrl)  CFG.bookingUrl    = agency.bookingUrl;
       if (agency.supportEmail)CFG.supportEmail  = agency.supportEmail;
       if (agency.webhookUrl)  CFG.webhookUrl    = agency.webhookUrl;  // only if set
+      // Populate referral bonus section from agency settings
+      const refDisplay = document.getElementById('refBonusDisplay');
+      if (refDisplay && agency.referralBonus) {
+        refDisplay.innerHTML = `<div class="perk"><span class="perk-i">🎁</span>${agency.referralBonus}</div>`;
+      }
       // Re-run branding with live values
       applyBranding();
       console.log('[onboarding] Agency config loaded:', agency.brandName, '| TOS:', agency.termsUrl, '| Privacy:', agency.privacyUrl);
     })
     .catch(e => console.warn('[onboarding] Agency config fetch failed (using CFG defaults):', e.message));
 })();
+
+// ── URL SAFETY HELPER (global) ──────────────────────────────────────────────
+function safeUrl(url) {
+  if (!url || url === '#' || url.startsWith('YOUR_')) return '#';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return 'https://' + url;
+}
 
 // ── APPLY WHITE-LABEL BRANDING ──────────────────────────────────────
 // Named function (not IIFE) so fetchAgencyConfig can call it again
@@ -1754,14 +1763,15 @@ function applyBranding(){
 
   // Replace literal placeholder in DOM text nodes
   document.querySelectorAll('.term-body, .contract-meta').forEach(el => {
-    el.innerHTML = el.innerHTML.replace(/AGENCY_NAME_PLACEHOLDER/g, CFG.agencyName);
+    el.innerHTML = el.innerHTML.replace(/'+CFG.agencyName+'/g, CFG.agencyName);
   });
 
   // Privacy & TOS links
+  // Ensure URLs have https:// prefix so browser doesn't treat them as relative paths
   const ppLink = document.getElementById('pp-link');
-  if(ppLink) ppLink.href = CFG.privacyUrl || '#';
+  if(ppLink) ppLink.href = safeUrl(CFG.privacyUrl);
   const tosLink = document.getElementById('tos-link');
-  if(tosLink) tosLink.href = CFG.tosUrl || '#';
+  if(tosLink) tosLink.href = safeUrl(CFG.tosUrl);
 
   // Success screen support email
   const seEl = document.getElementById('support-email-display');
