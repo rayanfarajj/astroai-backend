@@ -88,13 +88,33 @@ function callClaude(prompt) {
 }
 
 function saveToGitHub(slug, agencyId, html) {
-  return new Promise((resolve)=>{
-    const content = Buffer.from(html).toString('base64');
-    const body    = JSON.stringify({message:`Plan: ${agencyId}/${slug}`,content});
-    const r = https.request({hostname:'api.github.com',path:`/repos/rayanfarajj/astroai-backend/contents/public/plans/${agencyId}/${slug}.html`,method:'PUT',headers:{'Authorization':`token ${process.env.GITHUB_TOKEN}`,'User-Agent':'AstroAI','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},res=>{
-      let d=''; res.on('data',c=>d+=c); res.on('end',()=>resolve());
+  return new Promise((resolve, reject)=>{
+    if (!process.env.GITHUB_TOKEN) { reject(new Error('No GITHUB_TOKEN')); return; }
+    const encoded = Buffer.from(html).toString('base64');
+    // First check if file exists to get its sha (required for update)
+    const checkReq = https.request({
+      hostname:'api.github.com',
+      path:`/repos/rayanfarajj/astroai-backend/contents/public/plans/${agencyId}/${slug}.html`,
+      method:'GET',
+      headers:{'Authorization':`token ${process.env.GITHUB_TOKEN}`,'User-Agent':'AstroAI'}
+    }, res => {
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{
+        let sha = '';
+        try { sha = JSON.parse(d).sha || ''; } catch(e) {}
+        const bodyObj = {message:`Plan: ${agencyId}/${slug}`, content: encoded};
+        if (sha) bodyObj.sha = sha;
+        const body = JSON.stringify(bodyObj);
+        const putReq = https.request({
+          hostname:'api.github.com',
+          path:`/repos/rayanfarajj/astroai-backend/contents/public/plans/${agencyId}/${slug}.html`,
+          method:'PUT',
+          headers:{'Authorization':`token ${process.env.GITHUB_TOKEN}`,'User-Agent':'AstroAI','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
+        }, res2 => { let d2=''; res2.on('data',c=>d2+=c); res2.on('end',()=>resolve()); });
+        putReq.on('error', reject); putReq.write(body); putReq.end();
+      });
     });
-    r.on('error',()=>resolve()); r.write(body); r.end();
+    checkReq.on('error', reject); checkReq.end();
   });
 }
 
@@ -140,9 +160,13 @@ export default async (req) => {
       if (m) try { dashJSON = JSON.parse(m[0]); } catch(e2) {}
     }
 
-    // Save HTML to GitHub
-    await saveToGitHub(clientId, agencyId, buildPlanHTML(dashJSON, data, agency));
-    console.log('[bg] Plan saved to GitHub');
+    // Save HTML to GitHub (non-critical — don't let failure kill the plan)
+    try {
+      await saveToGitHub(clientId, agencyId, buildPlanHTML(dashJSON, data, agency));
+      console.log('[bg] Plan HTML saved to GitHub');
+    } catch(ghErr) {
+      console.log('[bg] GitHub save failed (non-fatal):', ghErr.message);
+    }
 
     // Update client record
     const clientData = {
