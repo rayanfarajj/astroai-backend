@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AstroAI Platform Health</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#07090f;--surface:#0e1117;--surface-2:#141720;--surface-3:#1a1f2e;
+    --border:rgba(255,255,255,.06);--border-2:rgba(255,255,255,.1);
+    --text:#e8eaf0;--text-dim:#9ba3b4;--text-muted:#5a6070;
+    --teal:#00d9a3;--teal-dim:rgba(0,217,163,.1);
+    --red:#ef4444;--red-dim:rgba(239,68,68,.1);
+    --gold:#f59e0b;--gold-dim:rgba(245,158,11,.1);
+    --green:#22c55e;--green-dim:rgba(34,197,94,.1);
+    --font:'Inter',-apple-system,sans-serif;
+    --mono:'JetBrains Mono',monospace;
+    --radius:10px;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .header-left{display:flex;align-items:center;gap:12px}
+  .logo{font-size:1.1rem;font-weight:800;color:var(--teal)}
+  .header-title{font-size:1rem;font-weight:700;color:var(--text)}
+  .header-sub{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+  .run-btn{background:var(--teal);color:#07090f;border:none;border-radius:8px;padding:10px 20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all .15s}
+  .run-btn:hover{opacity:.9}
+  .run-btn:disabled{opacity:.5;cursor:not-allowed}
+  .container{max-width:1100px;margin:0 auto;padding:32px 24px}
+  .config-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .config-bar label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);display:block;margin-bottom:4px}
+  .config-bar input{background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:.78rem;font-family:var(--font);outline:none;width:220px}
+  .config-bar input:focus{border-color:var(--teal)}
+  .config-hint{font-size:.7rem;color:var(--text-muted);margin-top:4px}
+  .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;text-align:center}
+  .summary-n{font-size:1.8rem;font-weight:800;font-family:var(--mono)}
+  .summary-l{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:4px}
+  .summary-pass .summary-n{color:var(--green)}
+  .summary-fail .summary-n{color:var(--red)}
+  .summary-warn .summary-n{color:var(--gold)}
+  .summary-total .summary-n{color:var(--teal)}
+  .section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px;margin-top:24px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .checks-grid{display:flex;flex-direction:column;gap:6px}
+  .check{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:all .15s}
+  .check:hover{border-color:var(--border-2)}
+  .check.pass{border-left:3px solid var(--green)}
+  .check.fail{border-left:3px solid var(--red);background:rgba(239,68,68,.04)}
+  .check.warn{border-left:3px solid var(--gold)}
+  .check-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+  .check-name{font-size:.82rem;font-weight:600;flex:1}
+  .check-detail{font-size:.72rem;color:var(--text-muted);font-family:var(--mono);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .check-ms{font-size:.65rem;color:var(--text-muted);font-family:var(--mono);min-width:50px;text-align:right}
+  .check-badge{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0}
+  .badge-pass{background:var(--green-dim);color:var(--green)}
+  .badge-fail{background:var(--red-dim);color:var(--red)}
+  .badge-warn{background:var(--gold-dim);color:var(--gold)}
+  .empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+  .empty-icon{font-size:2.5rem;margin-bottom:12px}
+  .empty-text{font-size:.9rem;font-weight:600;color:var(--text-dim);margin-bottom:6px}
+  .empty-sub{font-size:.78rem}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,217,163,.3);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .status-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:20px;font-size:.78rem;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+  .status-bar.healthy{border-color:rgba(34,197,94,.3);background:var(--green-dim)}
+  .status-bar.unhealthy{border-color:rgba(239,68,68,.3);background:var(--red-dim)}
+  .ts{font-size:.7rem;color:var(--text-muted);font-family:var(--mono);margin-left:auto}
+  .hint-box{background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:.78rem;color:var(--text-dim);line-height:1.7}
+  .hint-box strong{color:var(--teal)}
+  .copy-url{background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;padding:8px 12px;font-family:var(--mono);font-size:.7rem;color:var(--teal);cursor:pointer;width:100%;text-align:left;margin-top:8px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .copy-url:hover{border-color:var(--teal)}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="logo">✦ AstroAI</div>
+    <div>
+      <div class="header-title">Platform Health Dashboard</div>
+      <div class="header-sub">Run checks anytime to verify all features are working</div>
+    </div>
+  </div>
+  <button class="run-btn" id="run-btn" onclick="runChecks()">▶ Run All Checks</button>
+</div>
+
+<div class="container">
+  <div class="config-bar">
+    <div>
+      <label>Agency ID <span style="color:var(--text-muted)">(optional — enables agency-specific tests)</span></label>
+      <input id="cfg-agency" placeholder="e.g. kaciekacie-mmqeijsz" value="">
+    </div>
+    <div>
+      <label>Client ID <span style="color:var(--text-muted)">(optional — enables client/billing tests)</span></label>
+      <input id="cfg-client" placeholder="e.g. kacie-roofing-mmrdcmg3" value="">
+    </div>
+    <div>
+      <label>Agency Session Token <span style="color:var(--text-muted)">(from login)</span></label>
+      <input id="cfg-token" placeholder="paste session token" value="" type="password">
+    </div>
+  </div>
+
+  <div class="hint-box">
+    <strong>How to use:</strong> Fill in an Agency ID + Client ID to run the full suite of checks including billing, plan data, referrals, and client portal. Leave blank for basic infrastructure checks only.<br>
+    To get a session token: open the agency dashboard, open browser DevTools → Application → Session Storage → copy <code>saas_token</code>.<br>
+    <strong>Bookmark this URL for quick access:</strong>
+    <button class="copy-url" onclick="copyUrl(this)">https://marketingplan.astroaibots.com/health.html</button>
+  </div>
+
+  <div id="status-bar" style="display:none"></div>
+  <div id="summary-row" style="display:none" class="summary-row"></div>
+  <div id="results"></div>
+</div>
+
+<script>
+const API = 'https://marketingplan.astroaibots.com/api';
+const KEY = 'AstroAdmin2024!';
+let lastRun = null;
+
+async function runChecks() {
+  const btn = document.getElementById('run-btn');
+  const agencyId = document.getElementById('cfg-agency').value.trim();
+  const clientId = document.getElementById('cfg-client').value.trim();
+  const token    = document.getElementById('cfg-token').value.trim();
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Running...';
+
+  document.getElementById('results').innerHTML = `
+    <div class="empty">
+      <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div>
+      <div class="empty-text">Running health checks...</div>
+      <div class="empty-sub" style="margin-top:6px">Testing all APIs, services, and features</div>
+    </div>`;
+  document.getElementById('summary-row').style.display = 'none';
+  document.getElementById('status-bar').style.display = 'none';
+
+  try {
+    let url = `${API}/health?key=${KEY}`;
+    if (agencyId) url += `&a=${encodeURIComponent(agencyId)}`;
+    if (clientId) url += `&c=${encodeURIComponent(clientId)}`;
+    if (token)    url += `&t=${encodeURIComponent(token)}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    lastRun = data;
+    renderResults(data);
+  } catch(e) {
+    document.getElementById('results').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Health check failed</div><div class="empty-sub">${e.message}</div></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '↺ Run Again';
+  }
+}
+
+function renderResults(data) {
+  const { summary, checks, timestamp } = data;
+
+  // Status bar
+  const sb = document.getElementById('status-bar');
+  sb.style.display = 'flex';
+  sb.className = `status-bar ${summary.failed === 0 ? 'healthy' : 'unhealthy'}`;
+  sb.innerHTML = `
+    <span>${summary.failed === 0 ? '✅ All systems healthy' : `⚠️ ${summary.failed} check${summary.failed>1?'s':''} failing`}</span>
+    ${summary.warned > 0 ? `<span style="color:var(--gold)">· ${summary.warned} warning${summary.warned>1?'s':''}</span>` : ''}
+    <span class="ts">${new Date(timestamp).toLocaleTimeString()}</span>`;
+
+  // Summary cards
+  const sr = document.getElementById('summary-row');
+  sr.style.display = 'grid';
+  sr.innerHTML = `
+    <div class="summary-card summary-pass"><div class="summary-n">${summary.passed}</div><div class="summary-l">✅ Passing</div></div>
+    <div class="summary-card summary-fail"><div class="summary-n">${summary.failed}</div><div class="summary-l">❌ Failing</div></div>
+    <div class="summary-card summary-warn"><div class="summary-n">${summary.warned}</div><div class="summary-l">⚠️ Warnings</div></div>
+    <div class="summary-card summary-total"><div class="summary-n">${summary.total}</div><div class="summary-l">◈ Total Checks</div></div>`;
+
+  // Group checks by category
+  const groups = {
+    '🏗 Infrastructure': checks.filter(c => ['🔥 Firebase Auth','🤖 Anthropic API','📦 GitHub Token','📧 Gmail Config'].includes(c.name)),
+    '📄 Page Availability': checks.filter(c => c.name.includes('HTML')),
+    '🔌 API Endpoints': checks.filter(c => c.name.includes('Endpoint') || c.name.includes('Background')),
+    '🏢 Agency Features': checks.filter(c => c.name.includes('Agency') || c.name.includes('Referral') || c.name.includes('Billing') || c.name.includes('Process Plan')),
+    '👤 Client Features': checks.filter(c => c.name.includes('Client') || c.name.includes('Portal') || c.name.includes('Plan Data') || c.name.includes('Dashboard URL')),
+    '🛡 Admin': checks.filter(c => c.name.includes('Admin')),
+  };
+
+  let html = '';
+  for (const [groupName, groupChecks] of Object.entries(groups)) {
+    if (!groupChecks.length) continue;
+    html += `<div class="section-title">${groupName}</div><div class="checks-grid">`;
+    for (const check of groupChecks) {
+      const icon = check.status === 'pass' ? '✅' : check.status === 'fail' ? '❌' : '⚠️';
+      const badge = `<span class="check-badge badge-${check.status}">${check.status.toUpperCase()}</span>`;
+      const ms = check.ms ? `<span class="check-ms">${check.ms}ms</span>` : '';
+      html += `<div class="check ${check.status}">
+        <span class="check-icon">${icon}</span>
+        <span class="check-name">${check.name}</span>
+        <span class="check-detail" title="${esc(check.detail)}">${esc(check.detail)}</span>
+        ${ms}
+        ${badge}
+      </div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('results').innerHTML = html;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function copyUrl(btn) {
+  navigator.clipboard.writeText(btn.textContent).then(() => {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = 'https://marketingplan.astroaibots.com/health.html', 2000);
+  });
+}
+
+// Auto-load agency/client from URL params if present
+const _p = new URLSearchParams(location.search);
+if (_p.get('a')) document.getElementById('cfg-agency').value = _p.get('a');
+if (_p.get('c')) document.getElementById('cfg-client').value = _p.get('c');
+if (_p.get('t')) document.getElementById('cfg-token').value = _p.get('t');
+</script>
+</body>
+</html>
