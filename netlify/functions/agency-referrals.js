@@ -88,54 +88,15 @@ async function fsList(path) {
   return (r.documents||[]).map(extractDoc).filter(Boolean);
 }
 
-// Query the root referrals collection filtered by agencyId
+// Fetch all referrals and filter by agencyId in memory (no index needed)
 async function listReferralsByAgency(agencyId) {
   const t = await getToken();
-  const proj = process.env.FIREBASE_PROJECT_ID;
-
-  // Use structured query to filter by agencyId
-  const queryBody = {
-    structuredQuery: {
-      from: [{ collectionId: 'referrals' }],
-      where: {
-        fieldFilter: {
-          field: { fieldPath: 'agencyId' },
-          op: 'EQUAL',
-          value: { stringValue: agencyId },
-        },
-      },
-      orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
-      limit: 200,
-    },
-  };
-
-  const body = JSON.stringify(queryBody);
-  return new Promise((resolve) => {
-    const r = https.request({
-      hostname: 'firestore.googleapis.com',
-      path: `/v1/projects/${proj}/databases/(default)/documents:runQuery`,
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-    }, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => {
-        try {
-          const results = JSON.parse(d);
-          const docs = results
-            .filter(r => r.document)
-            .map(r => {
-              const o = {};
-              for (const [k, v] of Object.entries(r.document.fields || {})) o[k] = fromFS(v);
-              o.id = (r.document.name || '').split('/').pop();
-              return o;
-            });
-          resolve(docs);
-        } catch(e) { resolve([]); }
-      });
-    });
-    r.on('error', () => resolve([]));
-    r.write(body); r.end();
-  });
+  // Fetch up to 300 most recent referrals
+  const all = await fsList('referrals');
+  // Filter by agencyId and sort newest first
+  return all
+    .filter(r => r.agencyId === agencyId)
+    .sort((a, b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
 }
 
 async function verifySession(sessionToken) {
