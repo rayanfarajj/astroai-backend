@@ -157,8 +157,8 @@ export default async (req) => {
         const billingDoc = await fsReq(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
         if (billingDoc?.fields) {
           const cfg = extractAllFields(billingDoc);
-          // showOnPortal must be true (boolean) to show
-          if (cfg && cfg.showOnPortal === true) {
+          // showOnPortal can be boolean true, string "true", or any truthy value
+          if (cfg && cfg.showOnPortal) {
             // Fetch payment records
             const paymentsResp = await new Promise((resolve) => {
               const r = https.request({
