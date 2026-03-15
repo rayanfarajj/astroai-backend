@@ -29,9 +29,9 @@ function getFirebaseToken() {
 
 const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
-function fsGet(token, docPath) {
+function fsReq(token, path) {
   return new Promise((resolve,reject)=>{
-    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${docPath}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${path}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
       let d=''; res.on('data',c=>d+=c);
       res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}});
     });
@@ -39,27 +39,24 @@ function fsGet(token, docPath) {
   });
 }
 
-function fsList(token, collPath) {
-  return new Promise((resolve)=>{
-    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${collPath}?pageSize=100`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
-      let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
-    });
-    r.on('error',()=>resolve({})); r.end();
-  });
-}
-
+// Decode ALL Firestore types including booleans and numbers
 function fromFS(v) {
   if (!v) return null;
   if ('stringValue'  in v) return v.stringValue;
-  if ('integerValue' in v) return String(v.integerValue);
+  if ('integerValue' in v) return Number(v.integerValue);
   if ('doubleValue'  in v) return v.doubleValue;
-  if ('booleanValue' in v) return v.booleanValue;
+  if ('booleanValue' in v) return v.booleanValue;   // returns true/false properly
   if ('nullValue'    in v) return null;
+  if ('arrayValue'   in v) return (v.arrayValue.values||[]).map(fromFS);
+  if ('mapValue'     in v) {
+    const o = {};
+    for (const [k,val] of Object.entries(v.mapValue.fields||{})) o[k] = fromFS(val);
+    return o;
+  }
   return null;
 }
 
-function extractFields(doc) {
+function extractAllFields(doc) {
   if (!doc || !doc.fields) return null;
   const o = {};
   for (const [k,v] of Object.entries(doc.fields)) o[k] = fromFS(v);
@@ -67,26 +64,27 @@ function extractFields(doc) {
   return o;
 }
 
+// For client records — use stringValue with fallback
 function extractClient(fields, slug) {
-  const get = k => fields[k]?.stringValue || fields[k]?.integerValue || '';
+  const str = k => fields[k]?.stringValue || '';
   return {
     id:            slug,
-    businessName:  get('businessName'),
-    clientName:    get('clientName'),
-    clientEmail:   get('clientEmail'),
-    phone:         get('phone'),
-    industry:      get('industry'),
-    adPlatforms:   get('adPlatforms'),
-    adBudget:      get('adBudget'),
-    goal90:        get('goal90'),
-    status:        get('status') || 'new',
-    statusLabel:   get('statusLabel') || '🆕 New',
-    statusUpdated: get('statusUpdated'),
-    notes:         get('notes'),
-    dashboardUrl:  get('dashboardUrl'),
-    authPdfUrl:    get('authPdfUrl'),
-    referralCount: get('referralCount') || '0',
-    createdAt:     get('createdAt'),
+    businessName:  str('businessName'),
+    clientName:    str('clientName'),
+    clientEmail:   str('clientEmail'),
+    phone:         str('phone'),
+    industry:      str('industry'),
+    adPlatforms:   str('adPlatforms'),
+    adBudget:      str('adBudget'),
+    goal90:        str('goal90'),
+    status:        str('status') || 'new',
+    statusLabel:   str('statusLabel') || '🆕 New',
+    statusUpdated: str('statusUpdated'),
+    notes:         str('notes'),
+    dashboardUrl:  str('dashboardUrl'),
+    authPdfUrl:    str('authPdfUrl'),
+    referralCount: str('referralCount') || '0',
+    createdAt:     str('createdAt'),
   };
 }
 
@@ -106,7 +104,7 @@ export default async (req) => {
     // 1. Try agency subcollection first
     if (agencyId) {
       try {
-        const doc = await fsGet(token, `agencies/${agencyId}/clients/${slug}`);
+        const doc = await fsReq(token, `agencies/${agencyId}/clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
@@ -114,7 +112,7 @@ export default async (req) => {
     // 2. Fall back to root clients collection
     if (!clientDoc) {
       try {
-        const doc = await fsGet(token, `clients/${slug}`);
+        const doc = await fsReq(token, `clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
@@ -125,24 +123,24 @@ export default async (req) => {
 
     const client = extractClient(clientDoc.fields, slug);
 
-    // ── OFFER ────────────────────────────────────────────────
+    // ── OFFER ─────────────────────────────────────────────
     let offer = null;
-    const offerField = clientDoc.fields.offer?.stringValue || '';
-    if (offerField) {
+    const offerRaw = clientDoc.fields.offer?.stringValue || '';
+    if (offerRaw) {
       try {
-        const p = JSON.parse(offerField);
-        if (p && p.title && p.ctaUrl) {
+        const p = JSON.parse(offerRaw);
+        if (p?.title && p?.ctaUrl) {
           offer = { title:p.title, description:p.description||'', ctaText:p.ctaText||'Claim Offer', ctaUrl:p.ctaUrl, expiresAt:p.expiresAt||'' };
         }
       } catch(e) {}
     }
     if (!offer) {
-      const paths = agencyId
+      const offerPaths = agencyId
         ? [`agencies/${agencyId}/offers/${slug}`, `offers/${slug}`, `offers/global`]
         : [`offers/${slug}`, `offers/global`];
-      for (const p of paths) {
+      for (const p of offerPaths) {
         try {
-          const doc = await fsGet(token, p);
+          const doc = await fsReq(token, p);
           if (doc.fields && doc.fields.active?.booleanValue !== false) {
             const f = doc.fields;
             offer = { title:f.title?.stringValue||'', description:f.description?.stringValue||'', ctaText:f.ctaText?.stringValue||'Claim Offer', ctaUrl:f.ctaUrl?.stringValue||'', expiresAt:f.expiresAt?.stringValue||'' };
@@ -152,17 +150,30 @@ export default async (req) => {
       }
     }
 
-    // ── BILLING ──────────────────────────────────────────────
+    // ── BILLING ───────────────────────────────────────────
     let billing = null;
     if (agencyId && slug) {
       try {
-        const billingDoc = await fsGet(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
-        if (billingDoc && billingDoc.fields) {
-          const cfg = extractFields(billingDoc);
-          if (cfg && cfg.showOnPortal) {
-            const paymentsResp = await fsList(token, `agencies/${agencyId}/clients/${slug}/payments`);
+        const billingDoc = await fsReq(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
+        if (billingDoc?.fields) {
+          const cfg = extractAllFields(billingDoc);
+          // showOnPortal must be true (boolean) to show
+          if (cfg && cfg.showOnPortal === true) {
+            // Fetch payment records
+            const paymentsResp = await new Promise((resolve) => {
+              const r = https.request({
+                hostname:'firestore.googleapis.com',
+                path:`${BASE()}/agencies/${agencyId}/clients/${slug}/payments?pageSize=100`,
+                method:'GET',
+                headers:{'Authorization':'Bearer '+token}
+              },res=>{
+                let d=''; res.on('data',c=>d+=c);
+                res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
+              });
+              r.on('error',()=>resolve({})); r.end();
+            });
             const payments = (paymentsResp.documents||[])
-              .map(doc => extractFields(doc))
+              .map(doc => extractAllFields(doc))
               .filter(Boolean)
               .sort((a,b) => new Date(b.dueDate||0) - new Date(a.dueDate||0));
             billing = { ...cfg, payments };
