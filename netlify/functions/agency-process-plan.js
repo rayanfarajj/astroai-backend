@@ -349,6 +349,22 @@ export default async (req, context) => {
   try { data=await req.json(); }
   catch { return new Response(JSON.stringify({error:'Invalid JSON'}),{status:400,headers:CORS}); }
 
+  // ── Sub-route: upload auth PDF after form submission ─────────────────────
+  const reqUrl = new URL(req.url);
+  if (reqUrl.pathname.endsWith('/upload-auth')) {
+    const { agencyId: aId, clientId, authPdfBase64, authPdfFilename } = data;
+    if (!aId || !clientId || !authPdfBase64) {
+      return new Response(JSON.stringify({error:'agencyId, clientId, authPdfBase64 required'}),{status:400,headers:CORS});
+    }
+    try {
+      await uploadAuthPdfToBlobs(clientId, aId, '', { authPdfBase64, authPdfFilename, ...data });
+      return new Response(JSON.stringify({success:true}),{status:200,headers:CORS});
+    } catch(e) {
+      console.error('[upload-auth] failed:', e.message);
+      return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
+    }
+  }
+
   const {agencyId} = data;
   if (!agencyId) return new Response(JSON.stringify({error:'agencyId required'}),{status:400,headers:CORS});
 
@@ -426,4 +442,4 @@ export default async (req, context) => {
   }
 };
 
-export const config = { path: '/api/agency/process-plan' };
+export const config = { path: ['/api/agency/process-plan', '/api/agency/process-plan/upload-auth'] };
