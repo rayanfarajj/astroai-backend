@@ -452,76 +452,124 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
     <!-- EMBED CODE PAGE -->
     <div class="page" id="page-embed">
-      <div class="page-inner">
-        <div style="max-width:760px">
-          <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">🔌 Embed Code</div>
-          <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:24px;line-height:1.6">Paste these codes on your website to let clients sign up directly. Each code is unique to your agency — leads automatically appear in your dashboard.</div>
+      <div class="page-inner" style="max-width:900px">
+        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">🔌 Embed Code</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Customize your embed then copy the code. Each code is unique to your agency — leads appear in your dashboard automatically.</div>
 
-          <!-- IFRAME EMBED -->
-          <div class="embed-card">
-            <div class="embed-card-header">
-              <div>
-                <div class="embed-card-title">🖼️ Iframe Embed</div>
-                <div class="embed-card-sub">Embed the full onboarding form directly on any page of your website</div>
-              </div>
-              <button class="embed-copy-btn" id="copy-iframe-btn" onclick="copyEmbed('iframe')">📋 Copy Code</button>
-            </div>
-            <div class="embed-preview">
-              <div class="embed-preview-label">PREVIEW</div>
-              <div class="embed-preview-box">
-                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:.8rem;flex-direction:column;gap:6px">
-                  <span style="font-size:1.5rem">🖼️</span>
-                  <span>Onboarding form appears here on your site</span>
-                </div>
-              </div>
-            </div>
-            <pre class="embed-code" id="code-iframe"></pre>
-            <div class="embed-note">📐 Recommended: place inside a full-width section. The form is mobile responsive.</div>
+        <!-- CUSTOMIZER -->
+        <div class="embed-card" style="margin-bottom:20px">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+            <span style="font-size:1rem">🎨</span>
+            <div style="font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text)">Customize Your Embed</div>
+            <div style="font-size:.72rem;color:var(--text-muted);margin-left:4px">Changes update the code and preview instantly</div>
           </div>
-
-          <!-- POPUP BUTTON EMBED -->
-          <div class="embed-card">
-            <div class="embed-card-header">
-              <div>
-                <div class="embed-card-title">🪄 Popup Button</div>
-                <div class="embed-card-sub">A "Get Your Free Marketing Plan" button that opens the form in a popup overlay</div>
+          <div style="padding:18px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Button Color</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="color" id="ec-color" oninput="updateEmbedCodes()" style="width:36px;height:36px;border:1px solid var(--border-2);border-radius:6px;background:none;cursor:pointer;padding:2px">
+                <input type="text" id="ec-color-hex" oninput="syncColorHex()" placeholder="#00d9a3" style="flex:1;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:.75rem;outline:none">
               </div>
-              <button class="embed-copy-btn" id="copy-popup-btn" onclick="copyEmbed('popup')">📋 Copy Code</button>
             </div>
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
-              <div class="embed-preview-label" style="margin-bottom:10px">PREVIEW</div>
-              <button style="padding:12px 24px;background:var(--teal);color:#07090f;border:none;border-radius:8px;font-family:var(--display);font-size:.85rem;font-weight:700;cursor:default;box-shadow:0 4px 16px var(--teal-glow)">🚀 Get Your Free Marketing Plan</button>
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Button Text</label>
+              <input type="text" id="ec-btn-text" oninput="updateEmbedCodes()" placeholder="Get Your Free Marketing Plan" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
             </div>
-            <pre class="embed-code" id="code-popup"></pre>
-            <div class="embed-note">✨ Works on any page — just paste before the closing &lt;/body&gt; tag.</div>
-          </div>
-
-          <!-- LINK ONLY -->
-          <div class="embed-card">
-            <div class="embed-card-header">
-              <div>
-                <div class="embed-card-title">🔗 Direct Link</div>
-                <div class="embed-card-sub">A simple URL to share via email, social media, or text</div>
-              </div>
-              <button class="embed-copy-btn" id="copy-link-btn" onclick="copyEmbed('link')">📋 Copy Link</button>
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Iframe Height</label>
+              <select id="ec-height" oninput="updateEmbedCodes()" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
+                <option value="700px">700px — Compact</option>
+                <option value="800px" selected>800px — Standard</option>
+                <option value="900px">900px — Tall</option>
+                <option value="100vh">100vh — Full Screen</option>
+              </select>
             </div>
-            <div style="padding:16px 20px">
-              <div class="embed-preview-label" style="margin-bottom:8px">YOUR ONBOARDING LINK</div>
-              <div id="code-link" style="font-family:var(--mono);font-size:.8rem;color:var(--teal);background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px;word-break:break-all;line-height:1.6"></div>
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Button Text Color</label>
+              <select id="ec-text-color" oninput="updateEmbedCodes()" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
+                <option value="#07090f">Dark (default)</option>
+                <option value="#ffffff">White</option>
+              </select>
             </div>
-          </div>
-
-          <!-- CUSTOMIZATION NOTE -->
-          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-top:4px">
-            <div style="font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:8px">💡 Customization Tips</div>
-            <div style="font-size:.75rem;color:var(--text-muted);line-height:1.8">
-              • Your brand color and name from Settings are automatically applied to the form<br>
-              • The iframe height can be adjusted — try <code style="color:var(--teal);font-family:var(--mono)">height="900px"</code> for taller pages<br>
-              • The popup button color can be changed by editing the <code style="color:var(--teal);font-family:var(--mono)">background</code> style<br>
-              • Go to <strong>Settings</strong> to customize your onboarding page title and welcome message
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Button Border Radius</label>
+              <select id="ec-radius" oninput="updateEmbedCodes()" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
+                <option value="6px">Slightly Rounded</option>
+                <option value="8px" selected>Rounded (default)</option>
+                <option value="50px">Pill Shape</option>
+                <option value="0px">Square</option>
+              </select>
+            </div>
+            <div>
+              <label class="embed-preview-label" style="display:block;margin-bottom:6px">Iframe Border Radius</label>
+              <select id="ec-iframe-radius" oninput="updateEmbedCodes()" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
+                <option value="0px">None</option>
+                <option value="8px">Slight</option>
+                <option value="12px" selected>Rounded (default)</option>
+                <option value="20px">Very Rounded</option>
+              </select>
             </div>
           </div>
         </div>
+
+        <!-- IFRAME EMBED -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div>
+              <div class="embed-card-title">🖼️ Iframe Embed</div>
+              <div class="embed-card-sub">Paste inside any page on your website — the form loads live inside your site</div>
+            </div>
+            <button class="embed-copy-btn" id="copy-iframe-btn" onclick="copyEmbed('iframe')">📋 Copy Code</button>
+          </div>
+          <!-- LIVE PREVIEW -->
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="embed-preview-label" style="margin-bottom:10px">LIVE PREVIEW — your actual onboarding form</div>
+            <div style="border:1px solid var(--border-2);border-radius:10px;overflow:hidden;background:var(--surface-2)">
+              <div style="background:var(--surface-3);padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+                <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;opacity:.6"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;opacity:.6"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;opacity:.6"></div>
+                <div style="flex:1;background:var(--surface-2);border-radius:4px;padding:3px 10px;font-size:.62rem;font-family:var(--mono);color:var(--text-muted);margin-left:4px" id="iframe-url-bar">—</div>
+              </div>
+              <iframe id="embed-live-preview" src="about:blank" style="width:100%;height:500px;border:none;display:block" title="Live Preview"></iframe>
+            </div>
+          </div>
+          <pre class="embed-code" id="code-iframe"></pre>
+          <div class="embed-note">📐 Place inside any full-width container. The form is fully mobile responsive.</div>
+        </div>
+
+        <!-- POPUP BUTTON -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div>
+              <div class="embed-card-title">🪄 Popup Button</div>
+              <div class="embed-card-sub">A button on your site that opens the form in a fullscreen popup</div>
+            </div>
+            <button class="embed-copy-btn" id="copy-popup-btn" onclick="copyEmbed('popup')">📋 Copy Code</button>
+          </div>
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+            <div class="embed-preview-label" style="margin-bottom:12px">LIVE BUTTON PREVIEW</div>
+            <button id="popup-preview-btn" style="cursor:default;font-family:var(--display);font-size:.9rem;font-weight:700">🚀 Get Your Free Marketing Plan</button>
+          </div>
+          <pre class="embed-code" id="code-popup"></pre>
+          <div class="embed-note">✨ Paste before your closing &lt;/body&gt; tag. Works on WordPress, Squarespace, Wix, Webflow — anywhere.</div>
+        </div>
+
+        <!-- DIRECT LINK -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div>
+              <div class="embed-card-title">🔗 Direct Link</div>
+              <div class="embed-card-sub">Share anywhere — email, Instagram bio, Google Business, text message</div>
+            </div>
+            <button class="embed-copy-btn" id="copy-link-btn" onclick="copyEmbed('link')">📋 Copy Link</button>
+          </div>
+          <div style="padding:16px 20px">
+            <div class="embed-preview-label" style="margin-bottom:8px">YOUR UNIQUE ONBOARDING LINK</div>
+            <div id="code-link" style="font-family:var(--mono);font-size:.8rem;color:var(--teal);background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px;word-break:break-all;line-height:1.6;cursor:pointer" onclick="copyEmbed('link')"></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1086,53 +1134,103 @@ async function claimLead(leadId,bizName){
 // ── EMBED CODE ────────────────────────────────────────────────
 function buildEmbedCodes() {
   const onbUrl = `https://marketingplan.astroaibots.com/onboard/${agencyId}`;
+  const color  = agencyConfig.brandColor || '#00d9a3';
+  // Init customizer defaults from agency branding
+  const colorInput = document.getElementById('ec-color');
+  const hexInput   = document.getElementById('ec-color-hex');
+  const btnText    = document.getElementById('ec-btn-text');
+  if (colorInput && !colorInput._init) {
+    colorInput.value = color;
+    hexInput.value   = color;
+    btnText.value    = '🚀 Get Your Free Marketing Plan';
+    colorInput._init = true;
+  }
+  // Set live iframe src
+  const iframe = document.getElementById('embed-live-preview');
+  const urlBar = document.getElementById('iframe-url-bar');
+  if (iframe && iframe.src === 'about:blank') {
+    iframe.src = onbUrl;
+    if (urlBar) urlBar.textContent = onbUrl;
+  }
+  updateEmbedCodes();
+}
 
-  // Iframe
+function syncColorHex() {
+  const hex = document.getElementById('ec-color-hex').value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+    document.getElementById('ec-color').value = hex;
+    updateEmbedCodes();
+  }
+}
+
+function updateEmbedCodes() {
+  const onbUrl    = `https://marketingplan.astroaibots.com/onboard/${agencyId}`;
+  const color     = document.getElementById('ec-color')?.value || agencyConfig.brandColor || '#00d9a3';
+  const textColor = document.getElementById('ec-text-color')?.value || '#07090f';
+  const btnText   = document.getElementById('ec-btn-text')?.value || '🚀 Get Your Free Marketing Plan';
+  const height    = document.getElementById('ec-height')?.value || '800px';
+  const radius    = document.getElementById('ec-radius')?.value || '8px';
+  const iRadius   = document.getElementById('ec-iframe-radius')?.value || '12px';
+  const brandName = agencyConfig.brandName || agencyConfig.name || 'Agency';
+
+  // Sync hex input when color picker changes
+  const hexInput = document.getElementById('ec-color-hex');
+  if (hexInput && document.activeElement !== hexInput) hexInput.value = color;
+
+  // Update live button preview
+  const previewBtn = document.getElementById('popup-preview-btn');
+  if (previewBtn) {
+    previewBtn.style.cssText = `padding:13px 26px;background:${color};color:${textColor};border:none;border-radius:${radius};font-family:var(--display);font-size:.9rem;font-weight:700;cursor:default;box-shadow:0 4px 16px rgba(0,0,0,.2)`;
+    previewBtn.textContent = btnText;
+  }
+
+  // Iframe code
   const iframeCode =
-`<!-- ${agencyConfig.brandName||'Agency'} — AI Marketing Plan Form -->
+`<!-- ${brandName} — AI Marketing Plan Form -->
 <iframe
   src="${onbUrl}"
   width="100%"
-  height="800px"
+  height="${height}"
   frameborder="0"
-  style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.08);"
+  style="border:none;border-radius:${iRadius};box-shadow:0 4px 24px rgba(0,0,0,0.08);"
   title="Get Your Free AI Marketing Plan"
   loading="lazy"
 ></iframe>`;
 
-  // Popup
-  const popupColor = agencyConfig.brandColor || '#00d9a3';
+  // Popup code
   const popupCode =
-`<!-- ${agencyConfig.brandName||'Agency'} — Marketing Plan Popup -->
-<button id="astro-popup-btn" onclick="document.getElementById('astro-popup').style.display='flex'" style="padding:14px 28px;background:${popupColor};color:#07090f;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
-  🚀 Get Your Free Marketing Plan
+`<!-- ${brandName} — Marketing Plan Popup Button -->
+<button id="astro-popup-btn" onclick="document.getElementById('astro-popup').style.display='flex'" style="padding:13px 26px;background:${color};color:${textColor};border:none;border-radius:${radius};font-size:1rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
+  ${btnText}
 </button>
 
-<!-- Popup Overlay -->
-<div id="astro-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this)this.style.display='none'">
+<!-- Popup Overlay (paste once per page) -->
+<div id="astro-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(6px)" onclick="if(event.target===this)this.style.display='none'">
   <div style="position:relative;width:min(680px,95vw);height:min(850px,90vh);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 32px 64px rgba(0,0,0,0.4)">
-    <button onclick="document.getElementById('astro-popup').style.display='none'" style="position:absolute;top:12px;right:14px;z-index:10;background:rgba(0,0,0,0.1);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;line-height:1">✕</button>
+    <button onclick="document.getElementById('astro-popup').style.display='none'" style="position:absolute;top:12px;right:14px;z-index:10;background:rgba(0,0,0,0.15);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:#333;line-height:1">✕</button>
     <iframe src="${onbUrl}" width="100%" height="100%" frameborder="0" style="border:none" title="Get Your Free AI Marketing Plan"></iframe>
   </div>
 </div>`;
 
-  document.getElementById('code-iframe').textContent = iframeCode;
-  document.getElementById('code-popup').textContent  = popupCode;
-  document.getElementById('code-link').textContent   = onbUrl;
+  const el_iframe = document.getElementById('code-iframe');
+  const el_popup  = document.getElementById('code-popup');
+  const el_link   = document.getElementById('code-link');
+  if (el_iframe) el_iframe.textContent = iframeCode;
+  if (el_popup)  el_popup.textContent  = popupCode;
+  if (el_link)   el_link.textContent   = onbUrl;
 }
 
 function copyEmbed(type) {
   const texts = {
-    iframe: document.getElementById('code-iframe').textContent,
-    popup:  document.getElementById('code-popup').textContent,
-    link:   document.getElementById('code-link').textContent,
+    iframe: document.getElementById('code-iframe')?.textContent,
+    popup:  document.getElementById('code-popup')?.textContent,
+    link:   document.getElementById('code-link')?.textContent,
   };
-  const btnIds = {iframe:'copy-iframe-btn', popup:'copy-popup-btn', link:'copy-link-btn'};
-  const labels = {iframe:'📋 Copy Code', popup:'📋 Copy Code', link:'📋 Copy Link'};
-  navigator.clipboard.writeText(texts[type]).then(()=>{
+  const btnIds  = {iframe:'copy-iframe-btn', popup:'copy-popup-btn', link:'copy-link-btn'};
+  const labels  = {iframe:'📋 Copy Code', popup:'📋 Copy Code', link:'📋 Copy Link'};
+  navigator.clipboard.writeText(texts[type]||'').then(()=>{
     const btn = document.getElementById(btnIds[type]);
-    btn.textContent = '✅ Copied!'; btn.classList.add('copied');
-    setTimeout(()=>{ btn.textContent = labels[type]; btn.classList.remove('copied'); }, 2500);
+    if (btn) { btn.textContent='✅ Copied!'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=labels[type]; btn.classList.remove('copied'); },2500); }
     toast('✅ Copied to clipboard!');
   });
 }
