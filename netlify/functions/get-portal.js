@@ -181,7 +181,24 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client, offer, billing}),{status:200,headers:CORS});
+    // ── REFERRAL BONUS ────────────────────────────────────
+    let referralBonus = '';
+    let referralResources = '';
+    if (agencyId) {
+      try {
+        const agencyDoc = await fsGet(token, `agencies/${agencyId}`);
+        console.log('[get-portal] agency doc fields:', agencyDoc?.fields ? Object.keys(agencyDoc.fields) : 'NO FIELDS', 'error:', agencyDoc?.error);
+        if (agencyDoc?.fields) {
+          referralBonus     = agencyDoc.fields.referralBonus?.stringValue     || '';
+          referralResources = agencyDoc.fields.referralResources?.stringValue || '';
+          console.log('[get-portal] referralBonus:', referralBonus);
+        }
+      } catch(e) {
+        console.log('[get-portal] agency fetch error:', e.message);
+      }
+    }
+
+    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]', e.message);
