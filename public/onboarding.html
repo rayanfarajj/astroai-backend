@@ -1174,10 +1174,22 @@ async function submitForm(){
     body: JSON.stringify(data),
   }).catch(() => {});
 
-  // ── Generate auth PDF and email to owner (non-blocking) ────────────────────
+  // ── Generate auth PDF, email to owner, AND attach base64 for server storage ─
   try {
     const pdfBlob = generateAuthPDF(data);
-    if (pdfBlob) sendAuthEmail(data, pdfBlob).catch(e => console.warn('PDF email failed:', e));
+    if (pdfBlob) {
+      // Email to owner (non-blocking)
+      sendAuthEmail(data, pdfBlob).catch(e => console.warn('PDF email failed:', e));
+      // Convert to base64 and attach to payload so server saves it to client Files
+      try {
+        const arrayBuf = await pdfBlob.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuf);
+        let binary = '';
+        uint8.forEach(b => binary += String.fromCharCode(b));
+        data.authPdfBase64 = btoa(binary);
+        data.authPdfFilename = 'Authorization_Agreement_' + (data.businessName||'Client').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30) + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+      } catch(e) { console.warn('PDF base64 conversion failed:', e); }
+    }
   } catch(e) { console.warn('PDF/email failed:', e); }
 
   // ── Submit referral to agency referral dashboard (non-blocking) ────────────
