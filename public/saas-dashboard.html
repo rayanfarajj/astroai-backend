@@ -1750,11 +1750,10 @@ async function regeneratePlan(clientId, event) {
   if(event) event.stopPropagation();
   const c = clients.find(x=>(x._id||x.id)===clientId);
   if(!c){ toast('❌ Client not found'); return; }
-  if(!confirm(`Generate AI marketing plan for ${c.businessName}?\n\nThis will call Claude to build their ad copy, targeting, and roadmap.`)) return;
+  if(!confirm(`Generate AI marketing plan for ${c.businessName}?\n\nClaude will build their ad copy, targeting, and roadmap. Takes ~20 seconds.`)) return;
 
   const btn = event?.target;
-  if(btn){ btn.textContent='⏳ Generating...'; btn.disabled=true; }
-  toast('⚡ Generating plan... this takes ~15 seconds');
+  if(btn){ btn.textContent='⏳ Starting...'; btn.disabled=true; }
 
   try {
     const res = await fetch(`${API}/agency/process-plan`, {
@@ -1762,35 +1761,47 @@ async function regeneratePlan(clientId, event) {
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         agencyId,
-        firstName: c.clientName?.split(' ')[0]||'Client',
-        lastName:  c.clientName?.split(' ').slice(1).join(' ')||'',
-        email:     c.clientEmail||'noreply@example.com',
-        businessName: c.businessName,
-        phone:     c.phone||'',
-        industry:  c.industry||'General',
+        firstName:   (c.clientName||'Client').split(' ')[0],
+        lastName:    (c.clientName||'').split(' ').slice(1).join(' ')||'',
+        email:       c.clientEmail||'noreply@example.com',
+        businessName:c.businessName,
+        phone:       c.phone||'',
+        industry:    c.industry||'General',
         primaryService: c.primaryService||c.industry||'Marketing',
-        adBudget:  c.adBudget||'1000',
+        adBudget:    c.adBudget||'1000',
         adPlatforms: c.adPlatforms||'Facebook, Instagram',
-        goal90Days: c.goal90||'Generate leads and grow revenue',
-        website:   c.website||'',
+        goal90Days:  c.goal90||'Generate leads and grow revenue',
+        website:     c.website||'',
       }),
     });
     const data = await res.json();
-    if(data.success){
-      toast('✅ Plan generated! Refreshing clients...');
+    if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
+
+    // Plan is being generated in background — poll Firestore via loadClients
+    toast('⚡ Plan generating in background... refreshing in ~20 seconds');
+    if(btn){ btn.textContent='⏳ Generating...'; }
+
+    // Poll every 5 seconds for up to 60 seconds
+    let attempts = 0;
+    const poll = setInterval(async () => {
+      attempts++;
       await loadClients();
-      // If detail view is open for this client, refresh it
-      if(curClient && (curClient._id||curClient.id)===clientId){
-        const updated = clients.find(x=>(x._id||x.id)===clientId);
-        if(updated) showDetail(updated);
+      const updated = clients.find(x=>(x._id||x.id)===clientId);
+      const hasPlan = updated && updated.dashboardJSON && updated.dashboardJSON !== '{}' && Object.keys(updated.dashboardJSON).length > 2;
+      if(hasPlan || attempts >= 12) {
+        clearInterval(poll);
+        if(hasPlan){
+          toast('✅ Plan ready! Click ↗ Plan to view.');
+          if(curClient && (curClient._id||curClient.id)===clientId) showDetail(updated);
+        } else {
+          toast('⚠️ Still generating — check back in a moment');
+          if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+        }
       }
-    } else {
-      toast('❌ '+(data.error||'Generation failed'));
-      if(btn){ btn.textContent='⚡ Generate'; btn.disabled=false; }
-    }
+    }, 5000);
   } catch(e) {
     toast('❌ '+e.message);
-    if(btn){ btn.textContent='⚡ Generate'; btn.disabled=false; }
+    if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
   }
 }
 
