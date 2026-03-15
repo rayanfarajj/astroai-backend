@@ -1,5 +1,5 @@
 // netlify/functions/agency-serve-plan.js
-// Serves the HTML plan directly from Firestore — no GitHub/redeploy needed
+// Serves the HTML plan directly from Firestore — rebuilt 2026-03-15 15:39
 import https from 'https';
 import crypto from 'crypto';
 
