@@ -209,7 +209,11 @@ export default async (req, context) => {
     }
 
     // 5. Return immediately — browser gets success, Claude runs in background
-    return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}),{status:200,headers:CORS});
+    // Connection: close prevents ERR_HTTP2_PROTOCOL_ERROR when waitUntil keeps function alive
+    return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}),{
+      status: 200,
+      headers: { ...CORS, 'Connection': 'close' }
+    });
 
   } catch(err) {
     console.error('[process-plan] ERROR:', err.message);
