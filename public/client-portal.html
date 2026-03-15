@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- PORTAL-VERSION: BILLING-v3 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Client Portal — Astro AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -287,7 +288,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
     <div class="sb-section">Campaign</div>
     <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon">◉</span> Ad Account Access</button>
     <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon">◫</span> Files & Documents</button>
-    <button class="nav-item" id="nav-billing" style="display:none" onclick="go('s-billing',this)"><span class="nav-icon">💳</span> Billing</button>
+    <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon">💳</span> Billing</button>
 
     <div class="sb-section">Connect</div>
     <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon">◎</span> Refer a Friend</button>
@@ -657,12 +658,9 @@ async function init() {
         </div>`;
     }
 
-    // Billing
+    // Billing - always render, show empty state if not configured
     const billing = data.billing;
-    if (billing && billing.showOnPortal) {
-      document.getElementById('nav-billing').style.display = 'flex';
-      renderBilling(billing);
-    }
+    renderBilling(billing);
 
     document.getElementById('loading').classList.add('out');
   }catch(e){
@@ -674,6 +672,10 @@ async function init() {
 function renderBilling(b) {
   const el = document.getElementById('billing-content');
   if (!el) return;
+  if (!b) {
+    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
+    return;
+  }
   const curr = b.currency || 'USD';
   const sym  = {USD:'$',CAD:'$',EUR:'€',GBP:'£',AUD:'$'}[curr] || '$';
   const fmt  = amt => sym + parseFloat(amt||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -743,8 +745,9 @@ function renderBilling(b) {
     html += `<div class="bill-notes-box"><div class="bill-notes-lbl">📋 Notes</div><div class="bill-notes-text">${esc(b.notes)}</div></div>`;
   }
 
-  if (!html.trim()) {
-    html = `<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text">No billing details available yet.</div></div>`;
+  if (!html || !html.trim()) {
+    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
+    return;
   }
 
   el.innerHTML = html;
