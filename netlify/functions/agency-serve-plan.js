@@ -223,9 +223,11 @@ ${stats.length?`<div class="stats">${stats.map(([v,l])=>`<div class="stat"><div 
   <div class="card" style="text-align:center;padding:36px;background:linear-gradient(135deg,#fff,#fafafa);border:2px solid ${color}30">
     <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Ready to Launch? 🚀</h2>
     <p style="color:#666;margin-bottom:18px">Your Marketing Command Center for ${s(client.businessName||'your business')} is live.</p>
-    ${agency.bookingUrl?`<a href="${s(agency.bookingUrl)}" style="background:${color};color:#fff;padding:11px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-block;margin-right:8px">📅 Schedule Strategy Call</a>`:''}
-    <button id="regenBtn" onclick="regeneratePlan()" style="background:#f3f4f6;color:#444;border:1px solid #e5e7eb;padding:10px 20px;border-radius:50px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">⚡ Regenerate Plan</button>
+    ${agency.bookingUrl?`<a href="${s(agency.bookingUrl)}" style="background:${color};color:#fff;padding:11px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-block">📅 Schedule Strategy Call</a>`:''}
   </div>
+  ${hasError?`<div style="text-align:center;margin-top:8px">
+    <button id="regenBtn" onclick="regeneratePlan()" style="background:#f3f4f6;color:#444;border:1px solid #e5e7eb;padding:10px 20px;border-radius:50px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">⚡ Regenerate Plan</button>
+  </div>`:''}
   <script>
   const _planKey = 'regen_${agencyId}_${clientId}';
   const _portalUrl = '/onboard/portal?a=${agencyId}&s=${clientId}';
