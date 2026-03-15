@@ -78,10 +78,18 @@ async function fsSetSub(agencyId, sub, docId, data) {
 
 function callClaude(prompt) {
   return new Promise((resolve,reject)=>{
-    const body = JSON.stringify({model:'claude-opus-4-6',max_tokens:4096,messages:[{role:'user',content:prompt}]});
+    const body = JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]});
     const r = https.request({hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',headers:{'x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},res=>{
       let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{try{const j=JSON.parse(d);resolve(j.content?.[0]?.text||'')}catch(e){reject(e)}});
+      res.on('end',()=>{
+        try {
+          const j=JSON.parse(d);
+          if(j.error) { reject(new Error(j.error.message||JSON.stringify(j.error))); return; }
+          const text = j.content?.[0]?.text||'';
+          if(!text) { reject(new Error('Empty response from Claude. Full response: '+d.slice(0,200))); return; }
+          resolve(text);
+        } catch(e){reject(e)}
+      });
     });
     r.on('error',reject); r.write(body); r.end();
   });
