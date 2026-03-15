@@ -429,12 +429,28 @@ async function submitForm() {
       adPlatforms:     getSelected('platforms'),
     };
 
-    const res  = await fetch(API + '/agency/process-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
+    // Use AbortController for 25s timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+
+    let res, data;
+    try {
+      res  = await fetch(API + '/agency/process-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const text = await res.text();
+      try { data = JSON.parse(text); }
+      catch(e) { throw new Error('Server error — please try again'); }
+    } catch(fetchErr) {
+      clearTimeout(timeout);
+      if (fetchErr.name === 'AbortError') throw new Error('Request timed out — please try again');
+      throw fetchErr;
+    }
+
     clearInterval(msgInterval);
     document.getElementById('generating').classList.remove('show');
 
