@@ -467,10 +467,19 @@ export default async (req, context) => {
   if (!agencyId) return new Response(JSON.stringify({error:'agencyId required'}),{status:400,headers:CORS});
 
   // Required minimum fields
-  const required = ['firstName','lastName','email','businessName','industry','primaryService'];
+  // Only hard-require the minimum needed to create a client record
+  // industry/primaryService use fallbacks so converted leads always work
+  const required = ['firstName','email','businessName'];
   for(const f of required) {
     if(!data[f]) return new Response(JSON.stringify({error:`${f} is required`}),{status:400,headers:CORS});
   }
+  // Apply fallbacks for optional but useful fields
+  if(!data.lastName)       data.lastName       = '';
+  if(!data.industry)       data.industry       = data.primaryService || 'General Business';
+  if(!data.primaryService) data.primaryService = data.industry       || 'Marketing Services';
+  if(!data.adBudget)       data.adBudget       = '1000';
+  if(!data.adPlatforms)    data.adPlatforms    = 'Facebook, Instagram';
+  if(!data.goal90Days)     data.goal90Days     = 'Generate leads and grow revenue';
 
   try {
     const agency = await fsGet(`agencies/${agencyId}`);
