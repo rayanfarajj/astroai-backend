@@ -22,11 +22,15 @@ export default async (req) => {
         const meta = await store.getMetadata(blob.key);
         const m = meta?.metadata || {};
         return {
-          key:        blob.key,
-          name:       m.originalName || blob.key.split('/').pop(),
-          fileType:   m.fileType || '',
-          size:       parseInt(m.fileSize || '0'),
-          uploadedAt: m.uploadedAt || '',
+          key:          blob.key,
+          name:         m.displayName || m.originalName || blob.key.split('/').pop(),
+          originalName: m.originalName || blob.key.split('/').pop(),
+          fileType:     m.fileType || '',
+          size:         parseInt(m.fileSize || '0'),
+          uploadedAt:   m.uploadedAt || '',
+          protected:    m.protected === 'true',
+          systemFile:   m.systemFile === 'true',
+          docType:      m.docType || '',
           url: `https://marketingplan.astroaibots.com/api/get-file?key=${encodeURIComponent(blob.key)}`,
         };
       } catch(e) {
