@@ -84,14 +84,21 @@ function callClaude(prompt) {
       res.on('end',()=>{
         try {
           const j=JSON.parse(d);
-          if(j.error) { reject(new Error(j.error.message||JSON.stringify(j.error))); return; }
+          if(j.error) {
+            const msg = j.error.message||JSON.stringify(j.error);
+            console.error('[bg] Claude API error:', res.statusCode, msg);
+            reject(new Error('Claude API '+res.statusCode+': '+msg));
+            return;
+          }
           const text = j.content?.[0]?.text||'';
-          if(!text) { reject(new Error('Empty response from Claude. Full response: '+d.slice(0,200))); return; }
+          if(!text) { reject(new Error('Empty Claude response, status '+res.statusCode+': '+d.slice(0,300))); return; }
           resolve(text);
-        } catch(e){reject(e)}
+        } catch(e){reject(new Error('Claude parse error: '+e.message+' raw: '+d.slice(0,200)));}
       });
     });
-    r.on('error',reject); r.write(body); r.end();
+    r.setTimeout(90000, () => { r.destroy(); reject(new Error('Claude API timeout after 90s')); });
+    r.on('error', e => reject(new Error('Claude network error: '+e.message)));
+    r.write(body); r.end();
   });
 }
 
@@ -187,7 +194,7 @@ export default async (req) => {
     }
     console.log('[bg] STEP 1 OK: agency found:', agency.name || agency.brandName);
 
-    // STEP 2: Build prompt and call Claude
+    // STEP 2: Build prompt and call Claude (with one retry on failure)
     console.log('[bg] STEP 2: calling Claude for', data.businessName);
     const prompt = buildPrompt(data, agency);
     let rawJSON = '';
@@ -195,15 +202,23 @@ export default async (req) => {
       rawJSON = await callClaude(prompt);
       console.log('[bg] STEP 2 OK: Claude returned', rawJSON.length, 'chars');
     } catch(claudeErr) {
-      console.error('[bg] STEP 2 FAILED: Claude error:', claudeErr.message);
-      // Save empty plan so page stops showing "generating"
-      await fsSetSub(agencyId, 'clients', clientId, {
-        agencyId, clientId, status:'active',
-        dashboardJSON: JSON.stringify({executiveSummary:'Plan generation failed. Please regenerate.', adAngles:[], roadmap:[]}),
-        dashboardUrl: planUrl, generatedAt: new Date().toISOString(),
-        errorMsg: claudeErr.message,
-      });
-      return;
+      console.error('[bg] STEP 2 FAILED (attempt 1):', claudeErr.message);
+      // Retry once after 5 seconds (handles 529 overloaded / transient errors)
+      try {
+        console.log('[bg] STEP 2: retrying in 5s...');
+        await new Promise(r => setTimeout(r, 5000));
+        rawJSON = await callClaude(prompt);
+        console.log('[bg] STEP 2 OK (retry): Claude returned', rawJSON.length, 'chars');
+      } catch(retryErr) {
+        console.error('[bg] STEP 2 FAILED (retry):', retryErr.message);
+        // Save error state so page stops spinning
+        await fsSetSub(agencyId, 'clients', clientId, {
+          agencyId, clientId, status:'active',
+          dashboardJSON: JSON.stringify({tagline:'Plan generation failed — '+retryErr.message.slice(0,100)+'. Please use the regenerate button in your dashboard.', adAngles:[], roadmap:[]}),
+          dashboardUrl: planUrl, generatedAt: new Date().toISOString(),
+        });
+        return;
+      }
     }
 
     // STEP 3: Parse JSON response
