@@ -211,38 +211,75 @@ async function runAllChecks(agencyId, clientId, agencyToken) {
   }
 
   // ── ADMIN CHECKS ──────────────────────────────────────────
-  const adminKey = 'AstroAdmin2024!';
-  const leadsRes = await api(`/api/admin/leads?key=${adminKey}`);
-  leadsRes.ok ? pass('🎯 Admin Leads Endpoint', `${leadsRes.ms}ms`, leadsRes.ms)
+  // Admin endpoints use x-admin-key header
+  const leadsRes = await api('/api/admin/leads', 'GET', null, {'x-admin-key':'AstroAdmin2024!'});
+  leadsRes.ok ? pass('🎯 Admin Leads Endpoint', `${leadsRes.body?.leads?.length ?? 0} leads, ${leadsRes.ms}ms`, leadsRes.ms)
+  : leadsRes.status === 401 ? fail('🎯 Admin Leads Endpoint', 'Auth failed — check x-admin-key header', leadsRes.ms)
               : fail('🎯 Admin Leads Endpoint', `HTTP ${leadsRes.status}`, leadsRes.ms);
+
+  // Admin agencies endpoint
+  const agenciesRes = await api('/api/admin/agencies', 'GET', null, {'x-admin-key':'AstroAdmin2024!'});
+  agenciesRes.ok ? pass('🏢 Admin Agencies Endpoint', `${agenciesRes.ms}ms`, agenciesRes.ms)
+                 : fail('🏢 Admin Agencies Endpoint', `HTTP ${agenciesRes.status}`, agenciesRes.ms);
 
   return checks;
 }
 
-// ── HANDLER ───────────────────────────────────────────────────
+// ── OLD HANDLER REMOVED — see combined handler below ──────────
+
+// ── AI ANALYSIS HANDLER ──────────────────────────────────────
+async function handleAI(req) {
+  const CORS = { 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type','Content-Type':'application/json' };
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+  if (req.method !== 'POST') return new Response(JSON.stringify({error:'POST only'}), { status: 405, headers: CORS });
+  let body; try { body = await req.json(); } catch { return new Response(JSON.stringify({error:'Invalid JSON'}), { status: 400, headers: CORS }); }
+  const { checks } = body;
+  if (!checks) return new Response(JSON.stringify({error:'No checks provided'}), { status: 400, headers: CORS });
+  const fails = checks.filter(c => c.status === 'fail');
+  const warns = checks.filter(c => c.status === 'warn');
+  const passes = checks.filter(c => c.status === 'pass');
+  const prompt = `You are a senior full-stack developer reviewing a health check for AstroAI Bots (Netlify + Firebase + Claude API).
+RESULTS: ${passes.length} passing, ${fails.length} failing, ${warns.length} warnings
+FAILING: ${fails.length ? fails.map(c=>`• ${c.name}: "${c.detail}"`).join('\n') : 'None'}
+WARNINGS: ${warns.length ? warns.map(c=>`• ${c.name}: "${c.detail}"`).join('\n') : 'None'}
+KNOWN PATTERNS: "Returns HTML" = crashed/timed out | "HTTP 401 agency" = bad x-agency-token | "HTTP 401 admin" = bad x-admin-key | "TIMEOUT" = increase netlify.toml timeout | "dashboardJSON empty" = background fn failed
+${fails.length === 0 ? 'Everything passing — confirm healthy.' : 'Diagnose each failure: exact file, cause, fix.'}
+Format: **Overall Status**: one sentence. Then **Failures** (priority order, file+fix). Then **Warnings** if any.`;
+  try {
+    const apiBody = JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, messages:[{role:'user',content:prompt}] });
+    const analysis = await new Promise((resolve, reject) => {
+      const r = https.request({ hostname:'api.anthropic.com', path:'/v1/messages', method:'POST', headers:{ 'x-api-key':process.env.ANTHROPIC_API_KEY, 'anthropic-version':'2023-06-01', 'Content-Type':'application/json', 'Content-Length':Buffer.byteLength(apiBody) } }, res => {
+        let d=''; res.on('data',c=>d+=c);
+        res.on('end',()=>{ try{ const j=JSON.parse(d); if(j.error)reject(new Error(j.error.message)); else resolve(j.content?.[0]?.text||''); }catch(e){reject(e);} });
+      });
+      r.on('error',reject); r.write(apiBody); r.end();
+    });
+    return new Response(JSON.stringify({ success:true, analysis }), { status:200, headers:CORS });
+  } catch(e) {
+    return new Response(JSON.stringify({ error:e.message }), { status:500, headers:CORS });
+  }
+}
+
 export default async (req) => {
   const url = new URL(req.url);
+  // Route /api/health-ai to AI handler
+  if (url.pathname === '/api/health-ai') return handleAI(req);
+  // /api/health — run checks
   if (url.searchParams.get('key') !== 'AstroAdmin2024!') {
-    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:CORS});
+    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:{'Content-Type':'application/json'}});
   }
-
   const agencyId    = url.searchParams.get('a') || '';
   const clientId    = url.searchParams.get('c') || '';
   const agencyToken = url.searchParams.get('t') || '';
-
   try {
     const checks = await runAllChecks(agencyId, clientId, agencyToken);
-    const passed  = checks.filter(c=>c.status==='pass').length;
-    const failed  = checks.filter(c=>c.status==='fail').length;
-    const warned  = checks.filter(c=>c.status==='warn').length;
-    return new Response(JSON.stringify({
-      summary: { passed, failed, warned, total: checks.length, healthy: failed === 0 },
-      checks,
-      timestamp: new Date().toISOString(),
-    }, null, 2), {status:200,headers:CORS});
+    const passed = checks.filter(c=>c.status==='pass').length;
+    const failed = checks.filter(c=>c.status==='fail').length;
+    const warned = checks.filter(c=>c.status==='warn').length;
+    return new Response(JSON.stringify({ summary:{passed,failed,warned,total:checks.length,healthy:failed===0}, checks, timestamp:new Date().toISOString() },null,2),{status:200,headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
   } catch(e) {
-    return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
+    return new Response(JSON.stringify({error:e.message}),{status:500,headers:{'Content-Type':'application/json'}});
   }
 };
 
-export const config = { path: '/api/health' };
+export const config = { path: ['/api/health', '/api/health-ai'] };
