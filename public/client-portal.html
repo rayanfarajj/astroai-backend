@@ -389,17 +389,28 @@ textarea.finput{resize:vertical;line-height:1.6;}
 
     <!-- REFER -->
     <div class="section" id="s-refer">
-      <div class="page-hd"><h1>Refer a Friend</h1><p>Know a business that needs AI marketing? You both get 30% off when they sign up.</p></div>
+      <div class="page-hd"><h1>Refer a Friend</h1><p id="ref-page-sub">Know a business that could use great marketing? Send them our way!</p></div>
       <div class="ref-hero">
         <div><div class="ref-l">Referrals Sent</div><div class="ref-n" id="ref-n">0</div></div>
         <div style="font-size:2.5rem">🏆</div>
+      </div>
+      <div class="card" id="ref-bonus-card" style="display:none">
+        <div class="card-body" style="padding:16px 20px">
+          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:6px">🎁 Referral Bonus</div>
+          <div id="ref-bonus-text" style="font-size:.9rem;font-weight:600;color:var(--text);line-height:1.5"></div>
+        </div>
+      </div>
+      <div class="card" id="ref-resources-card" style="display:none">
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◎</span><span class="card-title">Resources</span></div></div>
+        <div class="card-body">
+          <div id="ref-resources-text" style="font-size:.82rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap"></div>
+        </div>
       </div>
       <div class="card">
         <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◎</span><span class="card-title">Send a Referral</span></div></div>
         <div class="card-body">
           <div class="perks">
-            <span class="perk">💰 Both get 30% off</span>
-            <span class="perk">🚀 Fast onboarding</span>
+            <span class="perk" id="perk-bonus">🚀 Fast onboarding</span>
             <span class="perk">❤️ Help a friend grow</span>
           </div>
           <div id="ref-form">
@@ -577,7 +588,7 @@ document.getElementById('ref-btn').addEventListener('click',async()=>{
   if(!email){toast('❌ Please enter their email');return;}
   btn.disabled=true;btn.textContent='Submitting...';
   try{
-    const res=await fetch(API+'/submit-referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({referrerSlug:slug,referrerName:C.clientName,referrerBusiness:C.businessName,refereeName:document.getElementById('rn').value.trim(),refereeBusinessName:document.getElementById('rb').value.trim(),refereeEmail:email,refereePhone:document.getElementById('rp').value.trim(),refereeNote:document.getElementById('rnote').value.trim()})});
+    const res=await fetch(API+'/submit-referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({referrerSlug:slug,agencyId:_agencyId,referrerName:C.clientName,referrerBusiness:C.businessName,refereeName:document.getElementById('rn').value.trim(),refereeBusinessName:document.getElementById('rb').value.trim(),refereeEmail:email,refereePhone:document.getElementById('rp').value.trim(),refereeNote:document.getElementById('rnote').value.trim()})});
     const data=await res.json();
     if(data.success){
       document.getElementById('ref-form').style.display='none';
@@ -661,6 +672,20 @@ async function init() {
     // Billing - always render, show empty state if not configured
     const billing = data.billing;
     renderBilling(billing);
+
+    // Referral bonus from agency settings
+    const refBonus = data.referralBonus || '';
+    const refResources = data.referralResources || '';
+    if (refBonus) {
+      document.getElementById('ref-bonus-card').style.display = 'block';
+      document.getElementById('ref-bonus-text').textContent = refBonus;
+      document.getElementById('perk-bonus').textContent = '🎁 ' + refBonus;
+      document.getElementById('ref-page-sub').textContent = 'Know a business that could use great marketing? Send them our way!';
+    }
+    if (refResources) {
+      document.getElementById('ref-resources-card').style.display = 'block';
+      document.getElementById('ref-resources-text').textContent = refResources;
+    }
 
     document.getElementById('loading').classList.add('out');
   }catch(e){
