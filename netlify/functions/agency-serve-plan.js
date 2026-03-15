@@ -274,5 +274,4 @@ export default async (req) => {
 
 export const config = {
   path: '/plans/:agencyId/:clientId',
-  preferStatic: true,
 };
