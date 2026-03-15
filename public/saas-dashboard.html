@@ -1142,7 +1142,7 @@ async function submitConvert() {
   try {
     const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
     const data=await res.json();
-    if(!data.success) throw new Error(data.error||'Failed');
+    if(!res.ok||!data.success) throw new Error(data.error||'Failed');
     if(sendOnboard&&em){
       // Send onboarding form link via email
       await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId:data.clientId,status:'new',notify:true,customSubject:`Your Marketing Plan Onboarding Form — ${biz}`,customMessage:`Hi ${fn},\n\nThank you for your interest! To create your personalized AI marketing plan, please fill out this quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes 2-3 minutes and will help us build the perfect plan for your business.\n\nLooking forward to working with you!`})});
@@ -1765,8 +1765,7 @@ async function regeneratePlan(clientId, event) {
   if(btn){ btn.textContent='⏳ Starting...'; btn.disabled=true; }
 
   try {
-    toast('⚡ Generating plan... please wait ~20 seconds');
-    if(btn){ btn.textContent='⏳ Generating...'; }
+    if(btn){ btn.textContent='⏳ Queuing...'; }
 
     const res = await fetch(`${API}/agency/process-plan`, {
       method:'POST',
@@ -1789,10 +1788,28 @@ async function regeneratePlan(clientId, event) {
     const data = await res.json();
     if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
 
-    toast('✅ Plan generated!');
-    await loadClients();
-    const updated = clients.find(x=>(x._id||x.id)===clientId);
-    if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
+    // Plan is generating in background — poll every 5s until dashboardJSON appears
+    toast('⚡ Plan generating... checking every 5 seconds');
+    if(btn){ btn.textContent='⏳ Generating...'; }
+    let attempts = 0;
+    const targetId = data.clientId || clientId;
+    const poll = setInterval(async () => {
+      attempts++;
+      await loadClients();
+      const updated = clients.find(x=>(x._id||x.id)===targetId||(x._id||x.id)===clientId);
+      const hasPlan = updated?.dashboardJSON && updated.dashboardJSON !== '{}' &&
+                      typeof updated.dashboardJSON === 'object' && Object.keys(updated.dashboardJSON).length > 2;
+      if(hasPlan || attempts >= 24) {
+        clearInterval(poll);
+        if(hasPlan){
+          toast('✅ Plan ready!');
+          if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
+        } else {
+          toast('⚠️ Still generating — check back in a moment');
+        }
+        if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+      }
+    }, 5000);
   } catch(e) {
     toast('❌ '+e.message);
     if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
