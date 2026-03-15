@@ -895,7 +895,7 @@ function renderTable() {
     </select></td>
     <td style="font-family:var(--mono);font-size:.7rem;color:var(--text-muted)">${c.createdAt?new Date(c.createdAt).toLocaleDateString():'—'}</td>
     <td><div class="acts">
-      ${c.dashboardUrl?`<a class="act act-view" href="${esc(c.dashboardUrl)}" target="_blank">↗ Plan</a>`:''}
+      ${c.dashboardUrl?`<a class="act act-view" href="${esc(c.dashboardUrl)}" target="_blank">↗ Plan</a>`:`<button class="act" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(245,158,11,.2);cursor:pointer" onclick="regeneratePlan('${esc(c._id||c.id||'')}',event)">⚡ Generate</button>`}
       <button class="act act-det" onclick="openDetail('${c._id}')">📄 Details</button>
       <button class="act act-del" onclick="deleteClient('${c._id}','${c.businessName?.replace(/'/g,"\\'")||''}')">🗑</button>
     </div></td>
@@ -929,7 +929,7 @@ function buildDetailPage(c, j) {
         </div>
       </div>
       <div class="detail-hero-right">
-        ${c.dashboardUrl?`<a href="${esc(c.dashboardUrl)}" target="_blank" class="dh-btn dh-btn-teal">↗ View Plan</a>`:''}
+        ${c.dashboardUrl?`<a href="${esc(c.dashboardUrl)}" target="_blank" class="dh-btn dh-btn-teal">↗ View Plan</a>`:`<button class="dh-btn dh-btn-teal" onclick="regeneratePlan('${esc(c._id||c.id||'')}',null)">⚡ Generate Plan</button>`}
         <button class="dh-btn dh-btn-ghost" onclick="window.open('https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${c._id}','_blank')">👤 Portal</button>
         <button class="dh-btn dh-btn-ghost" onclick="copyPortal()">🔗 Copy Portal</button>
         <button class="dh-btn dh-btn-ghost" onclick="deleteClient('${c._id}','${esc(c.businessName||'')}')">🗑 Delete</button>
@@ -1743,6 +1743,55 @@ async function sendReferralOnboard(email, name) {
     if (data.success || data.sent) toast('📋 Onboarding form sent to '+email);
     else toast('❌ '+(data.error||'Failed'));
   } catch(e) { toast('❌ '+e.message); }
+}
+
+// ── REGENERATE PLAN ───────────────────────────────────────────
+async function regeneratePlan(clientId, event) {
+  if(event) event.stopPropagation();
+  const c = clients.find(x=>(x._id||x.id)===clientId);
+  if(!c){ toast('❌ Client not found'); return; }
+  if(!confirm(`Generate AI marketing plan for ${c.businessName}?\n\nThis will call Claude to build their ad copy, targeting, and roadmap.`)) return;
+
+  const btn = event?.target;
+  if(btn){ btn.textContent='⏳ Generating...'; btn.disabled=true; }
+  toast('⚡ Generating plan... this takes ~15 seconds');
+
+  try {
+    const res = await fetch(`${API}/agency/process-plan`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        agencyId,
+        firstName: c.clientName?.split(' ')[0]||'Client',
+        lastName:  c.clientName?.split(' ').slice(1).join(' ')||'',
+        email:     c.clientEmail||'noreply@example.com',
+        businessName: c.businessName,
+        phone:     c.phone||'',
+        industry:  c.industry||'General',
+        primaryService: c.primaryService||c.industry||'Marketing',
+        adBudget:  c.adBudget||'1000',
+        adPlatforms: c.adPlatforms||'Facebook, Instagram',
+        goal90Days: c.goal90||'Generate leads and grow revenue',
+        website:   c.website||'',
+      }),
+    });
+    const data = await res.json();
+    if(data.success){
+      toast('✅ Plan generated! Refreshing clients...');
+      await loadClients();
+      // If detail view is open for this client, refresh it
+      if(curClient && (curClient._id||curClient.id)===clientId){
+        const updated = clients.find(x=>(x._id||x.id)===clientId);
+        if(updated) showDetail(updated);
+      }
+    } else {
+      toast('❌ '+(data.error||'Generation failed'));
+      if(btn){ btn.textContent='⚡ Generate'; btn.disabled=false; }
+    }
+  } catch(e) {
+    toast('❌ '+e.message);
+    if(btn){ btn.textContent='⚡ Generate'; btn.disabled=false; }
+  }
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
