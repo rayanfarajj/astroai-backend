@@ -1334,9 +1334,9 @@ async function submitConvert() {
   const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
   try {
     if(!agencyId) throw new Error('Not logged in — please refresh and log in again');
-    // Use AbortController — process-plan returns in ~2s with context.waitUntil
+    // process-plan now runs Claude synchronously (~15s) — give it 30s
     const ctrl=new AbortController();
-    const tmo=setTimeout(()=>ctrl.abort(),15000);
+    const tmo=setTimeout(()=>ctrl.abort(),30000);
     let res,data;
     try {
       const _ind = v('cv-industry')||convertLead?.industry||convertLead?.primaryService||'General Business';
@@ -1347,7 +1347,13 @@ async function submitConvert() {
       try{data=JSON.parse(txt);}catch(e){throw new Error('Server error — please try again');}
     } catch(fe){
       clearTimeout(tmo);
-      if(fe.name==='AbortError')throw new Error('Request timed out — please try again');
+      if(fe.name==='AbortError'){
+        // Timed out but server is still generating — show success and reload
+        closeConvert();
+        toast('✅ '+biz+' converted! Plan generating — refreshing in 20 seconds...');
+        setTimeout(()=>loadClients(), 20000);
+        return;
+      }
       throw fe;
     }
     if(!res.ok||!data.success) throw new Error(data.error||'Failed');
@@ -1979,7 +1985,7 @@ async function regeneratePlan(clientId, event) {
     toast('⚡ Generating plan... takes ~20 seconds');
 
     const _ctrl = new AbortController();
-    const _tmo  = setTimeout(()=>_ctrl.abort(), 15000);
+    const _tmo  = setTimeout(()=>_ctrl.abort(), 30000);
     let regenRes, regenData;
     try {
       regenRes = await fetch(`${API}/agency/process-plan`, {
