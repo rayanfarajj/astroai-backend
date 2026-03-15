@@ -4,7 +4,7 @@ export default async (req) => {
   const parts   = url.pathname.split('/').filter(Boolean);
   const segment = parts[1] || '';
 
-  // /onboard/portal?a=AGENCY_ID&s=CLIENT_ID → client-portal.html
+  // /onboard/portal?a=AGENCY_ID&s=CLIENT_ID → client-portal.html?a=...&s=...
   if (segment === 'portal') {
     return new Response(null, {
       status: 302,
@@ -12,19 +12,20 @@ export default async (req) => {
     });
   }
 
-  // /onboard/AGENCY_ID → onboard.html?a=AGENCY_ID
-  if (segment && segment !== 'onboard.html') {
+  // /onboard/AGENCY_ID → onboarding.html?a=AGENCY_ID
+  if (segment && segment !== 'onboarding.html') {
     const params = new URLSearchParams(url.search);
     params.set('a', segment);
     return new Response(null, {
       status: 302,
-      headers: { 'Location': '/onboard.html?' + params.toString() },
+      headers: { 'Location': '/onboarding.html?' + params.toString() },
     });
   }
 
+  // /onboard or /onboard/ → onboarding.html
   return new Response(null, {
     status: 302,
-    headers: { 'Location': '/onboard.html' + url.search },
+    headers: { 'Location': '/onboarding.html' + url.search },
   });
 };
 
