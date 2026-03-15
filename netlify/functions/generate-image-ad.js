@@ -51,24 +51,38 @@ async function generateWithOpenAI(prompt) {
 }
 
 async function generateWithGemini(prompt) {
-  // Gemini image generation via generateContent with responseModalities
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not set in environment variables');
 
-  const res = await httpsPost('generativelanguage.googleapis.com',
-    `/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`,
-    { 'Content-Type': 'application/json' },
-    {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+  // Try models in priority order — use x-goog-api-key header (correct approach)
+  const models = [
+    'gemini-2.0-flash-exp-image-generation',
+    'gemini-3.1-flash-image-preview',
+    'gemini-2.5-flash-image',
+  ];
+
+  for (const model of models) {
+    console.log('[gemini] trying model:', model);
+    const res = await httpsPost('generativelanguage.googleapis.com',
+      `/v1beta/models/${model}:generateContent`,
+      { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+      }
+    );
+    if (res.body.error?.code === 404 || res.body.error?.status === 'NOT_FOUND') {
+      console.log('[gemini] not found:', model, '- trying next');
+      continue;
     }
-  );
-  if (res.body.error) throw new Error('Gemini: ' + (res.body.error.message || JSON.stringify(res.body.error)));
-  // Find the inline image part in the response
-  const parts = res.body.candidates?.[0]?.content?.parts || [];
-  const imgPart = parts.find(p => p.inlineData);
-  if (!imgPart) throw new Error('No image in Gemini response. Parts: ' + JSON.stringify(parts).slice(0,200));
-  return 'data:' + imgPart.inlineData.mimeType + ';base64,' + imgPart.inlineData.data;
+    if (res.body.error) throw new Error('Gemini: ' + (res.body.error.message || JSON.stringify(res.body.error)));
+    const parts = res.body.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find(p => p.inlineData);
+    if (!imgPart) throw new Error('No image in Gemini response for model: ' + model);
+    console.log('[gemini] success:', model);
+    return 'data:' + imgPart.inlineData.mimeType + ';base64,' + imgPart.inlineData.data;
+  }
+  throw new Error('No Gemini image model available. Enable image generation at aistudio.google.com');
 }
 
 export default async (req) => {
