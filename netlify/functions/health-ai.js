@@ -1,5 +1,6 @@
-// netlify/functions/health-ai.js
+// netlify/functions/health-ai.js v2
 // Receives health check results, asks Claude to analyze, returns diagnosis
+// Fixed: removed CORS issue by running server-side only
 import https from 'https';
 
 const CORS = {
