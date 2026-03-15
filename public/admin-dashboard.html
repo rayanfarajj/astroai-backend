@@ -414,7 +414,7 @@ function renderAgenciesTable(list) {
       <td><span class="badge badge-free">Free</span></td>
       <td>
         <button onclick="viewAgencyOnboard('${esc(a.id||'')}')" style="padding:3px 8px;font-size:.65rem;font-weight:600;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:5px;cursor:pointer;font-family:var(--mono);white-space:nowrap;margin-right:4px">🔗 Onboard</button>
-        <button onclick="deleteAgency('${esc(a.id||'')}','${esc(a.brandName||a.name||'')}')' style="padding:3px 8px;font-size:.65rem;font-weight:600;background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:5px;cursor:pointer;font-family:var(--mono)">🗑</button>
+        <button onclick="deleteAgency('${esc(a.id||'')}','${esc(a.brandName||a.name||'')}')" style="padding:3px 8px;font-size:.65rem;font-weight:600;background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:5px;cursor:pointer;font-family:var(--mono)">🗑</button>
       </td>
     </tr>`).join('');
 }
@@ -435,10 +435,24 @@ function viewAgencyOnboard(agencyId) {
 }
 
 async function deleteAgency(agencyId, name) {
-  if (!confirm(`Delete agency "${name}"? This is permanent and will remove all their clients.`)) return;
-  toast('🗑 Deleting...');
-  // For now just toast — full delete endpoint can be added later
-  toast('⚠️ Agency delete coming soon — remove from Firestore directly for now');
+  if (!confirm(`Delete agency "${name}"?\n\nThis will permanently delete the agency, all their clients, and all billing records. This cannot be undone.`)) return;
+  toast('🗑 Deleting agency...');
+  try {
+    const res  = await fetch(API + '/admin/delete-agency', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+      body: JSON.stringify({ agencyId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(`✅ Agency deleted — ${data.deleted.clients} clients, ${data.deleted.payments} payments removed`);
+      await loadAgencies();
+    } else {
+      toast('❌ ' + (data.error || 'Delete failed'));
+    }
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
 }
 
 // ── LEADS ─────────────────────────────────────────────────────
