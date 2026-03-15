@@ -1168,8 +1168,23 @@ async function submitConvert() {
   if(!fn||!biz||!em){toast('❌ First name, business name, and email required');return;}
   const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
   try {
-    const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
-    const data=await res.json();
+    // Debug: verify agencyId and API are set
+    console.log('[convert] agencyId:', agencyId, 'API:', API, 'fn:', fn, 'biz:', biz);
+    if(!agencyId) throw new Error('Not logged in — please refresh and log in again');
+    // Use AbortController — process-plan returns in ~2s with context.waitUntil
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),15000);
+    let res,data;
+    try {
+      res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
+      clearTimeout(tmo);
+      const txt=await res.text();
+      try{data=JSON.parse(txt);}catch(e){throw new Error('Server error — please try again');}
+    } catch(fe){
+      clearTimeout(tmo);
+      if(fe.name==='AbortError')throw new Error('Request timed out — please try again');
+      throw fe;
+    }
     if(!res.ok||!data.success) throw new Error(data.error||'Failed');
     if(sendOnboard&&em){
       // Send onboarding form link via email
@@ -1186,7 +1201,11 @@ async function submitConvert() {
     closeConvert();await loadClients();
     toast(`✅ ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
 
-  } catch(e){toast('❌ '+e.message);}
+  } catch(e){
+    const msg = e.message||'Unknown error';
+    console.error('[submitConvert] error:', msg, 'agencyId:', agencyId, 'API:', API);
+    toast('❌ Convert failed: '+msg);
+  }
   finally{btn.textContent='🚀 Convert to Client';btn.disabled=false;}
 }
 async function sendOnboardingEmail(clientId,email,bizName) {
