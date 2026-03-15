@@ -1168,8 +1168,6 @@ async function submitConvert() {
   if(!fn||!biz||!em){toast('❌ First name, business name, and email required');return;}
   const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
   try {
-    // Debug: verify agencyId and API are set
-    console.log('[convert] agencyId:', agencyId, 'API:', API, 'fn:', fn, 'biz:', biz);
     if(!agencyId) throw new Error('Not logged in — please refresh and log in again');
     // Use AbortController — process-plan returns in ~2s with context.waitUntil
     const ctrl=new AbortController();
@@ -1202,9 +1200,7 @@ async function submitConvert() {
     toast(`✅ ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
 
   } catch(e){
-    const msg = e.message||'Unknown error';
-    console.error('[submitConvert] error:', msg, 'agencyId:', agencyId, 'API:', API);
-    toast('❌ Convert failed: '+msg);
+    toast('❌ '+(e.message||'Failed to convert'));
   }
   finally{btn.textContent='🚀 Convert to Client';btn.disabled=false;}
 }
