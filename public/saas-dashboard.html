@@ -1835,15 +1835,40 @@ async function generateImagePrompt(ad, angleLabel, btn) {
     // Show prompt in a modal-style overlay on the card
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
-    overlay.innerHTML = `
-      <div style="background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px">🎨 Image Prompt — ${esc(angleLabel)}</div>
-        <div id="prompt-text" style="font-size:.8rem;line-height:1.75;color:var(--text);background:var(--surface-2);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:var(--mono)">${esc(data.prompt)}</div>
-        <div style="display:flex;gap:8px;margin-top:14px">
-          <button onclick="navigator.clipboard.writeText(${JSON.stringify(data.prompt)}).then(()=>{this.textContent='✓ Copied!';setTimeout(()=>this.textContent='📋 Copy Prompt',2000)})" style="flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font)">📋 Copy Prompt</button>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)">✕ Close</button>
-        </div>
-      </div>`;
+    // Build overlay using DOM (not innerHTML) to avoid quote escaping issues
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto';
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
+    title.textContent = '🎨 Image Prompt — ' + angleLabel;
+
+    const promptBox = document.createElement('div');
+    promptBox.style.cssText = 'font-size:.8rem;line-height:1.75;color:var(--text);background:var(--surface-2);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:var(--mono)';
+    promptBox.textContent = data.prompt;
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:14px';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font)';
+    copyBtn.textContent = '📋 Copy Prompt';
+    copyBtn.onclick = () => navigator.clipboard.writeText(data.prompt).then(() => {
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => copyBtn.textContent = '📋 Copy Prompt', 2000);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    closeBtn.textContent = '✕ Close';
+    closeBtn.onclick = () => overlay.remove();
+
+    btnRow.appendChild(copyBtn);
+    btnRow.appendChild(closeBtn);
+    box.appendChild(title);
+    box.appendChild(promptBox);
+    box.appendChild(btnRow);
+    overlay.appendChild(box);
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
   } catch(e) {
