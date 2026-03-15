@@ -329,6 +329,52 @@ export default async (req, context) => {
     }
   }
 
+  // ── Sub-route: regenerate plan for existing client ──────────────────────────
+  if (reqUrl.pathname.endsWith('/regenerate-plan')) {
+    const { agencyId: aId, clientId: cId } = data;
+    if (!aId || !cId) return new Response(JSON.stringify({error:'agencyId and clientId required'}),{status:400,headers:CORS});
+    try {
+      // Get existing client data from Firestore
+      const existing = await fsGet(`agencies/${aId}/clients/${cId}`);
+      if (!existing || !existing.fields) return new Response(JSON.stringify({error:'Client not found'}),{status:404,headers:CORS});
+      // Extract fields
+      const fields = existing.fields;
+      const get = k => fields[k]?.stringValue || '';
+      const clientData = {
+        agencyId: aId, clientId: cId,
+        firstName: get('firstName'), lastName: get('lastName'),
+        email: get('clientEmail'), businessName: get('businessName'),
+        phone: get('phone'), industry: get('industry'),
+        primaryService: get('primaryService'), adBudget: get('adBudget'),
+        adPlatforms: get('adPlatforms'), goal90Days: get('goal90Days')||get('goal90'),
+        serviceAreaType: get('serviceAreaType'), serviceDetails: get('serviceDetails'),
+        standOut: get('standOut'), promotions: get('promotions'),
+        idealCustomer: get('idealCustomer'), qualifyingQuestions: get('qualifyingQuestions'),
+        avgCustomerValue: get('avgCustomerValue'), workedWell: get('workedWell'),
+        notWorked: get('notWorked'), limitations: get('limitations'),
+        mainGoal: get('mainGoal'), ageGroups: get('ageGroups'),
+        interests: get('interests'), badLead: get('badLead'),
+        planUrl: get('dashboardUrl'),
+        portalUrl: `https://marketingplan.astroaibots.com/onboard/portal?a=${aId}&s=${cId}`,
+        createdAt: get('createdAt'),
+      };
+      // Fire background function to regenerate
+      const bgPayload = JSON.stringify(clientData);
+      if (context?.waitUntil) {
+        context.waitUntil(
+          fetch('https://marketingplan.astroaibots.com/.netlify/functions/agency-generate-background', {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: bgPayload,
+          }).then(r => console.log('[regenerate] bg triggered:', r.status, 'for', cId))
+            .catch(e => console.error('[regenerate] bg failed:', e.message))
+        );
+      }
+      return new Response(JSON.stringify({success:true, clientId:cId, planUrl:clientData.planUrl}),{status:200,headers:CORS});
+    } catch(e) {
+      console.error('[regenerate] error:', e.message);
+      return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
+    }
+  }
+
   const {agencyId} = data;
   if (!agencyId) return new Response(JSON.stringify({error:'agencyId required'}),{status:400,headers:CORS});
 
@@ -428,4 +474,4 @@ export default async (req, context) => {
   }
 };
 
-export const config = { path: ['/api/agency/process-plan', '/api/agency/process-plan/upload-auth'] };
+export const config = { path: ['/api/agency/process-plan', '/api/agency/process-plan/upload-auth', '/api/agency/process-plan/regenerate-plan'] };
