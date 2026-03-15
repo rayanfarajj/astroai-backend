@@ -849,7 +849,7 @@ async function loadClients() {
     if(!res.ok) throw new Error(data.error||'Failed');
     clients=data.clients||[];
     // Split purchased leads from regular clients
-    purchasedLeads=clients.filter(c=>c.tags==='paid-lead');
+    purchasedLeads=clients.filter(c=>c.tags==='paid-lead'&&c.leadSource!=='converted');
     // Update badge
     const badge=document.getElementById('pl-badge');
     if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}
@@ -861,7 +861,7 @@ async function loadClients() {
 }
 function updateStats() {
   const now=new Date();
-  const regularClients=clients.filter(c=>c.tags!=='paid-lead');
+  const regularClients=clients.filter(c=>c.tags!=='paid-lead'||c.leadSource==='converted');
   document.getElementById('s-total').textContent=regularClients.length;
   document.getElementById('s-month').textContent=regularClients.filter(c=>{const d=new Date(c.createdAt);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
   document.getElementById('s-week').textContent=regularClients.filter(c=>(now-new Date(c.createdAt))<7*86400000).length;
@@ -874,7 +874,7 @@ function renderTable() {
   const so=document.getElementById('f-sort').value;
   // Show regular clients only (not purchased leads)
   let list=clients.filter(c=>{
-    if(c.tags==='paid-lead') return false;
+    if(c.tags==='paid-lead'&&c.leadSource!=='converted') return false;
     const mq=!q||[c.businessName,c.clientName,c.industry].some(v=>(v||'').toLowerCase().includes(q));
     return mq&&(!fs||c.status===fs);
   });
@@ -1147,8 +1147,17 @@ async function submitConvert() {
       // Send onboarding form link via email
       await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId:data.clientId,status:'new',notify:true,customSubject:`Your Marketing Plan Onboarding Form — ${biz}`,customMessage:`Hi ${fn},\n\nThank you for your interest! To create your personalized AI marketing plan, please fill out this quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes 2-3 minutes and will help us build the perfect plan for your business.\n\nLooking forward to working with you!`})});
     }
+    // Update original lead record to mark as converted (removes from Purchased Leads tab)
+    if(convertLead && convertLead._id) {
+      await fetch(API+'/agency/update-client', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-agency-token':token},
+        body:JSON.stringify({agencyId, clientId:convertLead._id, status:'converted', tags:'converted-lead', leadSource:'converted', notify:false})
+      }).catch(()=>{});
+    }
     closeConvert();await loadClients();
     toast(`✅ ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
+
   } catch(e){toast('❌ '+e.message);}
   finally{btn.textContent='🚀 Convert to Client';btn.disabled=false;}
 }
@@ -1756,6 +1765,9 @@ async function regeneratePlan(clientId, event) {
   if(btn){ btn.textContent='⏳ Starting...'; btn.disabled=true; }
 
   try {
+    toast('⚡ Generating plan... please wait ~20 seconds');
+    if(btn){ btn.textContent='⏳ Generating...'; }
+
     const res = await fetch(`${API}/agency/process-plan`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -1777,28 +1789,10 @@ async function regeneratePlan(clientId, event) {
     const data = await res.json();
     if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
 
-    // Plan is being generated in background — poll Firestore via loadClients
-    toast('⚡ Plan generating in background... refreshing in ~20 seconds');
-    if(btn){ btn.textContent='⏳ Generating...'; }
-
-    // Poll every 5 seconds for up to 60 seconds
-    let attempts = 0;
-    const poll = setInterval(async () => {
-      attempts++;
-      await loadClients();
-      const updated = clients.find(x=>(x._id||x.id)===clientId);
-      const hasPlan = updated && updated.dashboardJSON && updated.dashboardJSON !== '{}' && Object.keys(updated.dashboardJSON).length > 2;
-      if(hasPlan || attempts >= 12) {
-        clearInterval(poll);
-        if(hasPlan){
-          toast('✅ Plan ready! Click ↗ Plan to view.');
-          if(curClient && (curClient._id||curClient.id)===clientId) showDetail(updated);
-        } else {
-          toast('⚠️ Still generating — check back in a moment');
-          if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
-        }
-      }
-    }, 5000);
+    toast('✅ Plan generated!');
+    await loadClients();
+    const updated = clients.find(x=>(x._id||x.id)===clientId);
+    if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
   } catch(e) {
     toast('❌ '+e.message);
     if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
@@ -1822,7 +1816,7 @@ async function init() {
   if(savedToken&&agencyId){
     try{
       const res=await fetch(`${API}/agency/clients?agencyId=${agencyId}`,{headers:{'x-agency-token':savedToken}});
-      if(res.ok){token=savedToken;const cfg=await fetch(`${API}/agency/settings?agencyId=${agencyId}`,{headers:{'x-agency-token':token}});if(cfg.ok){const d=await cfg.json();agencyConfig=d.agency||{};}document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';applyBranding(agencyConfig);const data=await res.json();clients=data.clients||[];purchasedLeads=clients.filter(c=>c.tags==='paid-lead');const badge=document.getElementById('pl-badge');if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}updateStats();renderTable();document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();return;}
+      if(res.ok){token=savedToken;const cfg=await fetch(`${API}/agency/settings?agencyId=${agencyId}`,{headers:{'x-agency-token':token}});if(cfg.ok){const d=await cfg.json();agencyConfig=d.agency||{};}document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';applyBranding(agencyConfig);const data=await res.json();clients=data.clients||[];purchasedLeads=clients.filter(c=>c.tags==='paid-lead'&&c.leadSource!=='converted');const badge=document.getElementById('pl-badge');if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}updateStats();renderTable();document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();return;}
     }catch(e){}
     sessionStorage.removeItem('saas_token');
   }
