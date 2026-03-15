@@ -166,148 +166,23 @@ async function uploadAuthPdfToBlobs(clientSlug, agencyId, authSignature, data) {
 
 // ─── RICH PROMPT USING ALL FORM FIELDS ────────────────────────────────────────
 function buildPrompt(d) {
-  const n = v => v || 'N/A';
-  return `You are an elite digital marketing strategist building a personalized Marketing Command Center for a new agency client. Use ALL the client data below to generate deeply customized, specific content — not generic templates.
+  const n = v => v||'N/A';
+  return `You are a marketing strategist. Generate a marketing plan for ${n(d.businessName)}.
+Output ONLY raw JSON starting with { — no markdown, no explanation.
 
-CRITICAL: Output ONLY valid JSON. No markdown fences, no explanation, no preamble. Start with { and end with }.
+Business: ${n(d.businessName)} | Industry: ${n(d.industry)} | Service: ${n(d.primaryService)}
+Goal: ${n(d.mainGoal)} | Budget: $${n(d.adBudget)}/day | Platforms: ${n(d.adPlatforms)}
+Area: ${n(d.serviceDetails)} | Ideal Customer: ${n(d.idealCustomer)} | Ages: ${n(d.ageGroups)}
+Stand Out: ${n(d.standOut)} | Promo: ${n(d.promotions)} | Avg Value: $${n(d.avgCustomerValue)}
+Qual Lead: ${n(d.qualifiedLead)} | Bad Lead: ${n(d.badLead)}
+Qual Qs: ${n(d.qualifyingQuestions)} | 90-Day Goal: ${n(d.goal90Days||d.goal90)}
+Worked: ${n(d.workedWell)} | Didn't Work: ${n(d.notWorked)}
 
-━━━ CLIENT DATA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CONTACT & BUSINESS:
-• Name: ${n(d.firstName)} ${n(d.lastName)}
-• Business: ${n(d.businessName)}
-• Industry: ${n(d.industry)}
-• Company Size: ${n(d.companySize)}
-• Website: ${n(d.website)}
-• Primary Service to Promote: ${n(d.primaryService)}
-• Business Description: ${n(d.bizDescription)}
-
-OFFER & POSITIONING:
-• Main Advertising Goal: ${n(d.mainGoal)}
-• Average Customer/Job Value: $${n(d.avgCustomerValue)}
-• What Makes Them Stand Out: ${n(d.standOut)}
-• Current Promotions/Specials: ${n(d.promotions)}
-
-TARGET AUDIENCE:
-• Ideal Customer: ${n(d.idealCustomer)}
-• Age Groups: ${n(d.ageGroups)}
-• Gender Preference: ${n(d.genderPref) || 'No preference'}
-• Language: ${n(d.language)}
-• Common Interests/Behaviors: ${n(d.interests)}
-
-SERVICE AREA:
-• Area Type: ${n(d.serviceAreaType)}
-• Specific Area: ${n(d.serviceDetails)}
-
-LEAD QUALIFICATION:
-• Highly Qualified Lead Looks Like: ${n(d.qualifiedLead)}
-• Bad Fit / Disqualifications: ${n(d.badLead)}
-• Top 3 Qualifying Questions: ${n(d.qualifyingQuestions)}
-• Top 3 Disqualifying Questions: ${n(d.disqualifyingQuestions)}
-
-LEAD HANDOFF:
-• Where Leads Are Sent: ${n(d.leadDestination)}
-• Response Time: ${n(d.responseTime)}
-• Dedicated Follow-Up Person: ${n(d.dedicatedPerson)}
-
-MARKETING HISTORY:
-• Paid Ads Before: ${n(d.paidAdsBefore)}
-• Platforms Used: ${n(d.platformsUsedBefore)}
-• What Worked: ${n(d.workedWell)}
-• What Didn't Work: ${n(d.notWorked)}
-
-90-DAY GOALS:
-• Main 90-Day Goal: ${n(d.goal90Days)}
-• Limitations/Avoid: ${n(d.limitations)}
-• Priorities: ${n(d.priorities)}
-• Custom Lead Q1: ${n(d.customQ1)}
-• Custom Lead Q2: ${n(d.customQ2)}
-• Custom Lead Q3: ${n(d.customQ3)}
-
-AD BUDGET & PLATFORMS:
-• Daily Budget: ${n(d.adBudget)}
-• Open to Scaling: ${n(d.budgetIncrease)}
-• Platforms to Run: ${n(d.adPlatforms)}
-
-━━━ OUTPUT JSON SCHEMA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Return ONLY this JSON structure (no other text):
-{
-  "tagline": "one sharp sentence — what ${n(d.businessName)} does and who they help",
-  "avatar": {
-    "name": "made-up persona name for their ideal customer",
-    "whoTheyAre": "2-3 sentences — specific to their industry/area",
-    "painPoints": "2-3 sentences about what this business solves",
-    "desires": "2-3 sentences about what the ideal customer truly wants",
-    "qualifiers": ["qualifier 1 from their input", "qualifier 2", "qualifier 3", "qualifier 4"],
-    "disqualifiers": ["disqualifier 1 from their input", "disqualifier 2", "disqualifier 3"]
-  },
-  "funnelSteps": [
-    {"step":"Awareness","icon":"📡","desc":"one sentence specific to their platform/audience"},
-    {"step":"Interest","icon":"🎯","desc":"one sentence — hook for their specific service"},
-    {"step":"Lead Capture","icon":"📋","desc":"one sentence — their specific lead form approach"},
-    {"step":"Qualification","icon":"✅","desc":"one sentence — using their actual qualifying questions"},
-    {"step":"Conversion","icon":"🤝","desc":"one sentence — their close/handoff process"}
-  ],
-  "adAngles": [
-    {"angleLabel":"Empathy / Pain","angle":"strategy sentence","ads":[{"title":"Version A","headline":"specific headline","primaryText":"3-4 sentence ad copy using their specific offer","description":"one line benefit","cta":"strong CTA"},{"title":"Version B","headline":"alt headline","primaryText":"3-4 sentence variation","description":"one line","cta":"CTA"}]},
-    {"angleLabel":"Offer / Value","angle":"strategy sentence","ads":[{"title":"Version A","headline":"offer headline","primaryText":"3-4 sentences leading with their promotion","description":"one line","cta":"CTA"},{"title":"Version B","headline":"value headline","primaryText":"3-4 sentence variation","description":"one line","cta":"CTA"}]},
-    {"angleLabel":"Proof / Results","angle":"strategy sentence","ads":[{"title":"Version A","headline":"results headline","primaryText":"3-4 sentences with implied proof","description":"one line","cta":"CTA"}]},
-    {"angleLabel":"Curiosity / Hook","angle":"strategy sentence","ads":[{"title":"Version A","headline":"pattern-interrupt headline","primaryText":"3-4 sentences opening with curiosity","description":"one line","cta":"CTA"}]},
-    {"angleLabel":"Retargeting","angle":"warm audience follow-up","ads":[{"title":"Warm Lead","headline":"follow-up headline","primaryText":"3-4 sentences for people who already engaged","description":"one line","cta":"CTA"}]}
-  ],
-  "targeting": {
-    "demographics": ["specific demo 1 from their data","demo 2","demo 3"],
-    "interests": ["interest 1 from their form","interest 2","interest 3","interest 4","interest 5"],
-    "behaviors": ["behavior 1 relevant to their service","behavior 2","behavior 3"],
-    "geographic": ["based on their service area: ${n(d.serviceAreaType)} — ${n(d.serviceDetails)}"],
-    "custom": ["Website visitors (retargeting)","Engaged with page","custom audience for their business"],
-    "lookalike": ["1% lookalike of customer list","2-3% for broader reach"]
-  },
-  "roadmap": [
-    {"phase":"Week 1","title":"Foundation & Setup","desc":"2 sentences — specific actions for ${n(d.adPlatforms)} and their goals"},
-    {"phase":"Week 2","title":"Launch & Test","desc":"2 sentences — launching first campaigns at $${n(d.adBudget)}/day"},
-    {"phase":"Weeks 3-4","title":"Data & Optimization","desc":"2 sentences — analyze, kill losers, scale winners"},
-    {"phase":"Weeks 5-6","title":"Audience Expansion","desc":"2 sentences — broaden audiences, add ad angles"},
-    {"phase":"Weeks 7-8","title":"Scale What Works","desc":"2 sentences — scaling winning campaigns"},
-    {"phase":"Weeks 9-12","title":"90-Day Goal","desc":"2 sentences — hitting their specific goal: ${n(d.goal90Days).slice(0,60)}"}
-  ],
-  "qualificationScript": {
-    "opening": "2-3 sentence opening specific to ${n(d.businessName)} using their industry",
-    "questions": [
-      {"q":"question based on their input: ${n(d.qualifyingQuestions)}","why":"why this matters for their business"},
-      {"q":"second qualifying question from their inputs","why":"why this matters"},
-      {"q":"third qualifying question","why":"why this matters"},
-      {"q":"budget/timeline qualifier for their service","why":"qualifies readiness"},
-      {"q":"decision maker confirmation","why":"avoids wasting time"}
-    ],
-    "transition": "2 sentence transition to close using their process: ${n(d.leadDestination)}",
-    "objections": [
-      {"obj":"most common objection for their industry","response":"rebuttal using: ${n(d.standOut).slice(0,80)}"},
-      {"obj":"price objection","response":"ROI response using their avg value $${n(d.avgCustomerValue)}"},
-      {"obj":"need to think about it","response":"urgency using their specific offer/promo"}
-    ]
-  },
-  "positioning": [
-    {"tip":"Lead With Your Unique Edge","desc":"2 sentences about: ${n(d.standOut).slice(0,100)}"},
-    {"tip":"Own Your Service Area","desc":"2 sentences about: ${n(d.serviceDetails).slice(0,80)}"},
-    {"tip":"Leverage What Works","desc":"2 sentences building on: ${n(d.workedWell).slice(0,80)}"},
-    {"tip":"Promote Your Best Offer","desc":"2 sentences leading with: ${n(d.promotions).slice(0,100)}"},
-    {"tip":"Speed as Competitive Advantage","desc":"2 sentences about ${n(d.responseTime)} response vs slow competitors"}
-  ],
-  "kpis": {
-    "cpl": "cost per lead range for ${n(d.industry)} on ${n(d.adPlatforms)}",
-    "ctr": "expected CTR range for this industry",
-    "conversionRate": "expected lead form conversion rate",
-    "expectedLeadsPerMonth": "estimated monthly leads at this budget",
-    "projectedROI": "ROI projection based on $${n(d.avgCustomerValue)} avg job value"
-  }
+JSON format:
+{"tagline":"one sentence","avatar":{"name":"persona","whoTheyAre":"2 sentences","painPoints":"2 sentences","desires":"2 sentences","qualifiers":["q1","q2","q3"],"disqualifiers":["d1","d2"]},"funnelSteps":[{"step":"Awareness","icon":"📡","desc":"1 sentence"},{"step":"Interest","icon":"🎯","desc":"1 sentence"},{"step":"Lead Capture","icon":"📋","desc":"1 sentence"},{"step":"Qualification","icon":"✅","desc":"1 sentence"},{"step":"Conversion","icon":"🤝","desc":"1 sentence"}],"adAngles":[{"angleLabel":"Pain","angle":"strategy","ads":[{"title":"A","headline":"headline","primaryText":"3 sentences","description":"1 line","cta":"CTA"},{"title":"B","headline":"headline","primaryText":"3 sentences","description":"1 line","cta":"CTA"}]},{"angleLabel":"Offer","angle":"strategy","ads":[{"title":"A","headline":"headline","primaryText":"3 sentences","description":"1 line","cta":"CTA"}]},{"angleLabel":"Proof","angle":"strategy","ads":[{"title":"A","headline":"headline","primaryText":"3 sentences","description":"1 line","cta":"CTA"}]},{"angleLabel":"Retargeting","angle":"warm audience","ads":[{"title":"Warm","headline":"headline","primaryText":"3 sentences","description":"1 line","cta":"CTA"}]}],"targeting":{"demographics":["d1","d2"],"interests":["i1","i2","i3"],"behaviors":["b1","b2"],"geographic":["${n(d.serviceDetails).slice(0,60)}"],"custom":["Website visitors"],"lookalike":["1% lookalike"]},"roadmap":[{"phase":"Week 1","title":"Foundation","desc":"actions"},{"phase":"Week 2","title":"Launch","desc":"actions"},{"phase":"Weeks 3-4","title":"Optimize","desc":"actions"},{"phase":"Weeks 5-8","title":"Scale","desc":"actions"},{"phase":"Weeks 9-12","title":"Results","desc":"hit goal"}],"qualificationScript":{"opening":"opening script","questions":[{"q":"q1","why":"why"},{"q":"q2","why":"why"},{"q":"q3","why":"why"}],"transition":"transition","objections":[{"obj":"objection","response":"response"},{"obj":"price","response":"ROI response"}]},"positioning":[{"tip":"tip1","desc":"2 sentences"},{"tip":"tip2","desc":"2 sentences"},{"tip":"tip3","desc":"2 sentences"}],"kpis":{"cpl":"CPL range","ctr":"CTR range","conversionRate":"rate","expectedLeadsPerMonth":"number","projectedROI":"ROI"}}`;
 }
 
-Remember: Every field must be SPECIFIC to ${n(d.businessName)} — their industry, their service area, their promotions, their audience. Never use generic placeholder text.`;
-}
 
-// ─── SAVE ALL FORM DATA + GENERATE HTML PLAN ─────────────────────────────────
 async function generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency) {
   try {
     console.log('[plan] Calling Claude for:', data.businessName);
@@ -511,48 +386,35 @@ export default async (req, context) => {
     });
     console.log('[process-plan] Initial client record saved:', slug);
 
-    // ── Save auth PDF to Blobs IMMEDIATELY ──────────────────────────────────────
+    // ── Save auth PDF immediately (sync, fast — just a blob write) ─────────────
     if (data.authPdfBase64 || (data.authSignature && data.authSignature.length > 100)) {
       uploadAuthPdfToBlobs(slug, agencyId, data.authSignature||'', data)
         .catch(e => console.error('[process-plan] PDF save failed:', e.message));
     }
 
-    // ── Fire background function (guaranteed 15-min execution, no timeout issues) ─
-    // Background functions bypass waitUntil limitations on Netlify
-    const bgPayload = JSON.stringify({
+    // ── Fire background function — 15-min guaranteed execution ─────────────────
+    const bgData = JSON.stringify({
       ...data,
       clientId:  slug,
       agencyId,
       planUrl,
       portalUrl,
       createdAt: now,
-      // Strip large base64 fields to keep payload small for background function
-      authPdfBase64: undefined,
+      authPdfBase64: undefined,  // stripped — already saved to blobs above
     });
-
-    // Call background function via internal Netlify URL
-    const bgUrl = 'https://marketingplan.astroaibots.com/.netlify/functions/agency-generate-background';
-    https.request({
+    const bgReq = https.request({
       hostname: 'marketingplan.astroaibots.com',
       path:     '/.netlify/functions/agency-generate-background',
       method:   'POST',
-      headers:  {
-        'Content-Type':   'application/json',
-        'Content-Length': Buffer.byteLength(bgPayload),
-        'x-internal-key': process.env.INTERNAL_KEY || 'astroai-internal-2024',
-      }
-    }, res => {
-      console.log('[process-plan] Background function triggered, status:', res.statusCode);
-    }).on('error', e => {
-      // Background trigger failed — fall back to waitUntil
-      console.error('[process-plan] Background trigger failed:', e.message, '— falling back to waitUntil');
-      if (context?.waitUntil) {
-        context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
-      } else {
-        generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(console.error);
-      }
-    }).end(bgPayload);
-    console.log('[process-plan] Background function fired for:', slug);
+      headers:  { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bgData) }
+    }, res => { console.log('[process-plan] bg function status:', res.statusCode, 'for', slug); });
+    bgReq.on('error', e => {
+      console.error('[process-plan] bg trigger failed:', e.message, '— using waitUntil fallback');
+      if (context?.waitUntil) context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
+      else generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(console.error);
+    });
+    bgReq.end(bgData);
+    console.log('[process-plan] background function fired for:', slug);
 
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}), {
       status: 200,
