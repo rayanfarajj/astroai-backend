@@ -1,5 +1,6 @@
 // netlify/functions/get-portal.js
-const https = require('https');
+import https from 'https';
+import crypto from 'crypto';
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -10,41 +11,70 @@ const CORS = {
 
 function getFirebaseToken() {
   return new Promise((resolve, reject) => {
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey  = (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n');
-    const crypto = require('crypto');
-    const b64u = s => Buffer.from(s).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-    const now = Math.floor(Date.now()/1000);
-    const hdr = b64u(JSON.stringify({alg:'RS256',typ:'JWT'}));
-    const pay = b64u(JSON.stringify({iss:clientEmail,sub:clientEmail,aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600,scope:'https://www.googleapis.com/auth/datastore'}));
-    const sig = b64u(crypto.createSign('RSA-SHA256').update(hdr+'.'+pay).sign(privateKey));
-    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${hdr}.${pay}.${sig}`;
-    const req = https.request({hostname:'oauth2.googleapis.com',path:'/token',method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{
+    const email = process.env.FIREBASE_CLIENT_EMAIL;
+    const key   = (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n');
+    const b64   = s => Buffer.from(s).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    const now   = Math.floor(Date.now()/1000);
+    const hdr   = b64(JSON.stringify({alg:'RS256',typ:'JWT'}));
+    const pay   = b64(JSON.stringify({iss:email,sub:email,aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600,scope:'https://www.googleapis.com/auth/datastore'}));
+    const sig   = b64(crypto.createSign('RSA-SHA256').update(hdr+'.'+pay).sign(key));
+    const body  = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${hdr}.${pay}.${sig}`;
+    const req   = https.request({hostname:'oauth2.googleapis.com',path:'/token',method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{
       let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{const t=JSON.parse(d).access_token;t?resolve(t):reject(new Error('No token'));});
+      res.on('end',()=>{const t=JSON.parse(d).access_token; t?resolve(t):reject(new Error('No token'));});
     });
     req.on('error',reject); req.write(body); req.end();
   });
 }
 
-function firestoreGet(token, docPath) {
+const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
+
+function fsGet(token, docPath) {
   return new Promise((resolve,reject)=>{
-    const proj = process.env.FIREBASE_PROJECT_ID;
-    const path = `/v1/projects/${proj}/databases/(default)/documents/${docPath}`;
-    const req = https.request({hostname:'firestore.googleapis.com',path,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
-      let d=''; res.on('data',c=>d+=c); res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}});
+    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${docPath}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}});
     });
-    req.on('error',reject); req.end();
+    r.on('error',reject); r.end();
   });
 }
 
-function extractClient(f, slug) {
-  const get = k => f[k]?.stringValue || f[k]?.integerValue || '';
+function fsList(token, collPath) {
+  return new Promise((resolve)=>{
+    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${collPath}?pageSize=100`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
+    });
+    r.on('error',()=>resolve({})); r.end();
+  });
+}
+
+function fromFS(v) {
+  if (!v) return null;
+  if ('stringValue'  in v) return v.stringValue;
+  if ('integerValue' in v) return String(v.integerValue);
+  if ('doubleValue'  in v) return v.doubleValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('nullValue'    in v) return null;
+  return null;
+}
+
+function extractFields(doc) {
+  if (!doc || !doc.fields) return null;
+  const o = {};
+  for (const [k,v] of Object.entries(doc.fields)) o[k] = fromFS(v);
+  o.id = (doc.name||'').split('/').pop();
+  return o;
+}
+
+function extractClient(fields, slug) {
+  const get = k => fields[k]?.stringValue || fields[k]?.integerValue || '';
   return {
     id:            slug,
     businessName:  get('businessName'),
     clientName:    get('clientName'),
     clientEmail:   get('clientEmail'),
+    phone:         get('phone'),
     industry:      get('industry'),
     adPlatforms:   get('adPlatforms'),
     adBudget:      get('adBudget'),
@@ -61,7 +91,7 @@ function extractClient(f, slug) {
 }
 
 export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', {status:200,headers:CORS});
+  if (req.method === 'OPTIONS') return new Response('',{status:200,headers:CORS});
 
   const url      = new URL(req.url);
   const slug     = url.searchParams.get('slug') || url.searchParams.get('s') || '';
@@ -73,18 +103,18 @@ export default async (req) => {
     const token = await getFirebaseToken();
     let clientDoc = null;
 
-    // 1. If agencyId provided, look in agency subcollection first
+    // 1. Try agency subcollection first
     if (agencyId) {
       try {
-        const doc = await firestoreGet(token, `agencies/${agencyId}/clients/${slug}`);
+        const doc = await fsGet(token, `agencies/${agencyId}/clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
 
-    // 2. Fall back to original /clients/ collection
+    // 2. Fall back to root clients collection
     if (!clientDoc) {
       try {
-        const doc = await firestoreGet(token, `clients/${slug}`);
+        const doc = await fsGet(token, `clients/${slug}`);
         if (doc.fields) clientDoc = doc;
       } catch(e) {}
     }
@@ -95,74 +125,58 @@ export default async (req) => {
 
     const client = extractClient(clientDoc.fields, slug);
 
-    // Get offer — first check client record's offer field (SaaS agencies store it there)
+    // ── OFFER ────────────────────────────────────────────────
     let offer = null;
     const offerField = clientDoc.fields.offer?.stringValue || '';
     if (offerField) {
       try {
-        const parsed = JSON.parse(offerField);
-        if (parsed && parsed.title && parsed.ctaUrl) {
-          offer = {
-            title:       parsed.title || '',
-            description: parsed.description || '',
-            ctaText:     parsed.ctaText || 'Claim Offer',
-            ctaUrl:      parsed.ctaUrl || '',
-            expiresAt:   parsed.expiresAt || '',
-          };
+        const p = JSON.parse(offerField);
+        if (p && p.title && p.ctaUrl) {
+          offer = { title:p.title, description:p.description||'', ctaText:p.ctaText||'Claim Offer', ctaUrl:p.ctaUrl, expiresAt:p.expiresAt||'' };
         }
       } catch(e) {}
     }
-
-    // Fall back to separate offers collection
     if (!offer) {
-      const offerPaths = agencyId
+      const paths = agencyId
         ? [`agencies/${agencyId}/offers/${slug}`, `offers/${slug}`, `offers/global`]
         : [`offers/${slug}`, `offers/global`];
-
-      for (const p of offerPaths) {
+      for (const p of paths) {
         try {
-          const doc = await firestoreGet(token, p);
+          const doc = await fsGet(token, p);
           if (doc.fields && doc.fields.active?.booleanValue !== false) {
-            const of = doc.fields;
-            offer = {
-              title:       of.title?.stringValue||'',
-              description: of.description?.stringValue||'',
-              ctaText:     of.ctaText?.stringValue||'Claim Offer',
-              ctaUrl:      of.ctaUrl?.stringValue||'',
-              expiresAt:   of.expiresAt?.stringValue||'',
-            };
+            const f = doc.fields;
+            offer = { title:f.title?.stringValue||'', description:f.description?.stringValue||'', ctaText:f.ctaText?.stringValue||'Claim Offer', ctaUrl:f.ctaUrl?.stringValue||'', expiresAt:f.expiresAt?.stringValue||'' };
             break;
           }
         } catch(e) {}
       }
     }
 
-    // Get billing config + payments from subcollection (if agency client)
+    // ── BILLING ──────────────────────────────────────────────
     let billing = null;
     if (agencyId && slug) {
       try {
-        const billingDoc = await firestoreGet(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
+        const billingDoc = await fsGet(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
         if (billingDoc && billingDoc.fields) {
-          const cfg = extractClient(billingDoc.fields, 'config');
+          const cfg = extractFields(billingDoc);
           if (cfg && cfg.showOnPortal) {
-            // Also fetch payments
-            const paymentsResp = await new Promise((resolve,reject)=>{
-              const r=require('https').request({hostname:'firestore.googleapis.com',path:`/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/agencies/${agencyId}/clients/${slug}/payments?pageSize=50`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});});r.on('error',()=>resolve({}));r.end();
-            });
-            const payments = (paymentsResp.documents||[]).map(doc=>{
-              const o={};for(const[k,v]of Object.entries(doc.fields||{}))o[k]=v.stringValue??v.integerValue??v.doubleValue??v.booleanValue??null;
-              o.id=(doc.name||'').split('/').pop();return o;
-            }).sort((a,b)=>new Date(b.dueDate||0)-new Date(a.dueDate||0));
+            const paymentsResp = await fsList(token, `agencies/${agencyId}/clients/${slug}/payments`);
+            const payments = (paymentsResp.documents||[])
+              .map(doc => extractFields(doc))
+              .filter(Boolean)
+              .sort((a,b) => new Date(b.dueDate||0) - new Date(a.dueDate||0));
             billing = { ...cfg, payments };
           }
         }
-      } catch(e) { console.log('[get-portal] billing fetch error:', e.message); }
+      } catch(e) {
+        console.log('[get-portal] billing error:', e.message);
+      }
     }
 
     return new Response(JSON.stringify({client, offer, billing}),{status:200,headers:CORS});
 
   } catch(e) {
-    console.error('[get-portal]',e.message);
+    console.error('[get-portal]', e.message);
     return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
   }
 };
