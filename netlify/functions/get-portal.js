@@ -137,7 +137,29 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client,offer}),{status:200,headers:CORS});
+    // Get billing config + payments from subcollection (if agency client)
+    let billing = null;
+    if (agencyId && slug) {
+      try {
+        const billingDoc = await firestoreGet(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
+        if (billingDoc && billingDoc.fields) {
+          const cfg = extractClient(billingDoc.fields, 'config');
+          if (cfg && cfg.showOnPortal) {
+            // Also fetch payments
+            const paymentsResp = await new Promise((resolve,reject)=>{
+              const r=require('https').request({hostname:'firestore.googleapis.com',path:`/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/agencies/${agencyId}/clients/${slug}/payments?pageSize=50`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});});r.on('error',()=>resolve({}));r.end();
+            });
+            const payments = (paymentsResp.documents||[]).map(doc=>{
+              const o={};for(const[k,v]of Object.entries(doc.fields||{}))o[k]=v.stringValue??v.integerValue??v.doubleValue??v.booleanValue??null;
+              o.id=(doc.name||'').split('/').pop();return o;
+            }).sort((a,b)=>new Date(b.dueDate||0)-new Date(a.dueDate||0));
+            billing = { ...cfg, payments };
+          }
+        }
+      } catch(e) { console.log('[get-portal] billing fetch error:', e.message); }
+    }
+
+    return new Response(JSON.stringify({client, offer, billing}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]',e.message);
