@@ -28,54 +28,72 @@ function getToken() {
 const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
 function fsRaw(token, docPath) {
-  return new Promise((resolve)=>{
-    const r = https.request({hostname:'firestore.googleapis.com',path:`${BASE()}/${docPath}`,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
-      let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({parseError:e.message})}});
+  return new Promise((resolve) => {
+    const r = https.request({
+      hostname: 'firestore.googleapis.com',
+      path: `${BASE()}/${docPath}`,
+      method: 'GET',
+      headers: {'Authorization': 'Bearer ' + token}
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({parseError: e.message, raw: d.slice(0,200)}); }});
     });
-    r.on('error',(e)=>resolve({networkError:e.message})); r.end();
+    r.on('error', e => resolve({error: e.message}));
+    r.end();
   });
 }
 
 export default async (req) => {
-  const url      = new URL(req.url);
-  const key      = url.searchParams.get('key') || '';
-  const agencyId = url.searchParams.get('a') || '';
-  const clientId = url.searchParams.get('c') || '';
+  const reqUrl = new URL(req.url);
+  const key    = reqUrl.searchParams.get('key') || '';
+  const agencyId = reqUrl.searchParams.get('a') || '';
+  const clientId = reqUrl.searchParams.get('c') || '';
 
   if (key !== 'AstroAdmin2024!') {
-    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:CORS});
+    return new Response(JSON.stringify({error:'Unauthorized'}), {status:401, headers:CORS});
   }
   if (!agencyId || !clientId) {
-    return new Response(JSON.stringify({error:'Need ?key=...&a=agencyId&c=clientId'}),{status:400,headers:CORS});
+    return new Response(JSON.stringify({error:'Need ?a=agencyId&c=clientId&key=AstroAdmin2024!'}), {status:400, headers:CORS});
   }
 
   try {
     const token = await getToken();
 
-    const [clientDoc, billingDoc, paymentsDoc] = await Promise.all([
+    const billingPath  = `agencies/${agencyId}/clients/${clientId}/billing/config`;
+    const paymentsPath = `agencies/${agencyId}/clients/${clientId}/payments`;
+
+    const [billingDoc, paymentsDoc, agencyDoc, clientDoc] = await Promise.all([
+      fsRaw(token, billingPath),
+      fsRaw(token, paymentsPath),
+      fsRaw(token, `agencies/${agencyId}`),
       fsRaw(token, `agencies/${agencyId}/clients/${clientId}`),
-      fsRaw(token, `agencies/${agencyId}/clients/${clientId}/billing/config`),
-      fsRaw(token, `agencies/${agencyId}/clients/${clientId}/payments`),
     ]);
 
     const showOnPortalRaw = billingDoc?.fields?.showOnPortal;
+    const refBonusRaw = agencyDoc?.fields?.referralBonus;
+    const refCountRaw = clientDoc?.fields?.referralCount;
 
     return new Response(JSON.stringify({
-      clientExists:       !!clientDoc?.fields,
-      billingDocExists:   !!billingDoc?.fields,
-      billingDocError:    billingDoc?.error || billingDoc?.networkError || null,
+      billingDocFound:    !!billingDoc?.fields,
       showOnPortalRaw,
-      showOnPortalType:   showOnPortalRaw ? Object.keys(showOnPortalRaw)[0] : 'MISSING_FIELD',
+      showOnPortalType:   showOnPortalRaw ? Object.keys(showOnPortalRaw)[0] : 'MISSING',
       showOnPortalValue:  showOnPortalRaw ? Object.values(showOnPortalRaw)[0] : null,
-      paymentsCount:      (paymentsDoc?.documents||[]).length,
       allBillingFields:   billingDoc?.fields ? Object.fromEntries(
-        Object.entries(billingDoc.fields).map(([k,v]) => [k, Object.keys(v)[0]+':'+JSON.stringify(Object.values(v)[0])])
-      ) : 'NO_BILLING_DOC',
-    }, null, 2),{status:200,headers:CORS});
+        Object.entries(billingDoc.fields).map(([k,v]) => [k, JSON.stringify(v)])
+      ) : 'NO FIELDS',
+      paymentsFound: (paymentsDoc?.documents||[]).length,
+      agencyDocFound: !!agencyDoc?.fields,
+      agencyFieldKeys: agencyDoc?.fields ? Object.keys(agencyDoc.fields) : [],
+      referralBonusRaw: refBonusRaw || 'MISSING',
+      referralBonusType: refBonusRaw ? Object.keys(refBonusRaw)[0] : 'MISSING',
+      referralBonusValue: refBonusRaw ? Object.values(refBonusRaw)[0] : null,
+      clientReferralCountRaw: refCountRaw || 'MISSING',
+      clientReferralCountType: refCountRaw ? Object.keys(refCountRaw)[0] : 'MISSING',
+      clientReferralCountValue: refCountRaw ? Object.values(refCountRaw)[0] : null,
+    }, null, 2), {status:200, headers:CORS});
 
   } catch(e) {
-    return new Response(JSON.stringify({error:e.message, stack:e.stack}),{status:500,headers:CORS});
+    return new Response(JSON.stringify({error: e.message, stack: e.stack?.slice(0,300)}), {status:500, headers:CORS});
   }
 };
 
