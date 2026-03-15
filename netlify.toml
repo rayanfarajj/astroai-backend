@@ -22,6 +22,9 @@
 [functions."upload-file"]
   timeout = 30
 
+[functions."delete-file"]
+  timeout = 10
+
 [functions."list-files"]
   timeout = 15
 
@@ -172,3 +175,8 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "POST, OPTIONS, GET"
     Access-Control-Allow-Headers = "Content-Type, Authorization, x-internal-key"
+
+[[redirects]]
+  from = "/api/delete-file"
+  to = "/.netlify/functions/delete-file"
+  status = 200
