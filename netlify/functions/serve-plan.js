@@ -106,6 +106,19 @@ export default async (req) => {
 
 export const config = {
   path: '/*',
-  excludedPath: ['/api/*', '/api/agency/*', '/api/admin/*', '/.netlify/*', '/join', '/signup', '/login', '/admin', '/saas.html', '/saas-dashboard.html', '/onboard.html', '/onboarding.html', '/onboard/*', '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html', '/admin-dashboard.html', '/health.html', '/health', '/admin-dashboard.html', '/join.html'],
+  excludedPath: [
+    // API routes
+    '/api/*', '/api/agency/*', '/api/admin/*', '/.netlify/*',
+    // All static HTML pages
+    '/onboarding.html', '/onboard.html', '/saas.html', '/saas-dashboard.html',
+    '/agency-dashboard.html', '/client-portal.html', '/platform-directory.html',
+    '/admin-dashboard.html', '/health.html', '/join.html', '/index.html',
+    // Friendly URL redirects (handled by netlify.toml)
+    '/health', '/join', '/signup', '/login', '/admin', '/onboard/*',
+    // Static assets — never intercept JS, CSS, images, fonts
+    '/*.js', '/*.css', '/*.png', '/*.jpg', '/*.jpeg', '/*.svg',
+    '/*.ico', '/*.webp', '/*.gif', '/*.woff', '/*.woff2', '/*.ttf',
+    '/*.json', '/*.txt', '/*.xml', '/*.map',
+  ],
   preferStatic: true,
 };
