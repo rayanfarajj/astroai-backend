@@ -1,9 +1,7 @@
 // netlify/functions/agency-process-plan.js
-// Handles onboarding form submission:
 // 1. Saves client to Firestore immediately
-// 2. Calls Claude synchronously (within 26s timeout)  
-// 3. Saves dashboardJSON + dashboardUrl to Firestore
-// 4. Returns planUrl to browser
+// 2. Triggers background function (non-blocking)
+// 3. Returns clientId/planUrl immediately — no timeout risk
 import https from 'https';
 import crypto from 'crypto';
 
@@ -14,7 +12,6 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-// ── FIREBASE ──────────────────────────────────────────────────
 function getToken() {
   return new Promise((resolve, reject) => {
     const email = process.env.FIREBASE_CLIENT_EMAIL;
@@ -67,7 +64,6 @@ async function fsGet(path) {
     else if('booleanValue' in v) o[k]=v.booleanValue;
     else o[k]=null;
   }
-  o.id=(r.name||'').split('/').pop();
   return o;
 }
 
@@ -77,46 +73,23 @@ async function fsSet(path, data) {
   return fsHttp('PATCH',`${BASE()}/${path}`,{fields},t);
 }
 
-// ── CLAUDE ────────────────────────────────────────────────────
-function callClaude(prompt) {
-  return new Promise((resolve,reject)=>{
-    const body = JSON.stringify({
-      model:'claude-sonnet-4-6',  // faster than opus, still high quality
-      max_tokens:4000,
-      messages:[{role:'user',content:prompt}]
-    });
+// Fire background function — returns immediately, does NOT wait for response
+function triggerBackground(payload) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify(payload);
     const r = https.request({
-      hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',
-      headers:{'x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
-    },res=>{
-      let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{
-        try {
-          const j=JSON.parse(d);
-          if(j.error) reject(new Error(j.error.message||JSON.stringify(j.error)));
-          else resolve(j.content?.[0]?.text||'');
-        } catch(e){reject(e)}
-      });
-    });
-    r.on('error',reject); r.write(body); r.end();
+      hostname: 'marketingplan.astroaibots.com',
+      path: '/.netlify/functions/agency-generate-background',
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)},
+    }, res => { res.resume(); res.on('end', resolve); });
+    r.on('error', (e) => { console.error('[process-plan] bg trigger error:', e.message); resolve(); });
+    // Set a short timeout — we don't need to wait for the 202
+    r.setTimeout(3000, () => { r.destroy(); resolve(); });
+    r.write(body); r.end();
   });
 }
 
-function buildPrompt(d) {
-  return `You are an expert digital marketing strategist. Generate a comprehensive AI marketing plan for the business below. Return ONLY valid JSON with no markdown, no backticks, no explanation.
-
-Business: ${d.businessName}
-Industry: ${d.industry}
-Service: ${d.primaryService}
-Monthly Ad Budget: $${d.adBudget}
-Platforms: ${d.adPlatforms}
-90-Day Goal: ${d.goal90Days}
-
-Return exactly this JSON structure:
-{"executiveSummary":"2-3 sentence overview","adAngles":[{"angleLabel":"Empathy","ads":[{"title":"Version A","headline":"Short headline under 40 chars","primaryText":"3-4 sentence ad copy","description":"One line description","cta":"Call to action"}]},{"angleLabel":"Pain Points","ads":[{"title":"Version A","headline":"...","primaryText":"...","description":"...","cta":"..."},{"title":"Version B","headline":"...","primaryText":"...","description":"...","cta":"..."}]},{"angleLabel":"Proof/Results","ads":[{"title":"Version A","headline":"...","primaryText":"...","description":"...","cta":"..."}]},{"angleLabel":"Curiosity","ads":[{"title":"Version A","headline":"...","primaryText":"...","description":"...","cta":"..."}]},{"angleLabel":"Retargeting","ads":[{"title":"Warm Lead","headline":"...","primaryText":"...","description":"...","cta":"..."}]}],"targeting":{"demographics":["Age 28-55","Homeowners"],"interests1":{"label":"Primary Interests","items":["interest 1","interest 2"]},"interests2":{"label":"Secondary Interests","items":["interest 1"]},"behaviors":["relevant behavior"],"custom":["Website visitors"],"lookalike":["1% lookalike from customer list"]},"roadmap":[{"week":"Week 1-2","title":"Foundation","desc":"Setup tracking pixels, audiences, and campaign structure"},{"week":"Week 3-4","title":"Launch","desc":"Activate all ad sets with A/B testing"},{"week":"Week 5-8","title":"Optimize","desc":"Kill underperformers, scale winners"},{"week":"Week 9-12","title":"Scale","desc":"Expand audiences and increase budget on top performers"}],"qualificationScript":{"opening":"Hi [Name], I saw you were interested in [service] — quick question...","questions":[{"q":"What's your biggest challenge right now with [area]?","why":"Identifies pain point"},{"q":"Have you tried any solutions before?","why":"Qualifies budget/commitment"},{"q":"What would success look like in 90 days?","why":"Sets expectations"}],"objections":[{"obj":"Need to think about it","response":"Totally understand — what specific concern can I address right now?"},{"obj":"Too expensive","response":"What's the cost of NOT solving this problem over the next 6 months?"}]},"kpis":{"cpl":"$15-45","ctr":"1.5-3.5%","roas":"3-6x","conversionRate":"2-5%"}}`;
-}
-
-// ── HANDLER ───────────────────────────────────────────────────
 export default async (req) => {
   if (req.method==='OPTIONS') return new Response('',{status:200,headers:CORS});
   if (req.method!=='POST')    return new Response(JSON.stringify({error:'POST only'}),{status:405,headers:CORS});
@@ -143,8 +116,8 @@ export default async (req) => {
     const portalUrl = `https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${slug}`;
     const now       = new Date().toISOString();
 
-    // 3. Save initial client record (status: new, no plan yet)
-    const baseClient = {
+    // 3. Save initial client record immediately
+    await fsSet(`agencies/${agencyId}/clients/${slug}`, {
       agencyId, clientId:slug,
       firstName:data.firstName, lastName:data.lastName,
       clientName:`${data.firstName} ${data.lastName}`.trim(),
@@ -154,70 +127,21 @@ export default async (req) => {
       adPlatforms:data.adPlatforms, serviceAreaType:data.serviceAreaType||'',
       serviceDetails:data.serviceDetails||'', website:data.website||'',
       companySize:data.companySize||'', goal90:data.goal90Days,
-      status:'new', createdAt:now, dashboardUrl:'', dashboardJSON:'{}', notes:'',
-      tags: data.tags||'', leadSource: data.leadSource||'',
-    };
-    await fsSet(`agencies/${agencyId}/clients/${slug}`, baseClient);
-    console.log('[process-plan] Client saved, clientId:', slug);
+      status:'new', createdAt:now,
+      dashboardUrl:planUrl, dashboardJSON:'{}', notes:'',
+      tags:data.tags||'', leadSource:data.leadSource||'',
+    });
+    console.log('[process-plan] Client saved:', slug);
 
-    // 4. Call Claude to generate plan
-    console.log('[process-plan] Calling Claude for:', data.businessName);
-    let dashJSON = {};
-    try {
-      const rawJSON = await callClaude(buildPrompt(data));
-      console.log('[process-plan] Claude returned', rawJSON.length, 'chars');
-      // Parse the JSON response
-      try {
-        const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
-        dashJSON = JSON.parse(cleaned);
-      } catch(parseErr) {
-        // Try extracting JSON block
-        const match = rawJSON.match(/\{[\s\S]*\}/);
-        if (match) {
-          try { dashJSON = JSON.parse(match[0]); }
-          catch(e2) { console.error('[process-plan] JSON parse failed:', e2.message); }
-        }
-      }
-      console.log('[process-plan] Plan parsed, keys:', Object.keys(dashJSON).join(','));
-    } catch(claudeErr) {
-      console.error('[process-plan] Claude failed:', claudeErr.message);
-      // Still save the client, plan can be regenerated
-    }
+    // 4. Fire background job — non-blocking, returns 202 immediately
+    triggerBackground({ ...data, clientId:slug, planUrl, portalUrl }).catch(()=>{});
+    console.log('[process-plan] Background triggered for:', slug);
 
-    // 5. Update client with plan data
-    const updatedClient = {
-      ...baseClient,
-      status: 'active',
-      dashboardUrl: planUrl,
-      dashboardJSON: JSON.stringify(dashJSON),
-      generatedAt: new Date().toISOString(),
-    };
-    await fsSet(`agencies/${agencyId}/clients/${slug}`, updatedClient);
-    console.log('[process-plan] Client updated with plan');
-
-    // 6. Send welcome email (non-blocking)
-    const sendEmail = async () => {
-      try {
-        const { createTransport } = await import('nodemailer');
-        const t = createTransport({service:'gmail',auth:{user:process.env.GMAIL_USER,pass:process.env.GMAIL_PASS}});
-        const brand = agency.brandName||agency.name||'Astro AI';
-        const color = agency.brandColor||'#00d9a3';
-        await t.sendMail({
-          from:`"${brand}" <${process.env.GMAIL_USER}>`,
-          to:data.email,
-          subject:`Your AI Marketing Plan is Ready, ${data.firstName}!`,
-          html:`<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px"><h2 style="color:${color}">${brand}</h2><p>Hi ${data.firstName},</p><p>Your marketing plan for <strong>${data.businessName}</strong> is ready!</p><a href="${planUrl}" style="background:${color};color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;margin:16px 0">View Your Plan</a><p><a href="${portalUrl}">Go to Your Portal</a></p></div>`,
-        });
-        console.log('[process-plan] Email sent to', data.email);
-      } catch(e) { console.error('[process-plan] Email error:', e.message); }
-    };
-    sendEmail(); // fire and forget
-
-    // 7. Return success immediately
+    // 5. Return success right away — dashboard shows plan button immediately
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}),{status:200,headers:CORS});
 
   } catch(err) {
-    console.error('[process-plan] ERROR:', err.message, err.stack);
+    console.error('[process-plan] ERROR:', err.message);
     return new Response(JSON.stringify({error:err.message}),{status:500,headers:CORS});
   }
 };
