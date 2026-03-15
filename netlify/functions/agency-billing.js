@@ -75,7 +75,7 @@ function extractDoc(doc) {
   if (!doc || !doc.fields) return null;
   const o = {};
   for (const [k,v] of Object.entries(doc.fields)) o[k] = fromFS(v);
-  o._id = (doc.name||'').split('/').pop();
+  o.id = (doc.name||'').split('/').pop();
   return o;
 }
 
@@ -88,8 +88,8 @@ async function fsGet(path) {
 
 async function fsSet(path, data) {
   const t = await getToken();
-  // Remove internal _id before saving
-  const { _id, ...clean } = data;
+  // Remove internal id before saving
+  const { id, _id, ...clean } = data;
   const fields = Object.fromEntries(Object.entries(clean).map(([k,v])=>[k,toFS(v)]));
   return fsHttp('PATCH', `${BASE()}/${path}`, {fields}, t);
 }
@@ -225,18 +225,18 @@ export default async (req) => {
         contractTerm:    contractTerm || 'monthly',
         billingCycle:    billingCycle || 'monthly',
         setupFee:        parseFloat(setupFee) || 0,
-        setupFeePaid:    setupFeePaid === true,
+        setupFeePaid:    setupFeePaid === true || setupFeePaid === 'true',
         recurringAmount: parseFloat(recurringAmount) || 0,
         currency:        currency || 'USD',
         startDate:       startDate || '',
         renewalDate:     nextDue || '',
-        autoRenew:       autoRenew === true,
+        autoRenew:       autoRenew === true || autoRenew === 'true',
         bonus:           bonus || 'none',
         bonusDetail:     bonusDetail || '',
         bonusDuration:   bonusDuration || '',
         paymentLink:     paymentLink || '',
         notes:           notes || '',
-        showOnPortal:    showOnPortal === true,
+        showOnPortal:    showOnPortal === true || showOnPortal === 'true',
         updatedAt:       new Date().toISOString(),
       };
 
