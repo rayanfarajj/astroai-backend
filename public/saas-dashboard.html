@@ -849,7 +849,7 @@ async function loadClients() {
     if(!res.ok) throw new Error(data.error||'Failed');
     clients=data.clients||[];
     // Split purchased leads from regular clients
-    purchasedLeads=clients.filter(c=>c.tags==='paid-lead'||c.leadSource==='Lead Pool');
+    purchasedLeads=clients.filter(c=>c.tags==='paid-lead');
     // Update badge
     const badge=document.getElementById('pl-badge');
     if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}
@@ -861,7 +861,7 @@ async function loadClients() {
 }
 function updateStats() {
   const now=new Date();
-  const regularClients=clients.filter(c=>c.tags!=='paid-lead'&&c.leadSource!=='Lead Pool');
+  const regularClients=clients.filter(c=>c.tags!=='paid-lead');
   document.getElementById('s-total').textContent=regularClients.length;
   document.getElementById('s-month').textContent=regularClients.filter(c=>{const d=new Date(c.createdAt);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
   document.getElementById('s-week').textContent=regularClients.filter(c=>(now-new Date(c.createdAt))<7*86400000).length;
@@ -874,7 +874,7 @@ function renderTable() {
   const so=document.getElementById('f-sort').value;
   // Show regular clients only (not purchased leads)
   let list=clients.filter(c=>{
-    if(c.tags==='paid-lead'||c.leadSource==='Lead Pool') return false;
+    if(c.tags==='paid-lead') return false;
     const mq=!q||[c.businessName,c.clientName,c.industry].some(v=>(v||'').toLowerCase().includes(q));
     return mq&&(!fs||c.status===fs);
   });
@@ -1140,7 +1140,7 @@ async function submitConvert() {
   if(!fn||!biz||!em){toast('❌ First name, business name, and email required');return;}
   const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
   try {
-    const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'Lead Pool'})});
+    const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
     const data=await res.json();
     if(!data.success) throw new Error(data.error||'Failed');
     if(sendOnboard&&em){
@@ -1822,7 +1822,7 @@ async function init() {
   if(savedToken&&agencyId){
     try{
       const res=await fetch(`${API}/agency/clients?agencyId=${agencyId}`,{headers:{'x-agency-token':savedToken}});
-      if(res.ok){token=savedToken;const cfg=await fetch(`${API}/agency/settings?agencyId=${agencyId}`,{headers:{'x-agency-token':token}});if(cfg.ok){const d=await cfg.json();agencyConfig=d.agency||{};}document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';applyBranding(agencyConfig);const data=await res.json();clients=data.clients||[];purchasedLeads=clients.filter(c=>c.tags==='paid-lead'||c.leadSource==='Lead Pool');const badge=document.getElementById('pl-badge');if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}updateStats();renderTable();document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();return;}
+      if(res.ok){token=savedToken;const cfg=await fetch(`${API}/agency/settings?agencyId=${agencyId}`,{headers:{'x-agency-token':token}});if(cfg.ok){const d=await cfg.json();agencyConfig=d.agency||{};}document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';applyBranding(agencyConfig);const data=await res.json();clients=data.clients||[];purchasedLeads=clients.filter(c=>c.tags==='paid-lead');const badge=document.getElementById('pl-badge');if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}updateStats();renderTable();document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();return;}
     }catch(e){}
     sessionStorage.removeItem('saas_token');
   }
