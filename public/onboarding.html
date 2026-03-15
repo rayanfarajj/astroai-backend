@@ -1735,17 +1735,19 @@ updateProg(1);
 })();
 
 // ── APPLY WHITE-LABEL BRANDING ──────────────────────────────────────
-(function applyBranding(){
+// Named function (not IIFE) so fetchAgencyConfig can call it again
+// after the async API response updates CFG.agencyName
+function applyBranding(){
   // Page title
   document.title = CFG.agencyName + ' — ' + CFG.agencyTagline;
   const pt = document.getElementById('page-title');
   if(pt) pt.textContent = CFG.agencyName + ' — ' + CFG.agencyTagline;
 
-  // Logo pill
+  // Logo pill — top of form "🚀 Your Agency Name"
   const lp = document.getElementById('agency-logo-pill');
   if(lp) lp.textContent = CFG.agencyEmoji + ' ' + CFG.agencyName;
 
-  // Inline agency name spans
+  // Inline agency name spans (privacy/TOS section)
   document.querySelectorAll('.agency-name-inline').forEach(el => {
     el.textContent = CFG.agencyName;
   });
@@ -1770,7 +1772,9 @@ updateProg(1);
     const pb = document.getElementById('portal-btn');
     if(pb){ pb.href = CFG.portalUrl; pb.style.display = 'inline-block'; }
   }
-})();
+}
+// Run once immediately with CFG defaults, fetchAgencyConfig calls it again with live data
+applyBranding();
 
 </script>
 </body>
