@@ -143,6 +143,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .offer-exp{font-size:.68rem;color:var(--text-muted);margin-top:4px;font-family:var(--mono);}
 .offer-btn{background:var(--orange);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font);text-decoration:none;display:inline-block;transition:opacity .15s;flex-shrink:0;}
 .offer-btn:hover{opacity:.85;}
+/* Billing */
+.bill-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.bill-summary-hdr{padding:14px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.bill-summary-title{font-size:.78rem;font-weight:700;color:var(--text);}
+.bill-summary-badge{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);}
+.bill-row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border);gap:12px;}
+.bill-row:last-child{border-bottom:none;}
+.bill-row-desc{font-size:.82rem;color:var(--text);flex:1;}
+.bill-row-freq{font-size:.65rem;color:var(--text-muted);font-family:var(--mono);padding:2px 7px;background:var(--surface-2);border-radius:10px;white-space:nowrap;}
+.bill-row-amt{font-family:var(--display);font-size:.9rem;font-weight:700;color:var(--text);white-space:nowrap;}
+.bill-footer{padding:14px 18px;background:var(--teal-dim);display:flex;align-items:center;justify-content:space-between;border-top:2px solid rgba(0,217,163,.2);}
+.bill-footer-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);}
+.bill-footer-amt{font-family:var(--display);font-size:1.15rem;font-weight:800;color:var(--teal);}
+.bill-notes-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.bill-notes-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px;}
+.bill-notes-text{font-size:.8rem;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;}
+.bill-pay-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--teal);color:#07090f;border:none;border-radius:8px;font-family:var(--display);font-size:.85rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 4px 14px var(--teal-glow);}
+.bill-pay-btn:hover{background:#00ffbf;transform:translateY(-1px);}
+.bill-row-date{font-size:.68rem;color:var(--text-muted);font-family:var(--mono);margin-top:2px}
+.pstat{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.pstat-paid{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2)}
+.pstat-pending{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(245,158,11,.2)}
+.pstat-late{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.pstat-cancelled{background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid var(--border)}
 
 /* PLATFORM TABS */
 .ptabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;}
@@ -263,6 +287,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
     <div class="sb-section">Campaign</div>
     <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon">◉</span> Ad Account Access</button>
     <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon">◫</span> Files & Documents</button>
+    <button class="nav-item" id="nav-billing" style="display:none" onclick="go('s-billing',this)"><span class="nav-icon">💳</span> Billing</button>
 
     <div class="sb-section">Connect</div>
     <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon">◎</span> Refer a Friend</button>
@@ -355,6 +380,12 @@ textarea.finput{resize:vertical;line-height:1.6;}
       </div>
     </div>
 
+    <!-- BILLING -->
+    <div class="section" id="s-billing">
+      <div class="page-hd"><h1>Billing</h1><p>Your current plan, payment details, and billing history.</p></div>
+      <div id="billing-content"></div>
+    </div>
+
     <!-- REFER -->
     <div class="section" id="s-refer">
       <div class="page-hd"><h1>Refer a Friend</h1><p>Know a business that needs AI marketing? You both get 30% off when they sign up.</p></div>
@@ -419,7 +450,7 @@ const slug = _urlp.get('s') || _urlp.get('slug') || '';
 const _agencyId = _urlp.get('a') || '';
 let C = null;
 
-const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-refer':'Refer a Friend','s-message':'Message Us'};
+const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-billing':'Billing','s-refer':'Refer a Friend','s-message':'Message Us'};
 const STEPS  = [
   {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:'✓'},
   {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:'◈'},
@@ -626,6 +657,13 @@ async function init() {
         </div>`;
     }
 
+    // Billing
+    const billing = data.billing;
+    if (billing && billing.showOnPortal) {
+      document.getElementById('nav-billing').style.display = 'flex';
+      renderBilling(billing);
+    }
+
     document.getElementById('loading').classList.add('out');
   }catch(e){
     document.getElementById('loading').classList.add('out');
@@ -633,6 +671,88 @@ async function init() {
     document.getElementById('h-greet').textContent=e.message;
   }
 }
+function renderBilling(b) {
+  const el = document.getElementById('billing-content');
+  if (!el) return;
+  const curr = b.currency || 'USD';
+  const sym  = {USD:'$',CAD:'$',EUR:'€',GBP:'£',AUD:'$'}[curr] || '$';
+  const fmt  = amt => sym + parseFloat(amt||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const termLabels = {'month-to-month':'Month-to-Month','monthly':'Monthly','quarterly':'Quarterly','biannual':'Semi-Annual','annual':'Annual','custom':'Custom'};
+  const cycleLabels = {'monthly':'Monthly','weekly':'Weekly','biweekly':'Bi-Weekly','quarterly':'Quarterly','biannual':'Semi-Annual','annual':'Annual','one-time':'One-Time'};
+  const bonusLabels = {'none':'','free-website':'Free Website Included','free-trial':'Free Trial Period','free-months':'Free Month(s) Included','free-setup':'Setup Fee Waived','discount':'Discounted Rate','custom':'Special Bonus'};
+  const statusMap = {pending:{label:'⏳ Pending',col:'var(--gold)'},paid:{label:'✅ Paid',col:'var(--teal)'},late:{label:'🔴 Overdue',col:'var(--red)'},cancelled:{label:'❌ Cancelled',col:'var(--text-muted)'},waived:{label:'🟤 Waived',col:'var(--purple)'}};
+  const payments = b.payments || [];
+  const today = new Date().toISOString().slice(0,10);
+  const nextPayment = payments.find(p => p.status==='pending' || p.status==='late');
+  const nextDueDate = nextPayment?.dueDate;
+  const isLate = nextDueDate && nextDueDate < today;
+
+  let html = '';
+
+  // Plan summary
+  html += `<div class="bill-summary">
+    <div class="bill-summary-hdr">
+      <span class="bill-summary-title">📋 Your Plan</span>
+      ${b.planType?`<span class="bill-summary-badge">${esc(b.planType)}</span>`:''}
+    </div>
+    ${b.contractTerm?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Contract Term</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${termLabels[b.contractTerm]||b.contractTerm}</div></div>`:''}
+    ${b.billingCycle&&b.billingCycle!=='one-time'?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Billing Cycle</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${cycleLabels[b.billingCycle]||b.billingCycle}</div></div>`:''}
+    ${b.startDate?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Start Date</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${new Date(b.startDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div></div>`:''}
+    ${b.setupFee>0?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Setup / Deposit</div><div class="bill-row-amt">${fmt(b.setupFee)} ${b.setupFeePaid?'<span style="font-size:.62rem;color:var(--teal)">✅ Paid</span>':'<span style="font-size:.62rem;color:var(--gold)">⏳ Pending</span>'}</div></div>`:''}
+    ${b.recurringAmount>0?`<div class="bill-footer"><div><div class="bill-footer-lbl">Recurring</div></div><div class="bill-footer-amt">${fmt(b.recurringAmount)}<span style="font-size:.65rem;font-weight:400;color:var(--text-muted)"> /${(cycleLabels[b.billingCycle]||'cycle').toLowerCase()}</span></div></div>`:''}
+    ${b.autoRenew?'<div style="padding:8px 18px;font-size:.7rem;color:var(--teal)">✅ Auto-renewal enabled</div>':''}
+    ${b.bonus&&b.bonus!=='none'?`<div style="padding:10px 18px;background:rgba(249,115,22,.08);border-top:1px solid rgba(249,115,22,.15);font-size:.78rem;color:var(--orange)">🎁 ${esc(bonusLabels[b.bonus]||b.bonus)}${b.bonusDetail?' — '+esc(b.bonusDetail):''}${b.bonusDuration?' ('+esc(b.bonusDuration)+')'':''}</div>`:''}
+  </div>`;
+
+  // Next payment highlight
+  if (nextPayment) {
+    const dueStr = nextDueDate?new Date(nextDueDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'—';
+    html += `<div style="background:${isLate?'var(--red-dim)':'rgba(0,217,163,.08)'};border:1px solid ${isLate?'rgba(239,68,68,.3)':'rgba(0,217,163,.25)'};border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${isLate?'var(--red)':'var(--teal)'};margin-bottom:4px">${isLate?'⚠️ Payment Overdue':'💳 Next Payment Due'}</div>
+        <div style="font-family:var(--display);font-size:1.2rem;font-weight:800;color:var(--text)">${fmt(nextPayment.amount)}</div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">Due: ${dueStr}</div>
+      </div>
+      ${b.paymentLink?`<a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn">${isLate?'⚠️ Pay Now →':'💳 Pay Now →'}</a>`:''}
+    </div>`;
+  } else if (!payments.length && b.paymentLink) {
+    html += `<div style="margin-bottom:14px"><a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn">💳 Pay Now →</a></div>`;
+  }
+
+  // Payment history
+  if (payments.length) {
+    html += `<div class="bill-summary"><div class="bill-summary-hdr"><span class="bill-summary-title">📊 Payment History</span></div>`;
+    payments.forEach(p => {
+      const isOvd = p.status==='pending' && p.dueDate && p.dueDate < today;
+      const s = statusMap[isOvd?'late':p.status] || statusMap.pending;
+      const dueStr = p.dueDate?new Date(p.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      const paidStr = p.paidAt?new Date(p.paidAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+      html += `<div class="bill-row">
+        <div style="flex:1"><div class="bill-row-desc">${esc(p.label||'Payment')}</div>
+        <div style="font-size:.68rem;color:var(--text-muted);margin-top:2px">Due: ${dueStr}${paidStr?' · Paid: '+paidStr:''}</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="bill-row-amt">${sym}${parseFloat(p.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          <span style="font-size:.62rem;font-weight:700;color:${s.col};white-space:nowrap">${s.label}</span>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (b.notes) {
+    html += `<div class="bill-notes-box"><div class="bill-notes-lbl">📋 Notes</div><div class="bill-notes-text">${esc(b.notes)}</div></div>`;
+  }
+
+  if (!html.trim()) {
+    html = `<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text">No billing details available yet.</div></div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
 init();
 </script>
 </body>
