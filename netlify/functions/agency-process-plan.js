@@ -383,11 +383,49 @@ export default async (req, context) => {
         .catch(e => console.error('[process-plan] PDF save failed:', e.message));
     }
 
-    // ── Call Claude synchronously — debug showed 14s response time ──────────────
-    // Form has 25s timeout. We await the full plan generation before responding.
-    // This means the plan is READY when the client gets the success response.
-    await generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency);
-    console.log('[process-plan] Plan generated for:', slug);
+    // ── Return immediately, fire background function for Claude ─────────────────
+    // agency-process-plan has "m":1024 — Netlify kills it after ~1s response time.
+    // The background function (im:background) has 15-min timeout — no limits.
+    // We return success NOW and the bg function generates the plan independently.
+    const bgPayload = JSON.stringify({
+      agencyId, clientId: slug, planUrl, portalUrl,
+      businessName:   data.businessName,
+      firstName:      data.firstName,
+      lastName:       data.lastName,
+      email:          data.email,
+      phone:          data.phone||'',
+      industry:       data.industry,
+      primaryService: data.primaryService,
+      adBudget:       data.adBudget,
+      adPlatforms:    data.adPlatforms,
+      goal90Days:     data.goal90Days,
+      mainGoal:       data.mainGoal||'',
+      avgCustomerValue: data.avgCustomerValue||'',
+      standOut:       data.standOut||'',
+      promotions:     data.promotions||'',
+      idealCustomer:  data.idealCustomer||'',
+      ageGroups:      data.ageGroups||'',
+      interests:      data.interests||'',
+      serviceAreaType: data.serviceAreaType||'',
+      serviceDetails: data.serviceDetails||'',
+      qualifiedLead:  data.qualifiedLead||'',
+      badLead:        data.badLead||'',
+      qualifyingQuestions: data.qualifyingQuestions||'',
+      workedWell:     data.workedWell||'',
+      notWorked:      data.notWorked||'',
+      responseTime:   data.responseTime||'',
+      leadDestination: data.leadDestination||'',
+      tags:           data.tags||'',
+      source:         data.source||data.leadSource||'',
+      createdAt:      now,
+    });
+
+    // Use fetch — Netlify routes this internally, much faster than https.request
+    fetch('https://marketingplan.astroaibots.com/.netlify/functions/agency-generate-background', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: bgPayload,
+    }).catch(e => console.error('[process-plan] bg trigger error:', e.message));
 
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}), {
       status: 200,
