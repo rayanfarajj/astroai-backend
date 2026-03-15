@@ -45,7 +45,7 @@ function fromFS(v) {
 
 function esc(v) { return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function renderPlan(j, client, agency) {
+function renderPlan(j, client, agency, agencyId, clientId) {
   const brand = agency.brandName||agency.name||'Your Agency';
   const color = agency.brandColor||'#f97316';
   const dark  = '#0a0a0f';
@@ -295,7 +295,7 @@ export default async (req) => {
     const agency = {};
     if (agencyDoc.fields) for (const [k,v] of Object.entries(agencyDoc.fields)) agency[k] = fromFS(v);
 
-    return new Response(renderPlan(json, client, agency), {status:200, headers:H});
+    return new Response(renderPlan(json, client, agency, agencyId, clientId), {status:200, headers:H});
 
   } catch(e) {
     console.error('[serve-plan]', e.message);
