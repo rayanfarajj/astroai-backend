@@ -98,68 +98,104 @@ function callClaude(prompt) {
 // The form sends the actual PDF as base64 (data.authPdfBase64) — we store
 // the real PDF binary so it shows as a downloadable PDF in the Files tab.
 // Falls back to saving a JSON authorization record if no PDF base64 provided.
-async function uploadAuthPdfToBlobs(clientSlug, agencyId, authSignature, data) {
+async function uploadAuthPdfToBlobs(clientSlug, agencyId, _ignored, data) {
   try {
     const store = getStore('client-files');
     const now   = new Date().toISOString();
-    const signerName = data.authSignerName || (data.firstName + ' ' + data.lastName).trim();
+    const signerName = data.authSignerName || ((data.firstName||'') + ' ' + (data.lastName||'')).trim();
     const signerBiz  = data.authSignerBusiness || data.businessName || '';
+    const signedAt   = data.authTimestamp ? new Date(data.authTimestamp).toLocaleString('en-US',{dateStyle:'full',timeStyle:'short'}) : new Date().toLocaleString('en-US',{dateStyle:'full',timeStyle:'short'});
+    const docRef     = data.authDocRef || ('AUTH-'+Date.now().toString(36).toUpperCase());
+    const ip         = data.authIP || 'On file';
+    const esc = v => String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-    if (data.authPdfBase64 && data.authPdfBase64.length > 100) {
-      // ── Save the ACTUAL PDF binary from the client-side jsPDF generation ──
-      const pdfBuffer = Buffer.from(data.authPdfBase64, 'base64');
-      const fileName  = data.authPdfFilename || `Authorization_Agreement_${clientSlug}.pdf`;
-      const key = `${clientSlug}/${fileName}`;
+    const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>Authorization Agreement</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;color:#111;background:#fff;font-size:14px;line-height:1.6;padding:48px;max-width:800px;margin:0 auto}
+.hdr{border-bottom:3px solid #f97316;padding-bottom:20px;margin-bottom:28px}
+.brand{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#f97316;margin-bottom:6px}
+h1{font-size:20px;font-weight:700}
+.sub{font-size:12px;color:#666;margin-top:4px}
+.sec{margin-bottom:24px}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f97316;border-bottom:1px solid #eee;padding-bottom:5px;margin-bottom:12px}
+.row{display:flex;gap:8px;margin-bottom:6px}
+.lbl{font-size:11px;font-weight:600;color:#888;min-width:150px}
+.val{font-size:13px}
+ul{list-style:none;padding:0}
+li{padding:8px 0 8px 20px;border-bottom:1px solid #f5f5f5;font-size:12.5px;position:relative}
+li::before{content:"✓";position:absolute;left:0;color:#f97316;font-weight:700}
+.sig{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:12px}
+.sig-name{font-size:22px;font-family:Georgia,serif;font-style:italic;margin-bottom:8px}
+.sig-line{border-top:1px solid #111;width:280px;margin-bottom:6px}
+.sig-meta{font-size:11px;color:#666}
+.footer{margin-top:40px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#aaa;text-align:center}
+@media print{body{padding:24px}}
+</style></head><body>
+<div class="hdr">
+  <div class="brand">Marketing Services Agreement</div>
+  <h1>Authorization Agreement</h1>
+  <div class="sub">Document Ref: ${esc(docRef)} &nbsp;&bull;&nbsp; ${esc(signedAt)}</div>
+</div>
+<div class="sec">
+  <div class="sec-title">Authorized Party</div>
+  <div class="row"><span class="lbl">Full Name</span><span class="val">${esc(signerName)}</span></div>
+  <div class="row"><span class="lbl">Business Name</span><span class="val">${esc(signerBiz)}</span></div>
+  <div class="row"><span class="lbl">Email</span><span class="val">${esc(data.email||data.clientEmail||'')}</span></div>
+  <div class="row"><span class="lbl">Phone</span><span class="val">${esc(data.phone||data.bizPhone||'')}</span></div>
+  <div class="row"><span class="lbl">Industry / Service</span><span class="val">${esc(data.industry||'')}${data.primaryService?' &mdash; '+esc(data.primaryService):''}</span></div>
+  <div class="row"><span class="lbl">Ad Platforms</span><span class="val">${esc(data.adPlatforms||'')}</span></div>
+  <div class="row"><span class="lbl">Monthly Budget</span><span class="val">${data.adBudget?'$'+esc(data.adBudget)+'/day':''}</span></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Terms Agreed To</div>
+  <ul>
+    <li>Ads created based on information provided in the onboarding survey</li>
+    <li>Authorization granted to manage advertising campaigns on chosen platforms with full consent</li>
+    <li>Client maintains owner access to all accounts; agency acts as admin only</li>
+    <li>Campaign performance depends on multiple factors outside agency control</li>
+    <li>All ad spend paid directly to ad platforms; agency bears no liability for these fees</li>
+    <li>Agency not responsible for any outcomes or costs related to advertising campaigns</li>
+    <li>Privacy Policy and Terms &amp; Conditions read and agreed to</li>
+  </ul>
+</div>
+<div class="sec">
+  <div class="sec-title">Electronic Signature</div>
+  <div class="sig">
+    <div class="sig-name">${esc(signerName)}</div>
+    <div class="sig-line"></div>
+    <div class="sig-meta">
+      Signed by <strong>${esc(signerName)}</strong> on behalf of <strong>${esc(signerBiz)}</strong><br>
+      Date: ${esc(signedAt)} &nbsp;&bull;&nbsp; IP: ${esc(ip)} &nbsp;&bull;&nbsp; Ref: ${esc(docRef)}
+    </div>
+  </div>
+</div>
+<div class="footer">Electronically signed &amp; legally binding &nbsp;&bull;&nbsp; Ref: ${esc(docRef)} &nbsp;&bull;&nbsp; ${esc(signedAt)}</div>
+</body></html>`;
 
-      await store.set(key, pdfBuffer, {
-        metadata: {
-          originalName: fileName,
-          displayName:  'Authorization Agreement',
-          fileType:     'application/pdf',
-          fileSize:     String(pdfBuffer.length),
-          uploadedAt:   now,
-          slug:         clientSlug,
-          protected:    'true',      // download-only, no delete button in UI
-          systemFile:   'true',      // auto-generated, pinned at top
-          docType:      'authorization',
-          signerName,
-          signerBiz,
-          signedAt:     data.authTimestamp || now,
-          docRef:       data.authDocRef || '',
-        }
-      });
-
-      console.log('[plan] Auth PDF (real binary) saved to Blobs:', key, pdfBuffer.length, 'bytes');
-      return key;
-
-    } else {
-      // ── Fallback: save authorization record as JSON if no PDF was sent ────
-      const authRecord = {
-        type: 'authorization', documentRef: data.authDocRef || '',
-        signerName, signerBusiness: signerBiz,
-        signedAt: data.authTimestamp || now,
-        ipAddress: data.authIP || '', agreedTerms: true,
-        agencyId, clientSlug,
-      };
-      const key = `${clientSlug}/Authorization_Agreement_${clientSlug}.json`;
-      await store.set(key, JSON.stringify(authRecord), {
-        metadata: {
-          originalName: 'Authorization_Agreement.pdf',
-          displayName:  'Authorization Agreement',
-          fileType:     'application/json',
-          fileSize:     String(Buffer.byteLength(JSON.stringify(authRecord))),
-          uploadedAt:   now,
-          slug:         clientSlug,
-          protected:    'true',
-          systemFile:   'true',
-          docType:      'authorization',
-        }
-      });
-      console.log('[plan] Auth record (JSON fallback) saved to Blobs:', key);
-      return key;
-    }
+    const key = `${clientSlug}/Authorization_Agreement.html`;
+    await store.set(key, html, {
+      metadata: {
+        originalName: 'Authorization_Agreement.html',
+        displayName:  'Authorization Agreement',
+        fileType:     'text/html; charset=utf-8',
+        fileSize:     String(Buffer.byteLength(html, 'utf8')),
+        uploadedAt:   now,
+        slug:         clientSlug,
+        protected:    'true',
+        systemFile:   'true',
+        docType:      'authorization',
+        signerName, signerBiz,
+        signedAt:     data.authTimestamp || now,
+        docRef,
+      }
+    });
+    console.log('[plan] Auth HTML doc saved:', key);
+    return key;
   } catch(e) {
-    console.error('[plan] Auth PDF upload failed:', e.message);
+    console.error('[plan] Auth doc failed:', e.message);
     return null;
   }
 }
@@ -349,21 +385,7 @@ export default async (req, context) => {
   try { data=await req.json(); }
   catch { return new Response(JSON.stringify({error:'Invalid JSON'}),{status:400,headers:CORS}); }
 
-  // ── Sub-route: upload auth PDF after form submission ─────────────────────
-  const reqUrl = new URL(req.url);
-  if (reqUrl.pathname.endsWith('/upload-auth')) {
-    const { agencyId: aId, clientId, authPdfBase64, authPdfFilename } = data;
-    if (!aId || !clientId || !authPdfBase64) {
-      return new Response(JSON.stringify({error:'agencyId, clientId, authPdfBase64 required'}),{status:400,headers:CORS});
-    }
-    try {
-      await uploadAuthPdfToBlobs(clientId, aId, '', { authPdfBase64, authPdfFilename, ...data });
-      return new Response(JSON.stringify({success:true}),{status:200,headers:CORS});
-    } catch(e) {
-      console.error('[upload-auth] failed:', e.message);
-      return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
-    }
-  }
+  // Auth doc generated server-side in generateAndSavePlan — no upload sub-route needed
 
   const {agencyId} = data;
   if (!agencyId) return new Response(JSON.stringify({error:'agencyId required'}),{status:400,headers:CORS});
@@ -442,4 +464,4 @@ export default async (req, context) => {
   }
 };
 
-export const config = { path: ['/api/agency/process-plan', '/api/agency/process-plan/upload-auth'] };
+export const config = { path: '/api/agency/process-plan' };
