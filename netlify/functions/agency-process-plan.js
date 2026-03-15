@@ -1,5 +1,5 @@
 // netlify/functions/agency-process-plan.js
-// Uses context.waitUntil() to run Claude AFTER returning the response to browser
+// Calls Claude synchronously before responding (~14s) — form has 25s timeout
 import https from 'https';
 import crypto from 'crypto';
 import { getStore } from '@netlify/blobs';
@@ -383,17 +383,11 @@ export default async (req, context) => {
         .catch(e => console.error('[process-plan] PDF save failed:', e.message));
     }
 
-    // ── Generate plan synchronously — Claude responds in ~14s, well within 26s limit ─
-    // Debug confirmed: Claude=14s + Firestore=0.5s = ~15s total. Fits in window.
-    // We already returned the response above, so this runs after client gets success.
-    if (context?.waitUntil) {
-      context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
-      console.log('[process-plan] waitUntil scheduled for:', slug);
-    } else {
-      generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency).catch(e =>
-        console.error('[process-plan] generateAndSavePlan error:', e.message)
-      );
-    }
+    // ── Call Claude synchronously — debug showed 14s response time ──────────────
+    // Form has 25s timeout. We await the full plan generation before responding.
+    // This means the plan is READY when the client gets the success response.
+    await generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency);
+    console.log('[process-plan] Plan generated for:', slug);
 
     return new Response(JSON.stringify({success:true, clientId:slug, planUrl, portalUrl}), {
       status: 200,
