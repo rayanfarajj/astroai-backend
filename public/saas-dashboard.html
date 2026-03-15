@@ -414,6 +414,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <button class="nav-item" id="nav-embed" onclick="showPage('embed',this)">
         <span class="ni">🔌</span><span>Embed Code</span>
       </button>
+      <button class="nav-item" id="nav-referrals" onclick="showPage('referrals',this)">
+        <span class="ni">◎</span><span>Referrals</span>
+        <span class="nav-badge" id="ref-badge" style="display:none">0</span>
+      </button>
       <button class="nav-item" onclick="openBlast()">
         <span class="ni">📣</span><span>Message Client</span>
       </button>
@@ -490,6 +494,38 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <div style="margin-bottom:6px;font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text)">🎯 Purchased Leads</div>
         <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Leads you've claimed from the Lead Pool. Convert them to full clients or send them your onboarding form.</div>
         <div id="purchased-list"><div class="empty-state"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- REFERRALS PAGE -->
+    <div class="page" id="page-referrals">
+      <div class="page-inner">
+        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">◎ Referrals</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Leads your clients have referred. Track status, reward them, and manage your referral program.</div>
+
+        <!-- Referral Program Settings -->
+        <div class="bill-section" style="margin-bottom:20px">
+          <div class="bill-section-hdr">
+            <span>🎁 Referral Program Setup</span>
+            <button class="bill-add-btn" style="padding:5px 12px;font-size:.7rem" onclick="saveReferralSettings()">💾 Save</button>
+          </div>
+          <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="bill-lbl">Referral Bonus (shown to clients)</label>
+              <input class="bill-inp" id="ref-bonus-input" placeholder="e.g. Get $100 off your next month for every referral!" style="margin-top:4px">
+              <div style="font-size:.68rem;color:var(--text-muted);margin-top:4px">This replaces the generic "30% off" on your clients' portals</div>
+            </div>
+            <div>
+              <label class="bill-lbl">Resources & Instructions for Clients</label>
+              <textarea class="bill-notes-area" id="ref-resources-input" placeholder="Sharing tips, email templates, social media copy your clients can use to refer others..." style="min-height:80px;margin-top:4px"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referrals List -->
+        <div id="referrals-list">
+          <div class="empty-state"><div class="spinner"></div></div>
+        </div>
       </div>
     </div>
 
@@ -758,12 +794,13 @@ function showPage(page, btn) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   if(btn) btn.classList.add('active');
-  const titles={clients:'Clients',detail:'Client Detail',purchased:'Purchased Leads',leads:'✦ Lead Pool',embed:'🔌 Embed Code'};
+  const titles={clients:'Clients',detail:'Client Detail',purchased:'Purchased Leads',leads:'✦ Lead Pool',embed:'🔌 Embed Code',referrals:'◎ Referrals'};
   document.getElementById('page-title').textContent=titles[page]||page;
   document.getElementById('back-btn').style.display=page==='detail'?'flex':'none';
   document.getElementById('topbar-right').style.display=page==='clients'?'flex':'none';
   if(page==='purchased') renderPurchasedLeads();
   if(page==='embed') buildEmbedCodes();
+  if(page==='referrals') loadReferrals();
 }
 function goBack() {
   showPage('clients', document.getElementById('nav-clients'));
@@ -1550,6 +1587,163 @@ async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{
 function openBlast(){document.getElementById('blast-sheet').classList.add('open');}
 function closeBlast(){document.getElementById('blast-sheet').classList.remove('open');}
 async function sendBlast(){const clientId=v('bl-client'),msg=v('bl-msg'),subj=v('bl-subj');if(!msg){toast('❌ Message required');return;}const c=clients.find(x=>x._id===clientId);if(!c)return;try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status:c.status||'new',notify:true,customMessage:msg,customSubject:subj})});const data=await res.json();if(data.success){closeBlast();toast('✅ Sent to '+c.clientName);}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+
+
+// ── REFERRALS ─────────────────────────────────────────────────
+let _referrals = [];
+
+async function loadReferrals() {
+  document.getElementById('referrals-list').innerHTML = '<div class="empty-state"><div class="spinner"></div><p style="margin-top:8px;font-size:.8rem">Loading referrals...</p></div>';
+  try {
+    const res = await fetch(`${API}/agency/referrals`, { headers: { 'x-agency-token': token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    _referrals = data.referrals || [];
+    const badge = document.getElementById('ref-badge');
+    const pending = _referrals.filter(r => r.status === 'pending' || r.status === 'contacted').length;
+    if (pending) { badge.style.display = 'flex'; badge.textContent = pending; }
+    else badge.style.display = 'none';
+    renderReferrals();
+
+    // Load referral settings into form
+    const settings = await fetch(`${API}/agency/settings?agencyId=${agencyId}`, { headers: { 'x-agency-token': token } });
+    const sData = await settings.json();
+    if (sData.agency) {
+      document.getElementById('ref-bonus-input').value = sData.agency.referralBonus || '';
+      document.getElementById('ref-resources-input').value = sData.agency.referralResources || '';
+    }
+  } catch(e) {
+    document.getElementById('referrals-list').innerHTML = `<div class="empty-state">⚠️ ${esc(e.message)}</div>`;
+  }
+}
+
+function renderReferrals() {
+  const el = document.getElementById('referrals-list');
+  if (!_referrals.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:48px 20px">
+      <p style="font-size:2rem;margin-bottom:10px">◎</p>
+      <p style="font-weight:600;color:var(--text-dim);margin-bottom:6px">No referrals yet</p>
+      <p style="font-size:.78rem">When your clients submit referrals, they'll appear here.</p>
+    </div>`;
+    return;
+  }
+
+  const statusMap = {
+    pending:   { label:'⏳ Pending',   cls:'pay-pending' },
+    contacted: { label:'📞 Contacted', cls:'pay-paused'  },
+    converted: { label:'✅ Converted', cls:'pay-paid'    },
+    rewarded:  { label:'🎁 Rewarded',  cls:'pay-paid'    },
+    declined:  { label:'✕ Declined',   cls:'pay-cancelled'},
+  };
+
+  el.innerHTML = _referrals.map((r,i) => {
+    const s = statusMap[r.status] || statusMap.pending;
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    return `<div class="pl-card" style="animation-delay:${i*.04}s">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="pl-card-tag" style="background:rgba(139,92,246,.1);color:var(--purple);border-color:rgba(139,92,246,.25)">◎ Referral</span>
+          <span class="pay-status ${s.cls}" style="font-size:.62rem">${s.label}</span>
+          <span style="font-size:.65rem;color:var(--text-muted);font-family:var(--mono);margin-left:auto">${date}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px">Referred By</div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.referrerClientName||r.referrerName||'—')}</div>
+            <div style="font-size:.72rem;color:var(--text-dim)">${esc(r.referrerBusinessName||r.referrerBusiness||'')}</div>
+          </div>
+          <div>
+            <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px">Referred Business</div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.refereeName||'—')}</div>
+            <div style="font-size:.72rem;color:var(--text-dim)">${esc(r.refereeBusinessName||'')}</div>
+          </div>
+        </div>
+        <div class="pl-card-contact" style="margin-top:10px">
+          <div class="pl-card-contact-row">📞 <span class="pl-card-contact-val">${esc(r.refereePhone||'—')}</span></div>
+          <div class="pl-card-contact-row">✉️ <span class="pl-card-contact-val">${esc(r.refereeEmail||'—')}</span></div>
+          ${r.refereeNote?`<div class="pl-card-contact-row">💬 <span class="pl-card-contact-val">${esc(r.refereeNote)}</span></div>`:''}
+        </div>
+      </div>
+      <div class="pl-actions">
+        ${r.status!=='converted'?`<button class="pl-btn pl-btn-teal" onclick="convertReferral('${esc(r.id||r.referralId||'')}','${esc(r.refereeName||r.refereeBusinessName||'')}')">🚀 Convert to Client</button>`:'<span style="font-size:.72rem;color:var(--teal);font-weight:600">✅ Converted</span>'}
+        <button class="pl-btn pl-btn-ghost" onclick="sendReferralOnboard('${esc(r.refereeEmail||'')}','${esc(r.refereeName||'')}')">📋 Send Onboarding</button>
+        <select class="pay-btn pay-btn-sel" style="padding:7px 10px;font-size:.72rem;width:130px" onchange="updateReferralStatus('${esc(r.id||r.referralId||'')}',this.value);this.value=''">
+          <option value="">Update status...</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="contacted">📞 Contacted</option>
+          <option value="converted">✅ Converted</option>
+          <option value="rewarded">🎁 Rewarded</option>
+          <option value="declined">✕ Declined</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function updateReferralStatus(referralId, status) {
+  if (!referralId||!status) return;
+  try {
+    const res = await fetch(`${API}/agency/referrals`, {
+      method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token},
+      body: JSON.stringify({ referralId, status }),
+    });
+    const data = await res.json();
+    if (data.success) { toast('✅ Status updated'); await loadReferrals(); }
+    else toast('❌ '+(data.error||'Failed'));
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+async function saveReferralSettings() {
+  const bonus     = document.getElementById('ref-bonus-input')?.value || '';
+  const resources = document.getElementById('ref-resources-input')?.value || '';
+  try {
+    const res = await fetch(`${API}/agency/settings`, {
+      method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token},
+      body: JSON.stringify({ agencyId, referralBonus: bonus, referralResources: resources }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      agencyConfig.referralBonus = bonus;
+      agencyConfig.referralResources = resources;
+      toast('✅ Referral program saved! Clients will see the new bonus on their portal.');
+    } else toast('❌ '+(data.error||'Failed'));
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+// ── REFERRAL CONVERT ──────────────────────────────────────────
+async function convertReferral(referralId, name) {
+  if (!confirm(`Convert "${name}" to a client?\n\nThis will add them to your Clients tab. You can then generate their marketing plan.`)) return;
+  try {
+    const res = await fetch(`${API}/agency/referrals`, {
+      method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token},
+      body: JSON.stringify({ referralId, action:'convert' }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('✅ Converted to client! Check your Clients tab.');
+      await loadClients();
+      await loadReferrals();
+    } else toast('❌ '+(data.error||'Failed'));
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+async function sendReferralOnboard(email, name) {
+  if (!email) { toast('❌ No email on file for this referral'); return; }
+  if (!confirm(`Send onboarding form link to ${email}?`)) return;
+  try {
+    const res = await fetch(`${API}/send-message`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        agencyId, clientEmail: email,
+        subject: `You've been referred! Get your free AI Marketing Plan`,
+        message: `Hi ${name||'there'},\n\nYou've been referred to our agency! To get started with your free AI marketing plan, please fill out this quick form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes 2-3 minutes and we'll have your personalized plan ready shortly.\n\nLooking forward to working with you!`,
+      }),
+    });
+    const data = await res.json();
+    if (data.success || data.sent) toast('📋 Onboarding form sent to '+email);
+    else toast('❌ '+(data.error||'Failed'));
+  } catch(e) { toast('❌ '+e.message); }
+}
 
 // ── HELPERS ───────────────────────────────────────────────────
 function copyOnboardUrl(){const url=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;navigator.clipboard.writeText(url).then(()=>toast('📋 Onboarding link copied!'));}
