@@ -1,254 +1,395 @@
-// netlify/functions/health-check.js
-// Tests every feature of the AstroAI platform
-// GET /api/health?key=AstroAdmin2024! — runs all checks
-// GET /api/health?key=AstroAdmin2024!&test=plan&a=AGENCY_ID&c=CLIENT_ID — specific test
-import https from 'https';
-import crypto from 'crypto';
-
-const CORS = { 'Access-Control-Allow-Origin':'*','Content-Type':'application/json' };
-const BASE_URL = 'marketingplan.astroaibots.com';
-
-// ── HTTP HELPERS ──────────────────────────────────────────────
-function req(opts, body) {
-  return new Promise((resolve) => {
-    const s = body ? JSON.stringify(body) : null;
-    const start = Date.now();
-    const r = https.request({
-      ...opts,
-      hostname: opts.hostname || BASE_URL,
-      headers: { 'Content-Type':'application/json', ...(opts.headers||{}), ...(s?{'Content-Length':Buffer.byteLength(s)}:{}) }
-    }, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => {
-        const ms = Date.now() - start;
-        try {
-          const parsed = JSON.parse(d);
-          resolve({ status: res.statusCode, body: parsed, ms, ok: res.statusCode < 400 });
-        } catch(e) {
-          resolve({ status: res.statusCode, body: d.slice(0,200), ms, ok: false, parseError: true });
-        }
-      });
-    });
-    r.on('error', e => resolve({ status: 0, body: e.message, ms: Date.now()-Date.now(), ok: false, error: e.message }));
-    r.setTimeout(8000, () => { r.destroy(); resolve({ status: 0, body: 'TIMEOUT', ms: 8000, ok: false, timeout: true }); });
-    if (s) r.write(s);
-    r.end();
-  });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AstroAI — Platform Health</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060810;
+  --bg2:#0a0d18;
+  --surface:#0f1422;
+  --surface2:#141928;
+  --surface3:#1a2035;
+  --border:rgba(255,255,255,.055);
+  --border2:rgba(255,255,255,.1);
+  --text:#dde2f0;
+  --dim:#7b85a0;
+  --muted:#3d4560;
+  --teal:#00e5b0;
+  --teal2:rgba(0,229,176,.12);
+  --red:#ff4d6a;
+  --red2:rgba(255,77,106,.1);
+  --gold:#ffb84d;
+  --gold2:rgba(255,184,77,.1);
+  --blue:#4d9fff;
+  --blue2:rgba(77,159,255,.1);
+  --purple:#a78bfa;
+  --font:'Space Grotesk',sans-serif;
+  --mono:'JetBrains Mono',monospace;
 }
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
 
-function api(path, method='GET', body=null, headers={}) {
-  return req({ hostname: BASE_URL, path, method, headers }, body);
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,176,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,176,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(--border);background:rgba(6,8,16,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(0.85)}}
+.hdr-title{font-size:.95rem;font-weight:700;letter-spacing:-.02em}
+.hdr-sub{font-size:.68rem;color:var(--dim);margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.run-btn{background:var(--teal);color:#06080f;border:none;border-radius:8px;padding:9px 18px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.run-btn:hover:not(:disabled){box-shadow:0 0 20px rgba(0,229,176,.35)}
+.run-btn:disabled{opacity:.45;cursor:not-allowed}
+.ai-btn{background:var(--blue2);color:var(--blue);border:1px solid rgba(77,159,255,.2);border-radius:8px;padding:9px 18px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.ai-btn:hover:not(:disabled){background:rgba(77,159,255,.2);box-shadow:0 0 16px rgba(77,159,255,.2)}
+.ai-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* CONFIG */
+.config{margin:24px 32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.cfg-field label{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:5px}
+.cfg-field input{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;color:var(--text);font-size:.75rem;font-family:var(--mono);outline:none;width:210px;transition:border-color .15s}
+.cfg-field input:focus{border-color:var(--teal)}
+.cfg-hint{font-size:.65rem;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+
+/* SUMMARY */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 32px 20px}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;transition:all .2s}
+.sum-n{font-size:2rem;font-weight:700;font-family:var(--mono);line-height:1}
+.sum-l{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:5px}
+.sum-pass .sum-n{color:var(--teal)}
+.sum-pass{border-color:rgba(0,229,176,.15)}
+.sum-fail .sum-n{color:var(--red)}
+.sum-fail{border-color:rgba(255,77,106,.15)}
+.sum-warn .sum-n{color:var(--gold)}
+.sum-warn{border-color:rgba(255,184,77,.15)}
+.sum-total .sum-n{color:var(--text)}
+
+/* STATUS BAR */
+.status-bar{margin:0 32px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:.78rem}
+.status-bar.ok{border-color:rgba(0,229,176,.25);background:rgba(0,229,176,.05);color:var(--teal)}
+.status-bar.bad{border-color:rgba(255,77,106,.25);background:rgba(255,77,106,.05);color:var(--red)}
+.status-ts{margin-left:auto;font-size:.65rem;color:var(--muted);font-family:var(--mono)}
+
+/* AI ANALYSIS PANEL */
+.ai-panel{margin:0 32px 20px;background:var(--surface);border:1px solid rgba(77,159,255,.2);border-radius:12px;overflow:hidden}
+.ai-panel-hdr{background:rgba(77,159,255,.06);border-bottom:1px solid rgba(77,159,255,.15);padding:12px 18px;display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;color:var(--blue)}
+.ai-panel-body{padding:18px 20px;font-size:.82rem;line-height:1.75;color:var(--text)}
+.ai-panel-body h3{color:var(--blue);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;first-of-type:margin-top:0}
+.ai-panel-body h3:first-child{margin-top:0}
+.ai-panel-body ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.ai-panel-body li::before{content:'→ ';color:var(--teal);font-weight:700}
+.ai-panel-body code{background:var(--surface3);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:.75rem;color:var(--gold)}
+.ai-thinking{display:flex;align-items:center;gap:10px;color:var(--dim);padding:16px 20px;font-size:.8rem}
+.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--blue);margin:0 2px;animation:dot-bounce .8s ease-in-out infinite}
+.ai-dots span:nth-child(2){animation-delay:.15s}
+.ai-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot-bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+/* CHECKS */
+.main{padding:0 32px 40px}
+.sec-title{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.checks{display:flex;flex-direction:column;gap:5px}
+.chk{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:default;transition:all .15s;animation:fadeIn .3s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.chk:hover{border-color:var(--border2)}
+.chk.pass{border-left:2px solid var(--teal)}
+.chk.fail{border-left:2px solid var(--red);background:rgba(255,77,106,.03)}
+.chk.warn{border-left:2px solid var(--gold)}
+.chk-icon{font-size:.85rem;width:18px;text-align:center;flex-shrink:0}
+.chk-name{font-size:.78rem;font-weight:600;flex:1;min-width:0}
+.chk-detail{font-size:.68rem;color:var(--dim);font-family:var(--mono);max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.chk-ms{font-size:.62rem;color:var(--muted);font-family:var(--mono);width:55px;text-align:right;flex-shrink:0}
+.badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;text-transform:uppercase;letter-spacing:.05em}
+.b-pass{background:rgba(0,229,176,.12);color:var(--teal)}
+.b-fail{background:rgba(255,77,106,.12);color:var(--red)}
+.b-warn{background:rgba(255,184,77,.12);color:var(--gold)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:80px 20px;color:var(--dim)}
+.empty-icon{font-size:2.8rem;margin-bottom:14px;opacity:.6}
+.empty-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:.78rem;max-width:360px;margin:0 auto;line-height:1.6}
+
+/* SPINNER */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,229,176,.25);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:680px){
+  .config,.main,.summary,.status-bar,.ai-panel{margin-left:16px;margin-right:16px}
+  .hdr{padding:14px 16px}
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .cfg-field input{width:100%}
+  .chk-detail{display:none}
 }
+</style>
+</head>
+<body>
+<div class="wrap">
 
-// ── FIREBASE TOKEN ────────────────────────────────────────────
-function getFirebaseToken() {
-  return new Promise((resolve, reject) => {
-    const email = process.env.FIREBASE_CLIENT_EMAIL;
-    const key   = (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n');
-    const b64   = s => Buffer.from(s).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-    const now   = Math.floor(Date.now()/1000);
-    const hdr   = b64(JSON.stringify({alg:'RS256',typ:'JWT'}));
-    const pay   = b64(JSON.stringify({iss:email,sub:email,aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600,scope:'https://www.googleapis.com/auth/datastore'}));
-    const sig   = b64(crypto.createSign('RSA-SHA256').update(hdr+'.'+pay).sign(key));
-    const body  = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${hdr}.${pay}.${sig}`;
-    const r = https.request({hostname:'oauth2.googleapis.com',path:'/token',method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{
-      let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{const t=JSON.parse(d).access_token;t?resolve(t):reject(new Error(d));});
-    });
-    r.on('error',reject); r.write(body); r.end();
-  });
-}
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-dot"></div>
+    <div>
+      <div class="hdr-title">AstroAI Platform Health</div>
+      <div class="hdr-sub">Live system diagnostics</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="ai-btn" id="ai-btn" onclick="runAI()" disabled>✦ Ask Claude</button>
+    <button class="run-btn" id="run-btn" onclick="runChecks()">▶ Run Checks</button>
+  </div>
+</div>
 
-function fsRead(token, path) {
-  return new Promise((resolve) => {
-    const proj = process.env.FIREBASE_PROJECT_ID;
-    const r = https.request({
-      hostname:'firestore.googleapis.com',
-      path:`/v1/projects/${proj}/databases/(default)/documents/${path}`,
-      method:'GET',
-      headers:{'Authorization':'Bearer '+token}
-    }, res => {
-      let d=''; res.on('data',c=>d+=c);
-      res.on('end',()=>{ try{resolve(JSON.parse(d))}catch(e){resolve({error:e.message})} });
-    });
-    r.on('error',e=>resolve({error:e.message})); r.end();
-  });
-}
+<!-- CONFIG -->
+<div class="config">
+  <div class="cfg-field">
+    <label>Agency ID</label>
+    <input id="cfg-a" placeholder="kaciekacie-mmqeijsz" value="kaciekacie-mmqeijsz">
+    <div class="cfg-hint">Enables agency-specific tests</div>
+  </div>
+  <div class="cfg-field">
+    <label>Client ID</label>
+    <input id="cfg-c" placeholder="client-id-here">
+    <div class="cfg-hint">Enables billing + plan tests</div>
+  </div>
+  <div class="cfg-field">
+    <label>Session Token <span style="color:var(--muted)">(optional)</span></label>
+    <input id="cfg-t" placeholder="from DevTools → sessionStorage → saas_token" type="password">
+    <div class="cfg-hint">Unlocks authenticated API checks</div>
+  </div>
+</div>
 
-// ── RUN ALL CHECKS ────────────────────────────────────────────
-async function runAllChecks(agencyId, clientId, agencyToken) {
-  const checks = [];
-  const pass = (name, detail='', ms=0) => checks.push({ name, status:'pass', detail, ms });
-  const fail = (name, detail='', ms=0) => checks.push({ name, status:'fail', detail, ms });
-  const warn = (name, detail='', ms=0) => checks.push({ name, status:'warn', detail, ms });
+<!-- DYNAMIC CONTENT -->
+<div id="summary-row" style="display:none" class="summary"></div>
+<div id="status-bar" style="display:none" class="status-bar"></div>
+<div id="ai-panel" style="display:none" class="ai-panel"></div>
+<div class="main" id="main">
+  <div class="empty">
+    <div class="empty-icon">◈</div>
+    <div class="empty-title">Ready to diagnose</div>
+    <div class="empty-sub">Click "Run Checks" to test every feature of the AstroAI platform and see what's passing or failing.</div>
+  </div>
+</div>
 
-  // ── INFRA CHECKS ─────────────────────────────────────────
-  // 1. Firebase Auth
-  try {
-    const t = await getFirebaseToken();
-    t.length > 100 ? pass('🔥 Firebase Auth', `Token: ${t.length} chars`) : fail('🔥 Firebase Auth', 'Token too short');
-  } catch(e) { fail('🔥 Firebase Auth', e.message); }
+</div>
+<script>
+const API = 'https://marketingplan.astroaibots.com/api';
+const KEY = 'AstroAdmin2024!';
+let lastResults = null;
 
-  // 2. Anthropic API
-  const anthropicRes = await req({
-    hostname:'api.anthropic.com', path:'/v1/messages', method:'POST',
-    headers:{'x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'}
-  }, {model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'Say OK'}]});
-  anthropicRes.ok && anthropicRes.body?.content?.[0]?.text
-    ? pass('🤖 Anthropic API', `Model responding (${anthropicRes.ms}ms)`, anthropicRes.ms)
-    : fail('🤖 Anthropic API', anthropicRes.body?.error?.message || JSON.stringify(anthropicRes.body).slice(0,80), anthropicRes.ms);
-
-  // 3. GitHub Token
-  const ghRes = await req({
-    hostname:'api.github.com', path:'/repos/rayanfarajj/astroai-backend', method:'GET',
-    headers:{'Authorization':`token ${process.env.GITHUB_TOKEN}`,'User-Agent':'AstroAI'}
-  });
-  ghRes.ok ? pass('📦 GitHub Token', `Repo: ${ghRes.body?.name}`, ghRes.ms)
-           : fail('📦 GitHub Token', ghRes.body?.message || 'Failed', ghRes.ms);
-
-  // 4. Gmail Config
-  (process.env.GMAIL_USER && process.env.GMAIL_PASS)
-    ? pass('📧 Gmail Config', process.env.GMAIL_USER)
-    : fail('📧 Gmail Config', 'GMAIL_USER or GMAIL_PASS missing');
-
-  // ── PAGE AVAILABILITY ─────────────────────────────────────
-  const pages = [
-    ['/saas-dashboard.html', '🖥 Agency Dashboard HTML'],
-    ['/client-portal.html',  '👤 Client Portal HTML'],
-    ['/onboard.html',        '📋 Onboard Form HTML'],
-    ['/join.html',           '🚪 Join Page HTML'],
-  ];
-  for (const [path, name] of pages) {
-    const r = await api(path);
-    r.status === 200 ? pass(name, `${r.ms}ms`, r.ms) : fail(name, `HTTP ${r.status}`, r.ms);
-  }
-
-  // ── API ENDPOINT CHECKS ───────────────────────────────────
-  // Agency login endpoint
-  const loginRes = await api('/api/agency/login', 'POST', {email:'test@notreal.com',password:'wrong'});
-  loginRes.status < 500 ? pass('🔐 Agency Login Endpoint', `Returns ${loginRes.status}`, loginRes.ms)
-                        : fail('🔐 Agency Login Endpoint', `HTTP ${loginRes.status}`, loginRes.ms);
-
-  // Agency register endpoint
-  const regRes = await api('/api/agency/register', 'POST', {email:'',password:''});
-  regRes.status < 500 ? pass('📝 Agency Register Endpoint', `Returns ${regRes.status}`, regRes.ms)
-                      : fail('📝 Agency Register Endpoint', `HTTP ${regRes.status}`, regRes.ms);
-
-  // Get portal endpoint
-  const portalRes = await api('/api/get-portal?slug=nonexistent');
-  portalRes.status === 404 && portalRes.body?.error
-    ? pass('🌐 Get Portal Endpoint', `Returns JSON 404 correctly`, portalRes.ms)
-    : portalRes.parseError
-    ? fail('🌐 Get Portal Endpoint', 'Returns HTML instead of JSON — function crashed', portalRes.ms)
-    : pass('🌐 Get Portal Endpoint', `Returns ${portalRes.status}`, portalRes.ms);
-
-  // Submit referral endpoint
-  const refRes = await api('/api/submit-referral', 'POST', {referrerSlug:'',refereeEmail:''});
-  refRes.status < 500 ? pass('🤝 Submit Referral Endpoint', `Returns ${refRes.status}`, refRes.ms)
-                      : fail('🤝 Submit Referral Endpoint', `HTTP ${refRes.status} — function crashed`, refRes.ms);
-
-  // Background function reachable
-  const bgRes = await api('/.netlify/functions/agency-generate-background', 'POST', {test:true});
-  bgRes.status === 202 ? pass('⚡ Background Function Reachable', '202 accepted', bgRes.ms)
-                       : fail('⚡ Background Function Reachable', `HTTP ${bgRes.status}`, bgRes.ms);
-
-  // Agency-specific checks if agencyId provided
-  if (agencyId && agencyToken) {
-    const headers = { 'x-agency-token': agencyToken };
-
-    // Get clients
-    const clientsRes = await api(`/api/agency/clients?agencyId=${agencyId}`, 'GET', null, headers);
-    clientsRes.ok && Array.isArray(clientsRes.body?.clients)
-      ? pass('👥 Agency Get Clients', `${clientsRes.body.clients.length} clients found`, clientsRes.ms)
-      : fail('👥 Agency Get Clients', clientsRes.body?.error || `HTTP ${clientsRes.status}`, clientsRes.ms);
-
-    // Agency settings
-    const settingsRes = await api(`/api/agency/settings?agencyId=${agencyId}`, 'GET', null, headers);
-    settingsRes.ok && settingsRes.body?.agency
-      ? pass('⚙️ Agency Settings', `Agency: ${settingsRes.body.agency.name||settingsRes.body.agency.brandName}`, settingsRes.ms)
-      : fail('⚙️ Agency Settings', settingsRes.body?.error || `HTTP ${settingsRes.status}`, settingsRes.ms);
-
-    // Agency referrals
-    const refListRes = await api('/api/agency/referrals', 'GET', null, headers);
-    refListRes.ok
-      ? pass('◎ Agency Referrals', `${refListRes.body?.referrals?.length||0} referrals`, refListRes.ms)
-      : fail('◎ Agency Referrals', refListRes.body?.error || `HTTP ${refListRes.status}`, refListRes.ms);
-
-    // Billing endpoint
-    if (clientId) {
-      const billingRes = await api(`/api/agency/billing?clientId=${clientId}`, 'GET', null, headers);
-      billingRes.ok
-        ? pass('💳 Agency Billing Endpoint', `config: ${billingRes.body?.config?'found':'empty'}, payments: ${billingRes.body?.payments?.length||0}`, billingRes.ms)
-        : fail('💳 Agency Billing Endpoint', billingRes.body?.error || `HTTP ${billingRes.status}`, billingRes.ms);
-
-      // Client portal data
-      const portalDataRes = await api(`/api/get-portal?s=${clientId}&a=${agencyId}`);
-      portalDataRes.ok && portalDataRes.body?.client
-        ? pass('👤 Client Portal Data', `Client: ${portalDataRes.body.client.businessName}, billing: ${portalDataRes.body.billing?'yes':'no'}, referralBonus: ${portalDataRes.body.referralBonus?'set':'empty'}`, portalDataRes.ms)
-        : fail('👤 Client Portal Data', portalDataRes.body?.error || 'No client returned', portalDataRes.ms);
-
-      // Plan generation check — does client have a plan?
-      try {
-        const fbToken = await getFirebaseToken();
-        const clientDoc = await fsRead(fbToken, `agencies/${agencyId}/clients/${clientId}`);
-        const hasJSON = clientDoc?.fields?.dashboardJSON?.stringValue &&
-                        clientDoc.fields.dashboardJSON.stringValue !== '{}';
-        hasJSON
-          ? pass('📊 Client Plan Data', `dashboardJSON: ${clientDoc.fields.dashboardJSON.stringValue.length} chars`, 0)
-          : warn('📊 Client Plan Data', 'dashboardJSON is empty — plan not generated yet', 0);
-
-        const hasBilling = !!clientDoc?.fields?.dashboardUrl?.stringValue;
-        hasBilling ? pass('🔗 Client Dashboard URL', clientDoc.fields.dashboardUrl.stringValue, 0)
-                   : warn('🔗 Client Dashboard URL', 'No dashboardUrl set', 0);
-      } catch(e) { fail('📊 Client Plan Data', e.message); }
-    }
-
-    // Process plan endpoint (just validate it returns JSON, don't actually trigger)
-    const processRes = await api('/api/agency/process-plan', 'POST', {agencyId, firstName:'', lastName:'', email:'', businessName:'', industry:'', primaryService:'', adBudget:'', adPlatforms:'', goal90Days:''});
-    processRes.status < 500 && !processRes.parseError
-      ? pass('🚀 Process Plan Endpoint', `Returns JSON ${processRes.status}`, processRes.ms)
-      : fail('🚀 Process Plan Endpoint', processRes.parseError ? 'Returns HTML — crashed/timed out' : `HTTP ${processRes.status}`, processRes.ms);
-  }
-
-  // ── ADMIN CHECKS ──────────────────────────────────────────
-  // Admin endpoints use x-admin-key header
-  const leadsRes = await api('/api/admin/leads', 'GET', null, {'x-admin-key':'AstroAdmin2024!'});
-  leadsRes.ok ? pass('🎯 Admin Leads Endpoint', `${leadsRes.body?.leads?.length ?? 0} leads, ${leadsRes.ms}ms`, leadsRes.ms)
-  : leadsRes.status === 401 ? fail('🎯 Admin Leads Endpoint', 'Auth failed — check x-admin-key header', leadsRes.ms)
-              : fail('🎯 Admin Leads Endpoint', `HTTP ${leadsRes.status}`, leadsRes.ms);
-
-  // Admin agencies endpoint
-  const agenciesRes = await api('/api/admin/agencies', 'GET', null, {'x-admin-key':'AstroAdmin2024!'});
-  agenciesRes.ok ? pass('🏢 Admin Agencies Endpoint', `${agenciesRes.ms}ms`, agenciesRes.ms)
-                 : fail('🏢 Admin Agencies Endpoint', `HTTP ${agenciesRes.status}`, agenciesRes.ms);
-
-  return checks;
-}
-
-// ── HANDLER ───────────────────────────────────────────────────
-export default async (req) => {
-  const url = new URL(req.url);
-  if (url.searchParams.get('key') !== 'AstroAdmin2024!') {
-    return new Response(JSON.stringify({error:'Unauthorized'}),{status:401,headers:CORS});
-  }
-
-  const agencyId    = url.searchParams.get('a') || '';
-  const clientId    = url.searchParams.get('c') || '';
-  const agencyToken = url.searchParams.get('t') || '';
+// ── RUN HEALTH CHECKS ─────────────────────────────────────────
+async function runChecks() {
+  const btn  = document.getElementById('run-btn');
+  const aBtn = document.getElementById('ai-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Running...';
+  aBtn.disabled = true;
+  document.getElementById('ai-panel').style.display = 'none';
+  document.getElementById('summary-row').style.display = 'none';
+  document.getElementById('status-bar').style.display = 'none';
+  document.getElementById('main').innerHTML = `
+    <div class="empty">
+      <div class="spin" style="width:28px;height:28px;border-width:3px;margin:0 auto 16px"></div>
+      <div class="empty-title">Running checks...</div>
+      <div class="empty-sub">Testing all APIs, services, and features</div>
+    </div>`;
 
   try {
-    const checks = await runAllChecks(agencyId, clientId, agencyToken);
-    const passed  = checks.filter(c=>c.status==='pass').length;
-    const failed  = checks.filter(c=>c.status==='fail').length;
-    const warned  = checks.filter(c=>c.status==='warn').length;
-    return new Response(JSON.stringify({
-      summary: { passed, failed, warned, total: checks.length, healthy: failed === 0 },
-      checks,
-      timestamp: new Date().toISOString(),
-    }, null, 2), {status:200,headers:CORS});
+    const a = document.getElementById('cfg-a').value.trim();
+    const c = document.getElementById('cfg-c').value.trim();
+    const t = document.getElementById('cfg-t').value.trim();
+    let url = `${API}/health?key=${KEY}`;
+    if (a) url += `&a=${encodeURIComponent(a)}`;
+    if (c) url += `&c=${encodeURIComponent(c)}`;
+    if (t) url += `&t=${encodeURIComponent(t)}`;
+
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    lastResults = data;
+    renderResults(data);
+    aBtn.disabled = false;
   } catch(e) {
-    return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
+    document.getElementById('main').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Health check failed</div>
+        <div class="empty-sub">${esc(e.message)}</div>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '↺ Run Again';
   }
-};
+}
 
-export const config = { path: '/api/health' };
+// ── RENDER RESULTS ────────────────────────────────────────────
+function renderResults(data) {
+  const { summary, checks, timestamp } = data;
+
+  // Summary row
+  const sr = document.getElementById('summary-row');
+  sr.style.display = 'grid';
+  sr.innerHTML = [
+    ['sum-pass', summary.passed, '✅ Passing'],
+    ['sum-fail', summary.failed, '❌ Failing'],
+    ['sum-warn', summary.warned, '⚠️ Warnings'],
+    ['sum-total', summary.total,  '◈ Total'],
+  ].map(([cls,n,l])=>`<div class="sum-card ${cls}"><div class="sum-n">${n}</div><div class="sum-l">${l}</div></div>`).join('');
+
+  // Status bar
+  const sb = document.getElementById('status-bar');
+  sb.style.display = 'flex';
+  sb.className = `status-bar ${summary.failed===0?'ok':'bad'}`;
+  const statusMsg = summary.failed===0
+    ? `✅ All ${summary.total} checks passing`
+    : `❌ ${summary.failed} check${summary.failed>1?'s':''} failing — click "Ask Claude" for fixes`;
+  sb.innerHTML = `<span>${statusMsg}</span>${summary.warned?`<span style="color:var(--gold);margin-left:6px">· ${summary.warned} warning${summary.warned>1?'s':''}</span>`:''}<span class="status-ts">${new Date(timestamp).toLocaleTimeString()}</span>`;
+
+  // Group checks
+  const groups = {
+    '🏗 Infrastructure': ['🔥 Firebase Auth','🤖 Anthropic API','📦 GitHub Token','📧 Gmail Config'],
+    '📄 Page Availability': c => c.name.includes('HTML'),
+    '🔌 API Endpoints': c => c.name.includes('Endpoint') || c.name.includes('Background'),
+    '🏢 Agency Features': c => c.name.includes('Agency') || c.name.includes('Referral') || c.name.includes('Billing') || c.name.includes('Process Plan'),
+    '👤 Client Features': c => c.name.includes('Client') || c.name.includes('Portal') || c.name.includes('Plan Data') || c.name.includes('Dashboard URL'),
+    '🛡 Admin': c => c.name.includes('Admin'),
+  };
+
+  let html = '';
+  for (const [gname, matcher] of Object.entries(groups)) {
+    const grp = typeof matcher === 'function'
+      ? checks.filter(matcher)
+      : checks.filter(c => matcher.includes(c.name));
+    if (!grp.length) continue;
+    const failCount = grp.filter(c=>c.status==='fail').length;
+    html += `<div class="sec-title">${gname}${failCount?` <span style="color:var(--red);background:var(--red2);border-radius:10px;padding:1px 8px;font-size:.58rem">${failCount} failing</span>`:''}
+    </div><div class="checks">`;
+    grp.forEach((chk, i) => {
+      const icon = chk.status==='pass'?'✅':chk.status==='fail'?'❌':'⚠️';
+      const bCls = `b-${chk.status}`;
+      html += `<div class="chk ${chk.status}" style="animation-delay:${i*.04}s">
+        <span class="chk-icon">${icon}</span>
+        <span class="chk-name">${esc(chk.name)}</span>
+        <span class="chk-detail" title="${esc(chk.detail)}">${esc(chk.detail||'')}</span>
+        ${chk.ms?`<span class="chk-ms">${chk.ms}ms</span>`:''}
+        <span class="badge ${bCls}">${chk.status}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('main').innerHTML = html;
+}
+
+// ── ASK CLAUDE ────────────────────────────────────────────────
+async function runAI() {
+  if (!lastResults) return;
+
+  const aBtn = document.getElementById('ai-btn');
+  aBtn.disabled = true;
+  aBtn.innerHTML = '<div class="spin"></div> Analyzing...';
+
+  const panel = document.getElementById('ai-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="ai-panel-hdr">✦ Claude AI Analysis</div>
+    <div class="ai-thinking">
+      <div class="ai-dots"><span></span><span></span><span></span></div>
+      Analyzing your health check results...
+    </div>`;
+
+  const fails  = lastResults.checks.filter(c=>c.status==='fail');
+  const warns  = lastResults.checks.filter(c=>c.status==='warn');
+  const passes = lastResults.checks.filter(c=>c.status==='pass');
+
+  const prompt = `You are a senior full-stack developer reviewing a health check report for the AstroAI Bots SaaS platform (Netlify + Firebase + Claude API).
+
+HEALTH CHECK RESULTS:
+- ${passes.length} passing, ${fails.length} failing, ${warns.length} warnings
+
+FAILING CHECKS:
+${fails.length ? fails.map(c=>`• ${c.name}: ${c.detail} (HTTP status context: ${c.detail})`).join('\n') : 'None'}
+
+WARNING CHECKS:
+${warns.length ? warns.map(c=>`• ${c.name}: ${c.detail}`).join('\n') : 'None'}
+
+PLATFORM CONTEXT:
+- Frontend: HTML/JS pages on Netlify CDN (saas-dashboard.html, client-portal.html)
+- Backend: Netlify serverless functions (ESM format, .js files)
+- Database: Firebase Firestore (REST API, JWT auth)
+- AI: Anthropic Claude API (claude-sonnet-4-6)
+- Background jobs: agency-generate-background.js (15min timeout, triggered via HTTP to /.netlify/functions/)
+- Key functions: agency-process-plan.js, agency-get-clients.js, get-portal.js, agency-billing.js, submit-referral.js, agency-referrals.js
+
+Common issues we've seen:
+1. Functions returning HTML instead of JSON = function crashed/timed out
+2. Background function not generating plans = trigger URL issue or internal crash
+3. 401 errors on admin endpoints = missing x-admin-key header
+4. 401 on agency endpoints = missing x-agency-token header or expired session
+5. Plan not generating = background function timeout or Claude API key expired
+
+Please provide:
+1. A brief summary of the overall health (1-2 sentences)
+2. For each failing check: the specific likely cause and exact fix (file name, what to change)
+3. For warnings: what they mean and if action is needed
+4. Priority order: what to fix first
+
+Be specific and actionable. Reference exact file names and function names. If everything is passing, say so and confirm all systems are healthy.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || 'No response from Claude.';
+
+    // Format the response nicely
+    const formatted = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/^#{1,3}\s(.+)$/gm, '<h3>$1</h3>')
+      .replace(/^\d+\.\s(.+)$/gm, '<li>$1</li>')
+      .replace(/^[-•]\s(.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    panel.innerHTML = `
+      <div class="ai-panel-hdr">✦ Claude AI Analysis</div>
+      <div class="ai-panel-body">${formatted}</div>`;
+  } catch(e) {
+    panel.innerHTML = `
+      <div class="ai-panel-hdr">✦ Claude AI Analysis</div>
+      <div class="ai-panel-body" style="color:var(--red)">Failed to get AI analysis: ${esc(e.message)}</div>`;
+  } finally {
+    aBtn.disabled = false;
+    aBtn.innerHTML = '✦ Ask Claude';
+  }
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Pre-fill from URL params
+const _p = new URLSearchParams(location.search);
+if(_p.get('a')) document.getElementById('cfg-a').value = _p.get('a');
+if(_p.get('c')) document.getElementById('cfg-c').value = _p.get('c');
+if(_p.get('t')) document.getElementById('cfg-t').value = _p.get('t');
+</script>
+</body>
+</html>
