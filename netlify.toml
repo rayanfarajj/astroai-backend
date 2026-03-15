@@ -52,6 +52,9 @@
 [functions."health-check"]
   timeout = 30
 
+[functions."health-ai"]
+  timeout = 30
+
 [functions."agency-settings"]
   timeout = 10
 
@@ -72,6 +75,12 @@
   from = "/health"
   to = "/health.html"
   status = 301
+
+[[redirects]]
+  from = "/health.html"
+  to = "/health.html"
+  status = 200
+  force = false
 
 [[redirects]]
   from = "/admin"
