@@ -55,6 +55,12 @@
 [functions."health-ai"]
   timeout = 30
 
+[functions."admin-backup"]
+  timeout = 30
+
+[functions."admin-delete-agency"]
+  timeout = 30
+
 [functions."agency-settings"]
   timeout = 10
 
