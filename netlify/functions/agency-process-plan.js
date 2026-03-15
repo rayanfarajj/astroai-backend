@@ -74,7 +74,7 @@ async function fsSet(path, data) {
 
 function callClaude(prompt) {
   return new Promise((resolve,reject)=>{
-    const body = JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:prompt}]});
+    const body = JSON.stringify({model:'claude-sonnet-4-6',max_tokens:3000,messages:[{role:'user',content:prompt}]});
     const r = https.request({
       hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',
       headers:{'x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
@@ -231,116 +231,75 @@ AD BUDGET & PLATFORMS:
 
 ━━━ OUTPUT JSON SCHEMA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Generate this exact JSON structure with deeply personalized content for ${n(d.businessName)}:
-
+Return ONLY this JSON structure (no other text):
 {
-  "tagline": "One punchy sentence describing what ${n(d.businessName)} does and who they help",
-
+  "tagline": "one sharp sentence — what ${n(d.businessName)} does and who they help",
   "avatar": {
-    "name": "A made-up persona name for their ideal customer (e.g. 'Stressed Steve the Homeowner')",
-    "whoTheyAre": "2-3 sentences about the ideal customer using the info provided — be specific to their industry/service area",
-    "painPoints": "2-3 sentences about the specific pain points this business solves",
+    "name": "made-up persona name for their ideal customer",
+    "whoTheyAre": "2-3 sentences — specific to their industry/area",
+    "painPoints": "2-3 sentences about what this business solves",
     "desires": "2-3 sentences about what the ideal customer truly wants",
-    "qualifiers": ["qualifier based on their input 1", "qualifier 2", "qualifier 3", "qualifier 4"],
-    "disqualifiers": ["disqualifier based on their input 1", "disqualifier 2", "disqualifier 3"]
+    "qualifiers": ["qualifier 1 from their input", "qualifier 2", "qualifier 3", "qualifier 4"],
+    "disqualifiers": ["disqualifier 1 from their input", "disqualifier 2", "disqualifier 3"]
   },
-
   "funnelSteps": [
-    {"step": "Awareness", "icon": "📡", "desc": "One sentence specific to their platform and audience"},
-    {"step": "Interest", "icon": "🎯", "desc": "One sentence about hook/angle for this specific service"},
-    {"step": "Lead Capture", "icon": "📋", "desc": "One sentence about their specific lead form/landing approach"},
-    {"step": "Qualification", "icon": "✅", "desc": "One sentence using their actual qualifying questions"},
-    {"step": "Conversion", "icon": "🤝", "desc": "One sentence about their close/handoff process"}
+    {"step":"Awareness","icon":"📡","desc":"one sentence specific to their platform/audience"},
+    {"step":"Interest","icon":"🎯","desc":"one sentence — hook for their specific service"},
+    {"step":"Lead Capture","icon":"📋","desc":"one sentence — their specific lead form approach"},
+    {"step":"Qualification","icon":"✅","desc":"one sentence — using their actual qualifying questions"},
+    {"step":"Conversion","icon":"🤝","desc":"one sentence — their close/handoff process"}
   ],
-
   "adAngles": [
-    {
-      "angleLabel": "Empathy / Pain",
-      "angle": "One sentence describing this angle strategy",
-      "ads": [
-        {"title": "Version A", "headline": "Specific headline for ${n(d.businessName)}", "primaryText": "3-4 sentence ad copy addressing pain points, using their specific offer/promo", "description": "One line benefit", "cta": "Strong CTA"},
-        {"title": "Version B", "headline": "Alternative headline", "primaryText": "3-4 sentence variation", "description": "One line", "cta": "CTA"}
-      ]
-    },
-    {
-      "angleLabel": "Offer / Value",
-      "angle": "One sentence about leading with their specific offer: ${n(d.promotions)}",
-      "ads": [
-        {"title": "Version A", "headline": "Offer-focused headline", "primaryText": "3-4 sentences leading with their promotion/special offer", "description": "One line", "cta": "CTA"},
-        {"title": "Version B", "headline": "Value headline", "primaryText": "3-4 sentence variation", "description": "One line", "cta": "CTA"}
-      ]
-    },
-    {
-      "angleLabel": "Proof / Results",
-      "angle": "One sentence about social proof angle for their industry",
-      "ads": [
-        {"title": "Version A", "headline": "Results-focused headline", "primaryText": "3-4 sentences with implied proof and results relevant to their service", "description": "One line", "cta": "CTA"}
-      ]
-    },
-    {
-      "angleLabel": "Curiosity / Hook",
-      "angle": "One sentence about pattern-interrupt hook",
-      "ads": [
-        {"title": "Version A", "headline": "Pattern-interrupt headline", "primaryText": "3-4 sentences opening with curiosity, relevant to their industry", "description": "One line", "cta": "CTA"}
-      ]
-    },
-    {
-      "angleLabel": "Retargeting",
-      "angle": "Warm audience who already engaged — higher-intent message",
-      "ads": [
-        {"title": "Warm Lead", "headline": "Follow-up headline for warm audience", "primaryText": "3-4 sentences for people who already showed interest — address hesitation, reinforce value", "description": "One line", "cta": "CTA"}
-      ]
-    }
+    {"angleLabel":"Empathy / Pain","angle":"strategy sentence","ads":[{"title":"Version A","headline":"specific headline","primaryText":"3-4 sentence ad copy using their specific offer","description":"one line benefit","cta":"strong CTA"},{"title":"Version B","headline":"alt headline","primaryText":"3-4 sentence variation","description":"one line","cta":"CTA"}]},
+    {"angleLabel":"Offer / Value","angle":"strategy sentence","ads":[{"title":"Version A","headline":"offer headline","primaryText":"3-4 sentences leading with their promotion","description":"one line","cta":"CTA"},{"title":"Version B","headline":"value headline","primaryText":"3-4 sentence variation","description":"one line","cta":"CTA"}]},
+    {"angleLabel":"Proof / Results","angle":"strategy sentence","ads":[{"title":"Version A","headline":"results headline","primaryText":"3-4 sentences with implied proof","description":"one line","cta":"CTA"}]},
+    {"angleLabel":"Curiosity / Hook","angle":"strategy sentence","ads":[{"title":"Version A","headline":"pattern-interrupt headline","primaryText":"3-4 sentences opening with curiosity","description":"one line","cta":"CTA"}]},
+    {"angleLabel":"Retargeting","angle":"warm audience follow-up","ads":[{"title":"Warm Lead","headline":"follow-up headline","primaryText":"3-4 sentences for people who already engaged","description":"one line","cta":"CTA"}]}
   ],
-
   "targeting": {
-    "demographics": ["Specific demographic 1 based on their audience data", "demographic 2", "demographic 3"],
-    "interests": ["Specific interest 1 from their form data", "interest 2", "interest 3", "interest 4", "interest 5"],
-    "behaviors": ["Behavior 1 relevant to their service", "behavior 2", "behavior 3"],
-    "geographic": ["Geographic targeting based on their service area: ${n(d.serviceAreaType)} — ${n(d.serviceDetails)}"],
-    "custom": ["Website visitors (retargeting)", "Engaged with page", "Custom audience suggestion specific to their business"],
-    "lookalike": ["1% lookalike of customer list", "2-3% lookalike for broader reach"]
+    "demographics": ["specific demo 1 from their data","demo 2","demo 3"],
+    "interests": ["interest 1 from their form","interest 2","interest 3","interest 4","interest 5"],
+    "behaviors": ["behavior 1 relevant to their service","behavior 2","behavior 3"],
+    "geographic": ["based on their service area: ${n(d.serviceAreaType)} — ${n(d.serviceDetails)}"],
+    "custom": ["Website visitors (retargeting)","Engaged with page","custom audience for their business"],
+    "lookalike": ["1% lookalike of customer list","2-3% for broader reach"]
   },
-
   "roadmap": [
-    {"phase": "Week 1", "title": "Foundation & Setup", "desc": "2 sentences of specific actions based on their platforms (${n(d.adPlatforms)}) and goals"},
-    {"phase": "Week 2", "title": "Launch & Test", "desc": "2 sentences about launching the first campaigns with their budget ($${n(d.adBudget)})"},
-    {"phase": "Weeks 3-4", "title": "Data & Optimization", "desc": "2 sentences about analyzing data, killing losers, scaling winners"},
-    {"phase": "Weeks 5-6", "title": "Audience Expansion", "desc": "2 sentences about broadening audiences and adding ad angles"},
-    {"phase": "Weeks 7-8", "title": "Scale What Works", "desc": "2 sentences about scaling winning campaigns and budgets"},
-    {"phase": "Weeks 9-12", "title": "90-Day Milestone: ${n(d.goal90Days).slice(0,40)}", "desc": "2 sentences about hitting their specific 90-day goal"}
+    {"phase":"Week 1","title":"Foundation & Setup","desc":"2 sentences — specific actions for ${n(d.adPlatforms)} and their goals"},
+    {"phase":"Week 2","title":"Launch & Test","desc":"2 sentences — launching first campaigns at $${n(d.adBudget)}/day"},
+    {"phase":"Weeks 3-4","title":"Data & Optimization","desc":"2 sentences — analyze, kill losers, scale winners"},
+    {"phase":"Weeks 5-6","title":"Audience Expansion","desc":"2 sentences — broaden audiences, add ad angles"},
+    {"phase":"Weeks 7-8","title":"Scale What Works","desc":"2 sentences — scaling winning campaigns"},
+    {"phase":"Weeks 9-12","title":"90-Day Goal","desc":"2 sentences — hitting their specific goal: ${n(d.goal90Days).slice(0,60)}"}
   ],
-
   "qualificationScript": {
-    "opening": "2-3 sentence opening script specific to ${n(d.businessName)} — use their industry and service in the opening",
+    "opening": "2-3 sentence opening specific to ${n(d.businessName)} using their industry",
     "questions": [
-      {"q": "${n(d.customQ1) || 'First qualifying question based on their input: ' + n(d.qualifyingQuestions)}", "why": "Why this question matters for their specific business"},
-      {"q": "Second qualifying question based on their inputs", "why": "Why this question matters"},
-      {"q": "Third qualifying question", "why": "Why this question matters"},
-      {"q": "Budget/timeline qualifier specific to their service", "why": "Qualifies readiness"},
-      {"q": "Decision maker confirmation", "why": "Avoids wasting time on non-decision makers"}
+      {"q":"question based on their input: ${n(d.qualifyingQuestions)}","why":"why this matters for their business"},
+      {"q":"second qualifying question from their inputs","why":"why this matters"},
+      {"q":"third qualifying question","why":"why this matters"},
+      {"q":"budget/timeline qualifier for their service","why":"qualifies readiness"},
+      {"q":"decision maker confirmation","why":"avoids wasting time"}
     ],
-    "transition": "2 sentence transition to the close/next steps specific to their process (${n(d.leadDestination)})",
+    "transition": "2 sentence transition to close using their process: ${n(d.leadDestination)}",
     "objections": [
-      {"obj": "Most common objection for their industry", "response": "Specific rebuttal using their standout factor: ${n(d.standOut).slice(0,80)}"},
-      {"obj": "Price objection", "response": "Response using their avg job value ($${n(d.avgCustomerValue)}) and ROI framing"},
-      {"obj": "Need to think about it", "response": "Urgency-based response using their specific offer/promo"}
+      {"obj":"most common objection for their industry","response":"rebuttal using: ${n(d.standOut).slice(0,80)}"},
+      {"obj":"price objection","response":"ROI response using their avg value $${n(d.avgCustomerValue)}"},
+      {"obj":"need to think about it","response":"urgency using their specific offer/promo"}
     ]
   },
-
   "positioning": [
-    {"tip": "Lead With Your Unique Edge", "desc": "2 sentences about how to position their specific differentiator: ${n(d.standOut).slice(0,100)}"},
-    {"tip": "Own Your Service Area", "desc": "2 sentences about dominating their specific geographic market: ${n(d.serviceDetails).slice(0,80)}"},
-    {"tip": "Leverage What Already Works", "desc": "2 sentences building on their past marketing wins: ${n(d.workedWell).slice(0,80)}"},
-    {"tip": "Promote Your Best Offer Front and Center", "desc": "2 sentences about leading with: ${n(d.promotions).slice(0,100)}"},
-    {"tip": "Speed is Your Competitive Advantage", "desc": "2 sentences about their ${n(d.responseTime)} response time as a differentiator vs competitors who are slow"}
+    {"tip":"Lead With Your Unique Edge","desc":"2 sentences about: ${n(d.standOut).slice(0,100)}"},
+    {"tip":"Own Your Service Area","desc":"2 sentences about: ${n(d.serviceDetails).slice(0,80)}"},
+    {"tip":"Leverage What Works","desc":"2 sentences building on: ${n(d.workedWell).slice(0,80)}"},
+    {"tip":"Promote Your Best Offer","desc":"2 sentences leading with: ${n(d.promotions).slice(0,100)}"},
+    {"tip":"Speed as Competitive Advantage","desc":"2 sentences about ${n(d.responseTime)} response vs slow competitors"}
   ],
-
   "kpis": {
-    "cpl": "Estimated cost per lead range for ${n(d.industry)} on ${n(d.adPlatforms)} at $${n(d.adBudget)}/day",
-    "ctr": "Expected CTR range for this industry",
-    "conversionRate": "Expected lead form conversion rate",
-    "expectedLeadsPerMonth": "Estimated monthly leads at this budget",
+    "cpl": "cost per lead range for ${n(d.industry)} on ${n(d.adPlatforms)}",
+    "ctr": "expected CTR range for this industry",
+    "conversionRate": "expected lead form conversion rate",
+    "expectedLeadsPerMonth": "estimated monthly leads at this budget",
     "projectedROI": "ROI projection based on $${n(d.avgCustomerValue)} avg job value"
   }
 }
@@ -543,7 +502,14 @@ export default async (req, context) => {
     });
     console.log('[process-plan] Initial client record saved:', slug);
 
-    // Run Claude + full save in background after response
+    // ── Save auth PDF to Blobs IMMEDIATELY (before waitUntil) ─────────────────
+    // This guarantees the PDF is saved even if Claude call times out
+    if (data.authPdfBase64 || (data.authSignature && data.authSignature.length > 100)) {
+      uploadAuthPdfToBlobs(slug, agencyId, data.authSignature||'', data)
+        .catch(e => console.error('[process-plan] PDF save failed:', e.message));
+    }
+
+    // Run Claude + full Firestore save in background after response
     if (context?.waitUntil) {
       context.waitUntil(generateAndSavePlan(data, agencyId, slug, planUrl, portalUrl, agency));
       console.log('[process-plan] waitUntil scheduled for:', slug);
