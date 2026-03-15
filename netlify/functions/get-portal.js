@@ -157,9 +157,8 @@ export default async (req) => {
         const billingDoc = await fsReq(token, `agencies/${agencyId}/clients/${slug}/billing/config`);
         if (billingDoc?.fields) {
           const cfg = extractAllFields(billingDoc);
-          // showOnPortal can be boolean true, string "true", or any truthy value
-          if (cfg && cfg.showOnPortal) {
-            // Fetch payment records
+          if (cfg) {
+            // Always fetch and return billing data — portal tab decides what to show
             const paymentsResp = await new Promise((resolve) => {
               const r = https.request({
                 hostname:'firestore.googleapis.com',
@@ -177,7 +176,6 @@ export default async (req) => {
               .filter(Boolean)
               .sort((a,b) => new Date(b.dueDate||0) - new Date(a.dueDate||0));
             billing = { ...cfg, payments };
-          }
         }
       } catch(e) {
         console.log('[get-portal] billing error:', e.message);
