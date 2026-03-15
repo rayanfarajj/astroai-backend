@@ -227,7 +227,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
 .dl-link:hover{background:var(--teal-dim);}
 
 /* SUCCESS */
-.success-box{background:rgba(0,217,163,.07);border:1px solid rgba(0,217,163,.2);border-radius:8px;padding:16px;text-align:center;display:none;}
+.success-box{background:rgba(0,217,163,.07);border:1px solid rgba(0,217,163,.2);border-radius:8px;padding:16px;text-align:center;display:none;transition:all .3s;}
 .success-box.on{display:block;}
 .success-box h3{color:var(--teal);font-size:.88rem;margin-bottom:4px;}
 .success-box p{color:var(--text-dim);font-size:.78rem;}
@@ -413,6 +413,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
             <span class="perk" id="perk-bonus">🚀 Fast onboarding</span>
             <span class="perk">❤️ Help a friend grow</span>
           </div>
+          <div class="success-box" id="ref-ok" style="margin-bottom:14px"><h3>🎉 Referral Submitted!</h3><p>We'll reach out to them right away. You can submit another referral below.</p></div>
           <div id="ref-form">
             <div class="frow">
               <div class="fgrp"><label class="flabel">Their Name</label><input class="finput" id="rn" type="text" placeholder="Jane Smith"></div>
@@ -429,7 +430,6 @@ textarea.finput{resize:vertical;line-height:1.6;}
             </div>
             <button class="btn-primary" id="ref-btn">Submit Referral</button>
           </div>
-          <div class="success-box" id="ref-ok"><h3>🎉 Referral Submitted!</h3><p>We'll reach out to them right away. Thank you!</p></div>
         </div>
       </div>
     </div>
@@ -591,10 +591,25 @@ document.getElementById('ref-btn').addEventListener('click',async()=>{
     const res=await fetch(API+'/submit-referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({referrerSlug:slug,agencyId:_agencyId,referrerName:C.clientName,referrerBusiness:C.businessName,refereeName:document.getElementById('rn').value.trim(),refereeBusinessName:document.getElementById('rb').value.trim(),refereeEmail:email,refereePhone:document.getElementById('rp').value.trim(),refereeNote:document.getElementById('rnote').value.trim()})});
     const data=await res.json();
     if(data.success){
-      document.getElementById('ref-form').style.display='none';
-      document.getElementById('ref-ok').classList.add('on');
-      const rn=document.getElementById('ref-n');rn.textContent=parseInt(rn.textContent||'0')+1;
-      const sr=document.getElementById('st-refs');sr.textContent=parseInt(sr.textContent||'0')+1;
+      // Increment count permanently in DOM
+      // Increment count permanently in DOM and in C object so it persists in session
+      const rn=document.getElementById('ref-n');
+      const sr=document.getElementById('st-refs');
+      const newCount = parseInt(rn.textContent||'0') + 1;
+      rn.textContent = newCount;
+      if(sr) sr.textContent = newCount;
+      if(C) C.referralCount = String(newCount); // prevent re-load from resetting it
+      // Show success banner temporarily
+      const ok=document.getElementById('ref-ok');
+      ok.classList.add('on');
+      // Reset all form fields so they can submit another referral
+      document.getElementById('rn').value='';
+      document.getElementById('rb').value='';
+      document.getElementById('re').value='';
+      document.getElementById('rp').value='';
+      document.getElementById('rnote').value='';
+      // Hide success banner after 4 seconds — form stays visible
+      setTimeout(()=>ok.classList.remove('on'), 4000);
     }else toast('❌ '+(data.error||'Failed'));
   }catch(e){toast('❌ '+e.message);}
   finally{btn.disabled=false;btn.textContent='Submit Referral';}
