@@ -139,54 +139,113 @@ Return this exact JSON:
 
 export default async (req) => {
   let data;
-  try { data = await req.json(); } catch { return; }
+  try { data = await req.json(); } catch(e) {
+    console.error('[bg] Failed to parse request body:', e.message);
+    return;
+  }
 
   const { agencyId, clientId, planUrl, portalUrl } = data;
-  if (!agencyId || !clientId) return;
+  console.log('[bg] START agencyId:', agencyId, 'clientId:', clientId, 'business:', data.businessName);
+
+  if (!agencyId || !clientId) {
+    console.error('[bg] Missing agencyId or clientId — aborting');
+    return;
+  }
 
   try {
+    // STEP 1: Get agency
+    console.log('[bg] STEP 1: fetching agency', agencyId);
     const agency = await fsGet('agencies', agencyId);
-    if (!agency) { console.error('[bg] Agency not found:', agencyId); return; }
+    if (!agency) {
+      console.error('[bg] STEP 1 FAILED: Agency not found:', agencyId);
+      return;
+    }
+    console.log('[bg] STEP 1 OK: agency found:', agency.name || agency.brandName);
 
-    // Generate plan
-    console.log('[bg] Generating plan for', data.businessName);
-    const rawJSON = await callClaude(buildPrompt(data, agency));
+    // STEP 2: Build prompt and call Claude
+    console.log('[bg] STEP 2: calling Claude for', data.businessName);
+    const prompt = buildPrompt(data, agency);
+    let rawJSON = '';
+    try {
+      rawJSON = await callClaude(prompt);
+      console.log('[bg] STEP 2 OK: Claude returned', rawJSON.length, 'chars');
+    } catch(claudeErr) {
+      console.error('[bg] STEP 2 FAILED: Claude error:', claudeErr.message);
+      // Save empty plan so page stops showing "generating"
+      await fsSetSub(agencyId, 'clients', clientId, {
+        agencyId, clientId, status:'active',
+        dashboardJSON: JSON.stringify({executiveSummary:'Plan generation failed. Please regenerate.', adAngles:[], roadmap:[]}),
+        dashboardUrl: planUrl, generatedAt: new Date().toISOString(),
+        errorMsg: claudeErr.message,
+      });
+      return;
+    }
+
+    // STEP 3: Parse JSON response
+    console.log('[bg] STEP 3: parsing Claude response');
     let dashJSON = {};
     try {
       const cleaned = rawJSON.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
       dashJSON = JSON.parse(cleaned);
+      console.log('[bg] STEP 3 OK: parsed JSON, keys:', Object.keys(dashJSON).join(','));
     } catch(e) {
+      console.log('[bg] STEP 3: direct parse failed, trying regex extraction');
       const m = rawJSON.match(/\{[\s\S]*\}/);
-      if (m) try { dashJSON = JSON.parse(m[0]); } catch(e2) {}
+      if (m) {
+        try {
+          dashJSON = JSON.parse(m[0]);
+          console.log('[bg] STEP 3 OK: regex extraction worked');
+        } catch(e2) {
+          console.error('[bg] STEP 3 FAILED: could not parse response. Raw (first 500):', rawJSON.slice(0,500));
+        }
+      }
     }
 
-    // Save HTML to GitHub (non-critical — don't let failure kill the plan)
+    // STEP 4: Save to GitHub (non-critical)
+    console.log('[bg] STEP 4: saving HTML to GitHub');
     try {
       await saveToGitHub(clientId, agencyId, buildPlanHTML(dashJSON, data, agency));
-      console.log('[bg] Plan HTML saved to GitHub');
+      console.log('[bg] STEP 4 OK: GitHub save succeeded');
     } catch(ghErr) {
-      console.log('[bg] GitHub save failed (non-fatal):', ghErr.message);
+      console.log('[bg] STEP 4 SKIPPED: GitHub save failed (non-fatal):', ghErr.message);
     }
 
-    // Update client record
+    // STEP 5: Save to Firestore
+    console.log('[bg] STEP 5: saving to Firestore');
     const clientData = {
       agencyId, clientId,
-      firstName:data.firstName, lastName:data.lastName,
-      clientName:`${data.firstName} ${data.lastName}`.trim(),
-      clientEmail:data.email, businessName:data.businessName,
-      phone:data.phone||'', industry:data.industry,
-      primaryService:data.primaryService, adBudget:data.adBudget,
-      adPlatforms:data.adPlatforms, serviceAreaType:data.serviceAreaType||'',
-      serviceDetails:data.serviceDetails||'', website:data.website||'',
-      companySize:data.companySize||'', goal90:data.goal90Days,
-      status:'active', createdAt:data.createdAt||new Date().toISOString(),
-      dashboardUrl:planUrl, dashboardJSON:JSON.stringify(dashJSON),
-      notes:'', generatedAt:new Date().toISOString(),
+      firstName:   data.firstName    || '',
+      lastName:    data.lastName     || '',
+      clientName:  `${data.firstName||''} ${data.lastName||''}`.trim(),
+      clientEmail: data.email        || '',
+      businessName:data.businessName || '',
+      phone:       data.phone        || '',
+      industry:    data.industry     || '',
+      primaryService: data.primaryService || '',
+      adBudget:    data.adBudget     || '',
+      adPlatforms: data.adPlatforms  || '',
+      serviceAreaType:  data.serviceAreaType  || '',
+      serviceDetails:   data.serviceDetails   || '',
+      website:     data.website      || '',
+      companySize: data.companySize  || '',
+      goal90:      data.goal90Days   || '',
+      status:      'active',
+      createdAt:   data.createdAt    || new Date().toISOString(),
+      dashboardUrl: planUrl          || '',
+      dashboardJSON: JSON.stringify(dashJSON),
+      notes:       '',
+      generatedAt: new Date().toISOString(),
     };
-    await fsSetSub(agencyId, 'clients', clientId, clientData);
-    console.log('[bg] Client updated');
+    try {
+      await fsSetSub(agencyId, 'clients', clientId, clientData);
+      console.log('[bg] STEP 5 OK: Firestore save succeeded');
+    } catch(fsErr) {
+      console.error('[bg] STEP 5 FAILED: Firestore error:', fsErr.message);
+      return;
+    }
 
-    // Send welcome email
+    // STEP 6: Send email
+    console.log('[bg] STEP 6: sending welcome email to', data.email);
     try {
       const { createTransport } = await import('nodemailer');
       const t = createTransport({service:'gmail',auth:{user:process.env.GMAIL_USER,pass:process.env.GMAIL_PASS}});
@@ -194,15 +253,20 @@ export default async (req) => {
       const color = agency.brandColor||'#00d9a3';
       await t.sendMail({
         from:`"${brand}" <${process.env.GMAIL_USER}>`,
-        to:data.email,
+        to: data.email,
         subject:`🎉 Your AI Marketing Plan is Ready, ${data.firstName}!`,
         html:`<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px"><h2 style="color:${color}">${brand}</h2><p>Hi ${data.firstName},</p><p>Your plan for <strong>${data.businessName}</strong> is ready!</p><a href="${planUrl}" style="background:${color};color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;margin-top:16px">📊 View My Plan</a><p style="margin-top:16px"><a href="${portalUrl}">👤 Go to Your Portal</a></p></div>`,
       });
-      console.log('[bg] Email sent to', data.email);
-    } catch(e) { console.error('[bg] Email failed:', e.message); }
+      console.log('[bg] STEP 6 OK: email sent');
+    } catch(emailErr) {
+      console.error('[bg] STEP 6 FAILED: email error:', emailErr.message);
+    }
+
+    console.log('[bg] ALL DONE for', data.businessName);
 
   } catch(e) {
-    console.error('[bg] Error:', e.message, e.stack);
+    console.error('[bg] UNEXPECTED ERROR:', e.message);
+    console.error('[bg] STACK:', e.stack);
   }
 };
 // No config export — background functions use file name suffix "-background"
