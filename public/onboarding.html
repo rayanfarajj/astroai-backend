@@ -1174,23 +1174,17 @@ async function submitForm(){
     body: JSON.stringify(data),
   }).catch(() => {});
 
-  // ── Generate auth PDF, email to owner, AND attach base64 for server storage ─
+  // ── Generate auth PDF and email to owner (non-blocking, separate from plan) ─
+  // PDF is NOT included in the process-plan payload — that would make it 300KB+
+  // and blow the 10s timeout before the server even receives the request.
+  // Instead: email it now, upload it separately AFTER we get the clientId back.
+  let _pdfBlob = null;
   try {
-    const pdfBlob = generateAuthPDF(data);
-    if (pdfBlob) {
-      // Email to owner (non-blocking)
-      sendAuthEmail(data, pdfBlob).catch(e => console.warn('PDF email failed:', e));
-      // Convert to base64 and attach to payload so server saves it to client Files
-      try {
-        const arrayBuf = await pdfBlob.arrayBuffer();
-        const uint8 = new Uint8Array(arrayBuf);
-        let binary = '';
-        uint8.forEach(b => binary += String.fromCharCode(b));
-        data.authPdfBase64 = btoa(binary);
-        data.authPdfFilename = 'Authorization_Agreement_' + (data.businessName||'Client').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30) + '_' + new Date().toISOString().slice(0,10) + '.pdf';
-      } catch(e) { console.warn('PDF base64 conversion failed:', e); }
+    _pdfBlob = generateAuthPDF(data);
+    if (_pdfBlob) {
+      sendAuthEmail(data, _pdfBlob).catch(e => console.warn('PDF email failed:', e));
     }
-  } catch(e) { console.warn('PDF/email failed:', e); }
+  } catch(e) { console.warn('PDF generation failed:', e); }
 
   // ── Submit referral to agency referral dashboard (non-blocking) ────────────
   const _refEmail = data.referralFriendEmail;
@@ -1223,7 +1217,7 @@ async function submitForm(){
   let clientId = null;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 25000);
 
   try {
     const res = await fetch('/api/agency/process-plan', {
@@ -1242,6 +1236,23 @@ async function submitForm(){
       portalUrl = resp.portalUrl || null;
       clientId  = resp.clientId  || null;
       console.log('[onboarding] Plan scheduled:', resp);
+
+      // ── Upload auth PDF now that we have the real clientId ─────────────────
+      if (_pdfBlob && clientId && AGENCY_ID) {
+        (async () => {
+          try {
+            const arrayBuf = await _pdfBlob.arrayBuffer();
+            const b64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
+            const fname = 'Authorization_Agreement_' + (data.businessName||'Client').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30) + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+            await fetch('/api/agency/process-plan/upload-auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ agencyId: AGENCY_ID, clientId, authPdfBase64: b64, authPdfFilename: fname }),
+            });
+            console.log('[onboarding] Auth PDF uploaded for:', clientId);
+          } catch(e) { console.warn('[onboarding] Auth PDF upload failed:', e.message); }
+        })();
+      }
     }
   } catch(fetchErr) {
     clearTimeout(timeout);
