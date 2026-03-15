@@ -143,10 +143,14 @@ function renderPlan(j, client, agency) {
     </div>` : '';
 
   // ── Executive Summary / Tagline ───────────────────────────────────────────────
+  const hasError = (j.tagline||j.executiveSummary||'').toLowerCase().includes('issue') ||
+                   (j.tagline||j.executiveSummary||'').toLowerCase().includes('failed');
   const summaryHTML = (j.tagline||j.executiveSummary) ? `
-    <div class="card">
-      <div class="card-title">✨ Campaign Overview</div>
-      <p style="font-size:1rem;line-height:1.8;color:#333;margin:0">${s(j.tagline||j.executiveSummary)}</p>
+    <div class="card" ${hasError?'style="border:2px solid #fbbf24;background:#fffbeb"':''}>
+      <div class="card-title">${hasError?'⚠️ Generation Issue':'✨ Campaign Overview'}</div>
+      <p style="font-size:1rem;line-height:1.8;color:#333;margin:0 0 ${hasError?'16px':'0'}">${s(j.tagline||j.executiveSummary)}</p>
+      ${hasError?`<a href="javascript:history.back()" style="display:inline-block;background:#f97316;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.88rem;margin-right:8px">← Go Back</a>
+      <span style="font-size:.8rem;color:#888">Or contact support to regenerate this plan.</span>`:''}
     </div>` : '';
 
   // ── Stats bar ────────────────────────────────────────────────────────────────
@@ -219,8 +223,35 @@ ${stats.length?`<div class="stats">${stats.map(([v,l])=>`<div class="stat"><div 
   <div class="card" style="text-align:center;padding:36px;background:linear-gradient(135deg,#fff,#fafafa);border:2px solid ${color}30">
     <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Ready to Launch? 🚀</h2>
     <p style="color:#666;margin-bottom:18px">Your Marketing Command Center for ${s(client.businessName||'your business')} is live.</p>
-    ${agency.bookingUrl?`<a href="${s(agency.bookingUrl)}" style="background:${color};color:#fff;padding:11px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-block">📅 Schedule Strategy Call</a>`:''}
+    ${agency.bookingUrl?`<a href="${s(agency.bookingUrl)}" style="background:${color};color:#fff;padding:11px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;display:inline-block;margin-right:8px">📅 Schedule Strategy Call</a>`:''}
+    <button onclick="regeneratePlan()" style="background:#f3f4f6;color:#444;border:1px solid #e5e7eb;padding:10px 20px;border-radius:50px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">⚡ Regenerate Plan</button>
   </div>
+  <script>
+  function regeneratePlan() {
+    if(!confirm('Regenerate this marketing plan? This will take ~20 seconds.')) return;
+    const btn = document.querySelector('button[onclick="regeneratePlan()"]');
+    btn.textContent = '⏳ Regenerating...'; btn.disabled = true;
+    fetch('/api/agency/process-plan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        agencyId: '${agencyId}', clientId: '${clientId}',
+        firstName: '${s(client.firstName||'')}', lastName: '${s(client.lastName||'')}',
+        email: '${s(client.clientEmail||'')}', businessName: '${s(client.businessName||'')}',
+        phone: '${s(client.phone||'')}', industry: '${s(client.industry||'')}',
+        primaryService: '${s(client.primaryService||'')}', adBudget: '${s(client.adBudget||'')}',
+        adPlatforms: '${s(client.adPlatforms||'')}', goal90Days: '${s(client.goal90||client.goal90Days||'')}',
+        standOut: '${s(client.standOut||'')}', promotions: '${s(client.promotions||'')}',
+        serviceDetails: '${s(client.serviceDetails||'')}', idealCustomer: '${s(client.idealCustomer||'')}',
+        qualifyingQuestions: '${s(client.qualifyingQuestions||'')}', avgCustomerValue: '${s(client.avgCustomerValue||'')}',
+        workedWell: '${s(client.workedWell||'')}',
+      })
+    }).then(r => r.json()).then(d => {
+      if(d.success) { setTimeout(() => location.reload(), 25000); btn.textContent = '⏳ Generating (~25s)...'; }
+      else { btn.textContent = '❌ Failed — try again'; btn.disabled = false; }
+    }).catch(() => { btn.textContent = '❌ Error — try again'; btn.disabled = false; });
+  }
+  </script>
 </div>
 <footer>${s(brand)} · Marketing Command Center · ${s(client.businessName||'')}</footer>
 </body>
@@ -245,7 +276,7 @@ export default async (req) => {
     // Get client doc
     const clientDoc = await fsGet(`agencies/${agencyId}/clients/${clientId}`, token);
     if (!clientDoc.fields) {
-      return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="10"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f3f4f6;text-align:center}.box{background:#fff;border-radius:16px;padding:48px 40px;max-width:460px;box-shadow:0 4px 24px rgba(0,0,0,.08)}.spinner{width:40px;height:40px;border:3px solid #eee;border-top-color:#f97316;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="box"><div class="spinner"></div><h2 style="font-size:1.3rem;font-weight:800;color:#111;margin-bottom:8px">Building Your Plan...</h2><p style="color:#666;line-height:1.6;font-size:.9rem">Your AI marketing plan is being generated. This page refreshes automatically every 10 seconds.</p></div></body></html>`, {status:200,headers:H});
+      return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="10"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f3f4f6;text-align:center}.box{background:#fff;border-radius:16px;padding:48px 40px;max-width:460px;box-shadow:0 4px 24px rgba(0,0,0,.08)}.spinner{width:40px;height:40px;border:3px solid #eee;border-top-color:#f97316;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="box"><div class="spinner"></div><h2 style="font-size:1.3rem;font-weight:800;color:#111;margin-bottom:8px">Building Your Plan...</h2><p style="color:#666;line-height:1.6;font-size:.9rem">Your AI marketing plan is being generated. This page refreshes every 10 seconds.</p><p style="color:#aaa;font-size:.8rem;margin-top:12px">Taking longer than expected? Check your email — we'll send it when ready.</p></div></body></html>`, {status:200,headers:H});
     }
 
     const client = {};
@@ -253,7 +284,7 @@ export default async (req) => {
 
     const dj = client.dashboardJSON;
     if (!dj || dj === '{}') {
-      return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="10"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f3f4f6;text-align:center}.box{background:#fff;border-radius:16px;padding:48px 40px;max-width:460px;box-shadow:0 4px 24px rgba(0,0,0,.08)}.spinner{width:40px;height:40px;border:3px solid #eee;border-top-color:#f97316;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="box"><div class="spinner"></div><h2 style="font-size:1.3rem;font-weight:800;color:#111;margin-bottom:8px">Building Your Plan...</h2><p style="color:#666;line-height:1.6;font-size:.9rem">Your AI marketing plan is being generated. This page refreshes automatically every 10 seconds.</p></div></body></html>`, {status:200,headers:H});
+      return new Response(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="10"><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f3f4f6;text-align:center}.box{background:#fff;border-radius:16px;padding:48px 40px;max-width:460px;box-shadow:0 4px 24px rgba(0,0,0,.08)}.spinner{width:40px;height:40px;border:3px solid #eee;border-top-color:#f97316;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="box"><div class="spinner"></div><h2 style="font-size:1.3rem;font-weight:800;color:#111;margin-bottom:8px">Building Your Plan...</h2><p style="color:#666;line-height:1.6;font-size:.9rem">Your AI marketing plan is being generated. This page refreshes every 10 seconds.</p><p style="color:#aaa;font-size:.8rem;margin-top:12px">Taking longer than expected? Check your email — we'll send it when ready.</p></div></body></html>`, {status:200,headers:H});
     }
 
     let json = {};
