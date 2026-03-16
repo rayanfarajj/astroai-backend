@@ -44,6 +44,7 @@ exports.handler = async function(event) {
         privacyUrl:        body.privacyUrl           !== undefined ? body.privacyUrl           : (agency.privacyUrl||''),
         referralBonus:     body.referralBonus         !== undefined ? body.referralBonus         : (agency.referralBonus||''),
         referralResources: body.referralResources     !== undefined ? body.referralResources     : (agency.referralResources||''),
+        metaBusinessId:     body.metaBusinessId     !== undefined ? body.metaBusinessId     : (agency.metaBusinessId||''),
         bookingUrl:        body.bookingUrl             !== undefined ? body.bookingUrl            : (agency.bookingUrl||''),
         supportPhone:      body.supportPhone           !== undefined ? body.supportPhone          : (agency.supportPhone||''),
         supportEmail:      body.supportEmail           !== undefined ? body.supportEmail          : (agency.supportEmail||''),
