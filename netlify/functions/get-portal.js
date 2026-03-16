@@ -197,6 +197,7 @@ export default async (req) => {
     if (agencyId && slug) {
       try {
         const svcResp = await fsListServices(token, agencyId, slug);
+        console.log('[get-portal] svcResp keys:', Object.keys(svcResp||{}), 'docs:', (svcResp.documents||[]).length);
         services = (svcResp.documents || []).map(doc => {
           const f = doc.fields || {};
           const s = k => f[k]?.stringValue || '';
