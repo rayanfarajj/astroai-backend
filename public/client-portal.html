@@ -1121,11 +1121,18 @@ function showInstallInstructions() {
 
 // ── PWA: Push Notification Bar ───────────────────────────────────────────────
 async function checkNotifBar(reg) {
-  // Don't show if already granted/denied or dismissed
-  if (Notification.permission !== 'default') return;
+  // Don't show if notifications not supported
+  if (!('Notification' in window) || !('PushManager' in window)) return;
+  // Don't show if already granted and subscribed
+  if (Notification.permission === 'granted') {
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) return; // already subscribed
+  }
+  // Don't show if explicitly denied or dismissed
+  if (Notification.permission === 'denied') return;
   const dismissed = localStorage.getItem('notif-bar-dismissed');
   if (dismissed) return;
-  // Show after 8 seconds (after user has engaged with the portal)
+  // Show after 8 seconds
   setTimeout(() => {
     document.getElementById('notif-bar').classList.add('show');
   }, 8000);
@@ -1136,25 +1143,67 @@ function dismissNotifBar() {
   localStorage.setItem('notif-bar-dismissed', '1');
 }
 
+// VAPID public key from server
+const VAPID_PUBLIC_KEY = 'BO99Hx_tAxUQczsG3r2i206DZFc0V7ASqM4gcTBmct4X9x3axqbLrsjNY3t4eqHioXCu_Pr1ohJNArFgfxQJKJs';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64   = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw      = window.atob(base64);
+  return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+}
+
 async function requestNotifPermission() {
   dismissNotifBar();
   try {
     const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      // Subscribe to push notifications
-      const reg = await navigator.serviceWorker.ready;
-      // For now just show a confirmation — full VAPID push requires backend setup
-      new Notification('Notifications Enabled! 🎉', {
-        body: 'You\'ll be notified when your marketing plan is ready and when your agency sends updates.',
-        icon: '/icons/portal-icon-192.png',
-        tag: 'welcome',
-      });
-      // Store subscription info
+    if (permission !== 'granted') {
+      toast('Notifications blocked — enable in Settings > Safari > Notifications');
+      return;
+    }
+
+    // Get service worker registration
+    const reg = await navigator.serviceWorker.ready;
+
+    // Subscribe to Web Push with VAPID
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    // Save subscription to server so we can send push from backend
+    const res = await fetch('/api/save-push-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agencyId: _agencyId,
+        clientId: slug,
+        subscription: subscription.toJSON(),
+      }),
+    });
+    const result = await res.json();
+
+    if (result.ok) {
       localStorage.setItem('notif-enabled', '1');
-      localStorage.setItem('notif-slug', slug);
+      // Show a welcome notification immediately to confirm it works
+      reg.showNotification('Notifications Enabled! 🔔', {
+        body: "You'll be notified when your plan is ready and when your agency has updates for you.",
+        icon: '/icons/portal-icon-192.png',
+        tag:  'welcome',
+        data: { url: `/onboard/portal?a=${_agencyId}&s=${slug}` },
+      });
+      toast('✅ Push notifications enabled!');
+    } else {
+      toast('❌ Could not save notification settings');
     }
   } catch(e) {
-    console.log('[PWA] Notification permission error:', e.message);
+    console.log('[PWA] Push subscription error:', e.message);
+    // iOS Safari < 16.4 doesn't support push — graceful fallback
+    if (e.name === 'NotSupportedError' || e.message.includes('not supported')) {
+      toast('Push notifications require iOS 16.4+ with Safari');
+    } else {
+      toast('Could not enable notifications: ' + e.message.slice(0, 60));
+    }
   }
 }
 
