@@ -413,8 +413,8 @@ html, body { overscroll-behavior: none; }
 
 <!-- Push Notification Permission Bar -->
 <div id="notif-bar">
-  <span class="notif-bar-text">🔔 <strong>Stay updated</strong> — get notified when your plan is ready or your agency sends updates.</span>
-  <button class="notif-bar-btn" onclick="requestNotifPermission()">Enable</button>
+  <span class="notif-bar-text" id="notif-bar-text">🔔 <strong>Stay updated</strong> — get notified when your plan is ready.</span>
+  <button class="notif-bar-btn" id="notif-bar-btn" onclick="requestNotifPermission()">Enable</button>
   <button class="notif-bar-dismiss" onclick="dismissNotifBar()">✕</button>
 </div>
 
@@ -1075,6 +1075,14 @@ window.addEventListener('portalLoaded', () => {
   });
 });
 
+// ── PWA: Debug reset (add ?reset_pwa=1 to URL to clear dismissal flags) ─────
+if (new URLSearchParams(location.search).get('reset_pwa') === '1') {
+  localStorage.removeItem('pwa-banner-dismissed');
+  localStorage.removeItem('notif-bar-dismissed');
+  localStorage.removeItem('notif-enabled');
+  console.log('[PWA] Reset all PWA flags');
+}
+
 // ── PWA: Service Worker Registration ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1096,14 +1104,29 @@ function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches ||
          window.navigator.standalone === true;
 }
-(function checkInstallBanner() {
-  // Only show on iOS Safari, not already installed, not dismissed recently
-  if (!isIOS() || isStandalone()) return;
+// Android/Chrome: capture beforeinstallprompt for native install
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  // Show our banner immediately
   const dismissed = localStorage.getItem('pwa-banner-dismissed');
-  if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return; // 7 days
-  // Show after 3 seconds
+  if (!dismissed && !isStandalone()) {
+    setTimeout(() => document.getElementById('pwa-banner').classList.add('show'), 2000);
+  }
+});
+
+(function checkInstallBanner() {
+  if (isStandalone()) return; // Already installed
+  const dismissed = localStorage.getItem('pwa-banner-dismissed');
+  if (dismissed && Date.now() - parseInt(dismissed) < 3 * 86400000) return; // 3 days
+
+  // Show on iOS Safari always (they need manual Add to Home Screen)
+  // Show on other platforms too — wait for beforeinstallprompt or show after 3s
   setTimeout(() => {
-    document.getElementById('pwa-banner').classList.add('show');
+    if (!isStandalone()) {
+      document.getElementById('pwa-banner').classList.add('show');
+    }
   }, 3000);
 })();
 
@@ -1112,28 +1135,61 @@ function dismissBanner() {
   localStorage.setItem('pwa-banner-dismissed', Date.now().toString());
 }
 
-function showInstallInstructions() {
+async function showInstallInstructions() {
+  // Android/Chrome: use native install prompt
+  if (_deferredInstallPrompt) {
+    _deferredInstallPrompt.prompt();
+    const { outcome } = await _deferredInstallPrompt.userChoice;
+    _deferredInstallPrompt = null;
+    dismissBanner();
+    if (outcome === 'accepted') toast('✅ App installed! Find it on your home screen.');
+    return;
+  }
+  // iOS Safari: show instructions
   dismissBanner();
-  // iOS-specific: show share sheet instructions
-  const msg = 'To install:\n\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right\n\nYour portal will appear as an app icon!';
+  const isIpad = /ipad/i.test(navigator.userAgent);
+  const shareIcon = isIpad ? '⬆' : '□↑';
+  const msg = `To install your portal app:\n\n1. Tap the Share icon (${shareIcon}) in Safari's toolbar\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" — done!\n\nThe app icon will appear on your home screen.`;
   alert(msg);
 }
 
 // ── PWA: Push Notification Bar ───────────────────────────────────────────────
 async function checkNotifBar(reg) {
-  // Don't show if notifications not supported
-  if (!('Notification' in window) || !('PushManager' in window)) return;
-  // Don't show if already granted and subscribed
-  if (Notification.permission === 'granted') {
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) return; // already subscribed
-  }
-  // Don't show if explicitly denied or dismissed
-  if (Notification.permission === 'denied') return;
   const dismissed = localStorage.getItem('notif-bar-dismissed');
   if (dismissed) return;
+
+  // iOS Safari NOT installed as PWA = push not available yet
+  // Show a different message prompting them to install first
+  if (isIOS() && !isStandalone()) {
+    // Don't show notif bar on uninstalled iOS — install banner handles it
+    return;
+  }
+
+  // Check if push is supported
+  if (!('Notification' in window) || !('PushManager' in window)) {
+    // Browser doesn't support push — skip silently
+    return;
+  }
+
+  // Already granted and subscribed — skip
+  if (Notification.permission === 'granted') {
+    try {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) return;
+    } catch(e) {}
+  }
+
+  // Explicitly denied — skip
+  if (Notification.permission === 'denied') return;
+
   // Show after 8 seconds
   setTimeout(() => {
+    // Update text based on context
+    const isInstalledPWA = isStandalone();
+    if (isInstalledPWA) {
+      document.getElementById('notif-bar-text').innerHTML = 
+        '🔔 <strong>Enable notifications</strong> — get alerted when your marketing plan is ready.';
+    }
     document.getElementById('notif-bar').classList.add('show');
   }, 8000);
 }
