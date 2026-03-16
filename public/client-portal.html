@@ -454,6 +454,7 @@ html, body { overscroll-behavior: none; }
     <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon">◰</span> Billing</button>
 
     <div class="sb-section">Connect</div>
+    <button class="nav-item" onclick="go('s-resources',this)"><span class="nav-icon">◐</span> Resources</button>
     <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon">◎</span> Refer a Friend</button>
     <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon">◷</span> Message Us</button>
   </nav>
@@ -565,6 +566,13 @@ html, body { overscroll-behavior: none; }
     </div>
 
     <!-- REFER -->
+    <div class="section" id="s-resources">
+      <div class="page-hd"><h1>Resources</h1><p>Everything you need to connect with your agency team.</p></div>
+      <div id="resources-content">
+        <!-- Populated by buildResources() after init() -->
+      </div>
+    </div>
+
     <div class="section" id="s-refer">
       <div class="page-hd"><h1>Refer a Friend</h1><p id="ref-page-sub">Know a business that could use great marketing? Send them our way!</p></div>
       <div class="ref-hero">
@@ -664,7 +672,7 @@ const _agencyId = _urlp.get('a') || '';
 let C = null;
 let _sessionRefCount = -1; // -1 means not yet set; once set, never decremented
 
-const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-billing':'Billing','s-refer':'Refer a Friend','s-message':'Message Us'};
+const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-billing':'Billing','s-resources':'Resources','s-refer':'Refer a Friend','s-message':'Message Us'};
 const STEPS  = [
   {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:'✓'},
   {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:'◈'},
@@ -836,6 +844,91 @@ document.getElementById('msg-btn').addEventListener('click',async()=>{
   finally{btn.disabled=false;btn.textContent='Send Message';}
 });
 
+function buildResources(data) {
+  const wrap = document.getElementById('resources-content');
+  if (!wrap) return;
+
+  const { bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks } = data;
+  const hasAny = bookingUrl || supportPhone || supportEmail || agencyWebsite || customLinks;
+
+  if (!hasAny) {
+    wrap.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:.85rem">Your agency hasn't added resources yet.</div>';
+    return;
+  }
+
+  let html = '';
+
+  // ── Booking / Scheduling ──
+  if (bookingUrl) {
+    const url = bookingUrl.startsWith('http') ? bookingUrl : 'https://' + bookingUrl;
+    html += `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd">
+        <div class="card-hd-left"><span class="card-icon">📅</span><span class="card-title">Schedule a Call</span></div>
+      </div>
+      <div class="card-body" style="padding:16px 18px">
+        <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px;line-height:1.6">Book a time to speak with your agency team about your campaign.</p>
+        <a href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:#0a0e1a;padding:9px 20px;border-radius:8px;font-weight:700;font-size:.84rem;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Book Now</a>
+      </div>
+    </div>`;
+  }
+
+  // ── Contact ──
+  if (supportPhone || supportEmail || agencyWebsite) {
+    html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon">📞</span><span class="card-title">Contact Your Agency</span></div></div><div class="card-body" style="padding:0">`;
+
+    if (supportPhone) {
+      html += `<a href="tel:${supportPhone}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">📞</div>
+        <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportPhone}</div><div style="font-size:.72rem;color:var(--text-muted)">Tap to call</div></div>
+      </a>`;
+    }
+
+    if (supportEmail) {
+      html += `<a href="mailto:${supportEmail}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">✉️</div>
+        <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportEmail}</div><div style="font-size:.72rem;color:var(--text-muted)">Send an email</div></div>
+      </a>`;
+    }
+
+    if (agencyWebsite) {
+      const wsUrl = agencyWebsite.startsWith('http') ? agencyWebsite : 'https://' + agencyWebsite;
+      html += `<a href="${wsUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:14px 18px;text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+        <div style="width:34px;height:34px;border-radius:8px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">🌐</div>
+        <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${agencyWebsite}</div><div style="font-size:.72rem;color:var(--text-muted)">Visit website</div></div>
+      </a>`;
+    }
+
+    html += '</div></div>';
+  }
+
+  // ── Custom Links ──
+  if (customLinks && customLinks.trim()) {
+    const links = customLinks.split('\n')
+      .map(l => l.trim()).filter(Boolean)
+      .map(l => {
+        const parts = l.split('|');
+        const label = parts[0]?.trim() || l;
+        const url   = (parts[1]?.trim() || l).startsWith('http') ? (parts[1]?.trim() || l) : 'https://' + (parts[1]?.trim() || l);
+        return { label, url };
+      });
+
+    if (links.length) {
+      html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon">🔗</span><span class="card-title">Links & Resources</span></div></div><div class="card-body" style="padding:0">`;
+      links.forEach((link, i) => {
+        const border = i < links.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+        html += `<a href="${link.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;${border}text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+          <span style="font-size:.82rem;font-weight:600;color:var(--text)">${link.label}</span>
+          <span style="color:var(--text-muted);font-size:.8rem">↗</span>
+        </a>`;
+      });
+      html += '</div></div>';
+    }
+  }
+
+  wrap.innerHTML = html;
+}
+
 async function init() {
   if(!slug){document.getElementById('loading').classList.add('out');document.getElementById('h-biz').textContent='Portal not found';return;}
   try{
@@ -910,6 +1003,15 @@ async function init() {
       document.getElementById('ref-resources-card').style.display = 'block';
       document.getElementById('ref-resources-text').textContent = refResources;
     }
+
+    // Build resources tab
+    buildResources({
+      bookingUrl:    data.bookingUrl    || '',
+      supportPhone:  data.supportPhone  || '',
+      supportEmail:  data.supportEmail  || '',
+      agencyWebsite: data.agencyWebsite || '',
+      customLinks:   data.customLinks   || '',
+    });
 
     document.getElementById('loading').classList.add('out');
     // Show notification card if eligible (backup trigger independent of SW)
