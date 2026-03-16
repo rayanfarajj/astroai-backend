@@ -142,8 +142,7 @@ export default async (req) => {
       title: title||'Marketing Portal',
       body:  msgBody||'You have a new update.',
       icon:  '/icons/portal-icon-192.png',
-      badge: '/icons/portal-icon-192.png',
-      tag:   tag||'portal',
+      tag:   (tag||'portal')+'-'+Date.now(),
       url:   portalUrl,
       data:  {url:portalUrl},
     });
