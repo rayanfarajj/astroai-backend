@@ -185,6 +185,10 @@ export default async (req) => {
     let referralBonus = '';
     let referralResources = '';
     let metaBusinessId = '';
+    let googleManagerId = '';
+    let tiktokAgencyId = '';
+    let linkedinAgencyId = '';
+    let wordpressSiteUrl = '';
     let bookingUrl = '';
     let supportPhone = '';
     let supportEmail = '';
@@ -198,6 +202,10 @@ export default async (req) => {
           referralBonus     = agencyDoc.fields.referralBonus?.stringValue     || '';
           referralResources = agencyDoc.fields.referralResources?.stringValue || '';
           metaBusinessId    = agencyDoc.fields.metaBusinessId?.stringValue    || '';
+          googleManagerId   = agencyDoc.fields.googleManagerId?.stringValue   || '';
+          tiktokAgencyId    = agencyDoc.fields.tiktokAgencyId?.stringValue    || '';
+          linkedinAgencyId  = agencyDoc.fields.linkedinAgencyId?.stringValue  || '';
+          wordpressSiteUrl  = agencyDoc.fields.wordpressSiteUrl?.stringValue  || '';
           bookingUrl        = agencyDoc.fields.bookingUrl?.stringValue        || '';
           supportPhone      = agencyDoc.fields.supportPhone?.stringValue      || '';
           supportEmail      = agencyDoc.fields.supportEmail?.stringValue      || '';
@@ -210,7 +218,7 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, metaBusinessId, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
+    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, metaBusinessId, googleManagerId, tiktokAgencyId, linkedinAgencyId, wordpressSiteUrl, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]', e.message);
