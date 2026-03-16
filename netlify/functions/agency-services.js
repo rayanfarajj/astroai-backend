@@ -1,6 +1,5 @@
 // netlify/functions/agency-services.js
-// Uses same require() pattern as agency-settings.js (proven to work)
-const { fsListSub, fsSetSub, fsDeleteSub, fromFS } = require('./_firebase');
+const { fsListSub, fsSetSub, fsDeleteSub } = require('./_firebase');
 const { verifyToken, unauth, err, ok, CORS } = require('./_auth');
 
 exports.handler = async function(event) {
@@ -12,19 +11,18 @@ exports.handler = async function(event) {
   const agencyId = auth.agencyId;
   const qs       = event.queryStringParameters || {};
   const clientId = qs.clientId || '';
-
   if (!clientId) return err('clientId required', 400);
 
-  // Subcollection path: agencies/{agencyId}/clients/{clientId}/services
+  // Path inside agencies/{agencyId}/: clients/{clientId}/services
   const subPath = `clients/${clientId}/services`;
 
-  // GET: list services
+  // GET: list all services for this client
   if (event.httpMethod === 'GET') {
     try {
       const docs = await fsListSub(agencyId, subPath, 100);
       const services = docs
         .map(d => ({
-          id:            d.id || d._id || '',
+          id:            d._id           || '',
           headline:      d.headline      || '',
           description:   d.description   || '',
           amount:        d.amount        || '',
@@ -34,7 +32,7 @@ exports.handler = async function(event) {
           createdAt:     d.createdAt     || '',
         }))
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      return ok({ services });
+      return ok({ success: true, services });
     } catch(e) { return err(e.message); }
   }
 
@@ -43,13 +41,10 @@ exports.handler = async function(event) {
     let body;
     try { body = JSON.parse(event.body || '{}'); } catch { return err('Invalid JSON', 400); }
 
-    const action = body.action || 'save';
-
-    if (action === 'delete') {
-      const id = body.serviceId;
-      if (!id) return err('serviceId required', 400);
+    if (body.action === 'delete') {
+      if (!body.serviceId) return err('serviceId required', 400);
       try {
-        await fsDeleteSub(agencyId, subPath, id);
+        await fsDeleteSub(agencyId, subPath, body.serviceId);
         return ok({ success: true });
       } catch(e) { return err(e.message); }
     }
@@ -66,7 +61,6 @@ exports.handler = async function(event) {
       orderStatus:   body.orderStatus   || 'pending',
       createdAt:     body.createdAt     || now,
     };
-
     try {
       await fsSetSub(agencyId, subPath, serviceId, doc);
       return ok({ success: true, serviceId });
