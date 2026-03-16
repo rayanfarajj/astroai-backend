@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#0a0e1a">
 <link rel="manifest" href="/client-portal-manifest.json">
 <link rel="apple-touch-icon" href="/icons/portal-icon-192.png">
-<title>Client Portal — Astro AI</title>
+<title>Client Portal  Astro AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -176,7 +176,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .pstat-late{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
 .pstat-cancelled{background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid var(--border)}
 
-/* PLATFORM TABS — redesigned */
+/* PLATFORM TABS  redesigned */
 .ptabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
 .ptab{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);font-size:.76rem;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .18s;font-family:var(--font);}
 .ptab:hover{background:var(--surface-3);color:var(--text);}
@@ -273,7 +273,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
   .offer{flex-direction:column;align-items:flex-start;}
 }
 
-/* ── Bottom Tab Bar (mobile only) ── */
+/*  Bottom Tab Bar (mobile only)  */
 .bottom-tabs {
   display: none;
 }
@@ -318,11 +318,11 @@ textarea.finput{resize:vertical;line-height:1.6;}
   }
   .tab-btn.active .tab-icon { transform: scale(1.15); }
   .tab-btn.active .tab-label { color: #00d9a3; }
-  /* Hide hamburger on mobile — use bottom tabs instead */
+  /* Hide hamburger on mobile  use bottom tabs instead */
   .hamburger { display: none !important; }
 }
 
-/* ── PWA / iPhone safe area ── */
+/*  PWA / iPhone safe area  */
 @supports(padding: env(safe-area-inset-top)) {
   .topbar {
     padding-left: max(16px, env(safe-area-inset-left));
@@ -355,7 +355,7 @@ textarea.finput{resize:vertical;line-height:1.6;}
 /* No rubber-band scroll */
 html, body { overscroll-behavior: none; }
 
-/* ── Install banner ── */
+/*  Install banner  */
 #pwa-banner {
   display: none;
   position: fixed;
@@ -387,7 +387,7 @@ html, body { overscroll-behavior: none; }
   font-size: 1.1rem; cursor: pointer; padding: 4px; flex-shrink: 0;
 }
 
-/* ── Push notification permission bar ── */
+/*  Push notification permission bar  */
 #notif-bar {
   display: none;
   background: rgba(0,217,163,.08);
@@ -416,25 +416,25 @@ html, body { overscroll-behavior: none; }
 
 <!-- PWA Install Banner (iOS) -->
 <div id="pwa-banner">
-  <div class="pwa-banner-icon">📱</div>
+  <div class="pwa-banner-icon"></div>
   <div class="pwa-banner-text">
     <div class="pwa-banner-title">Add to Home Screen</div>
     <div class="pwa-banner-sub">Install your portal for instant access, offline support, and notifications.</div>
   </div>
   <button class="pwa-banner-btn" onclick="showInstallInstructions()">Install</button>
-  <button class="pwa-banner-close" onclick="dismissBanner()">✕</button>
+  <button class="pwa-banner-close" onclick="dismissBanner()"></button>
 </div>
 
 <!-- Push Notification Permission Bar -->
 <div id="notif-bar">
-  <span class="notif-bar-text" id="notif-bar-text">🔔 <strong>Stay updated</strong> — get notified when your plan is ready.</span>
+  <span class="notif-bar-text" id="notif-bar-text"> <strong>Stay updated</strong>  get notified when your plan is ready.</span>
   <button class="notif-bar-btn" id="notif-bar-btn" onclick="requestNotifPermission()">Enable</button>
-  <button class="notif-bar-dismiss" onclick="dismissNotifBar()">✕</button>
+  <button class="notif-bar-dismiss" onclick="dismissNotifBar()"></button>
 </div>
 
 <div id="loading">
   <div class="load-logo">
-    <div class="load-logo-icon">🚀</div>
+    <div class="load-logo-icon"></div>
     <div class="load-logo-text">Astro <span>AI</span></div>
   </div>
   <div class="load-track"><div class="load-bar"></div></div>
@@ -445,38 +445,41 @@ html, body { overscroll-behavior: none; }
 <aside class="sidebar" id="sidebar">
   <div class="sb-top">
     <a class="sb-brand" href="#">
-      <div class="sb-brand-icon">🚀</div>
+      <div class="sb-brand-icon"></div>
       <div>
         <div class="sb-brand-name">Astro AI</div>
         <div class="sb-brand-sub">Client Portal</div>
       </div>
     </a>
     <div class="sb-client">
-      <div class="sb-client-name" id="sb-name">—</div>
+      <div class="sb-client-name" id="sb-name"></div>
       <div class="sb-client-biz" id="sb-biz">Loading...</div>
     </div>
   </div>
 
   <nav class="sb-nav">
     <div class="sb-section">Overview</div>
-    <button class="nav-item active" onclick="go('s-overview',this)"><span class="nav-icon">▣</span> Dashboard</button>
-    <button class="nav-item" onclick="go('s-plan',this)"><span class="nav-icon">◈</span> My Plan</button>
+    <button class="nav-item active" onclick="go('s-overview',this)"><span class="nav-icon"></span> Dashboard</button>
+    <button class="nav-item" onclick="go('s-plan',this)"><span class="nav-icon"></span> My Plan</button>
 
     <div class="sb-section">Campaign</div>
-    <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon">◉</span> Ad Account Access</button>
-    <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon">◫</span> Files & Documents</button>
-    <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon">◰</span> Billing</button>
+    <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon"></span> Ad Account Access</button>
+    <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon"></span> Files & Documents</button>
+    <button class="nav-item" id="nav-services" onclick="go('s-services',this)">
+      <span class="nav-icon"></span> My Services
+    </button>
+    <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon"></span> Billing</button>
 
     <div class="sb-section">Connect</div>
-    <button class="nav-item" onclick="go('s-resources',this)"><span class="nav-icon">◐</span> Resources</button>
-    <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon">◎</span> Refer a Friend</button>
-    <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon">◷</span> Message Us</button>
+    <button class="nav-item" onclick="go('s-resources',this)"><span class="nav-icon"></span> Resources</button>
+    <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon"></span> Refer a Friend</button>
+    <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon"></span> Message Us</button>
   </nav>
 
   <div class="sb-foot">
     <div class="sb-status"><div class="dot"></div><span id="sb-status">Loading...</span></div>
     <button id="install-app-btn" onclick="showInstallInstructions()" style="display:none;margin-top:10px;width:100%;padding:8px 10px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.25);border-radius:7px;color:var(--teal);font-size:.75rem;font-weight:700;cursor:pointer;font-family:var(--font);">
-      📱 Install App
+       Install App
     </button>
   </div>
 </aside>
@@ -484,7 +487,7 @@ html, body { overscroll-behavior: none; }
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
-      <button class="hamburger" onclick="openSB()">☰</button>
+      <button class="hamburger" onclick="openSB()"></button>
       <span class="topbar-title" id="tb-title">Dashboard</span>
     </div>
     <span class="topbar-biz" id="tb-biz"></span>
@@ -496,29 +499,29 @@ html, body { overscroll-behavior: none; }
     <div class="section active" id="s-overview">
       <div id="offer-wrap"></div>
 
-      <!-- Notification enable card — only shown when not yet subscribed -->
+      <!-- Notification enable card  only shown when not yet subscribed -->
       <div id="notif-card" style="display:none;background:linear-gradient(135deg,rgba(0,217,163,.08),rgba(0,217,163,.03));border:1px solid rgba(0,217,163,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div style="font-size:1.4rem;flex-shrink:0">🔔</div>
+        <div style="font-size:1.4rem;flex-shrink:0"></div>
         <div style="flex:1;min-width:180px">
           <div style="font-weight:700;font-size:.85rem;color:#e2e8f0;margin-bottom:2px">Get notified instantly</div>
-          <div style="font-size:.75rem;color:#8892a4;line-height:1.4">Get alerts when your plan is ready or your agency has updates — even when the app is closed.</div>
+          <div style="font-size:.75rem;color:#8892a4;line-height:1.4">Get alerts when your plan is ready or your agency has updates  even when the app is closed.</div>
         </div>
         <button id="notif-enable-btn" onclick="requestNotifPermission()" style="background:#00d9a3;color:#0a0e1a;border:none;border-radius:8px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">Enable Notifications</button>
       </div>
 
       <div class="hero" id="hero">
-        <div class="hero-biz" id="h-biz">—</div>
+        <div class="hero-biz" id="h-biz"></div>
         <div class="hero-greet" id="h-greet"></div>
-        <div class="hero-badge"><div class="dot"></div><span id="h-status">—</span></div>
+        <div class="hero-badge"><div class="dot"></div><span id="h-status"></span></div>
         <div class="hero-updated" id="h-updated"></div>
       </div>
       <div class="stats">
         <div class="stat"><div class="stat-n" id="st-refs">0</div><div class="stat-l">Referrals</div></div>
         <div class="stat"><div class="stat-n" id="st-files">0</div><div class="stat-l">Files Uploaded</div></div>
-        <div class="stat"><div class="stat-n" id="st-days">—</div><div class="stat-l">Days Active</div></div>
+        <div class="stat"><div class="stat-n" id="st-days"></div><div class="stat-l">Days Active</div></div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◈</span><span class="card-title">Campaign Progress</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Progress</span></div></div>
         <div class="card-body"><div class="tl" id="tl"></div></div>
       </div>
     </div>
@@ -531,17 +534,17 @@ html, body { overscroll-behavior: none; }
       <div id="plan-cta-wrap" style="display:none;margin-bottom:16px">
         <a id="plan-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;background:linear-gradient(135deg,rgba(0,217,163,.12),rgba(0,217,163,.06));border:1px solid rgba(0,217,163,.3);border-radius:12px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='linear-gradient(135deg,rgba(0,217,163,.18),rgba(0,217,163,.1))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(0,217,163,.12),rgba(0,217,163,.06))'">
           <div>
-            <div style="font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:2px">📈 View Full Marketing Plan</div>
+            <div style="font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:2px"> View Full Marketing Plan</div>
             <div style="font-size:.73rem;color:var(--text-muted)">Your AI-generated strategy, ad angles, roadmap & more</div>
           </div>
-          <span style="color:var(--teal);font-size:1.2rem">→</span>
+          <span style="color:var(--teal);font-size:1.2rem"></span>
         </a>
       </div>
 
       <!-- Business Profile -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon">🏢</span><span class="card-title">Business Profile</span></div>
+          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Business Profile</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-biz-wrap"></div>
       </div>
@@ -549,7 +552,7 @@ html, body { overscroll-behavior: none; }
       <!-- Campaign Details -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon">🎯</span><span class="card-title">Campaign Details</span></div>
+          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Details</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-campaign-wrap"></div>
       </div>
@@ -557,7 +560,7 @@ html, body { overscroll-behavior: none; }
       <!-- Status -->
       <div class="card" id="plan-status-card" style="margin-bottom:14px;display:none">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon">📊</span><span class="card-title">Campaign Status</span></div>
+          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Status</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-status-wrap"></div>
       </div>
@@ -578,11 +581,11 @@ html, body { overscroll-behavior: none; }
     <div class="section" id="s-files">
       <div class="page-hd"><h1>Files & Documents</h1><p>Upload logos, contracts, photos, or any assets for your campaign.</p></div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">↑</span><span class="card-title">Upload Files</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Upload Files</span></div></div>
         <div class="card-body">
           <div class="upload-zone" id="uz">
             <input type="file" class="upload-input" id="file-in" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.mp4,.mov">
-            <div class="upload-icon">📂</div>
+            <div class="upload-icon"></div>
             <div class="upload-t">Drop files here or click to browse</div>
             <div class="upload-h">Max 10MB per file</div>
             <div class="upload-chips">
@@ -594,10 +597,18 @@ html, body { overscroll-behavior: none; }
         </div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◫</span><span class="card-title">Uploaded Files</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Uploaded Files</span></div></div>
         <div class="card-body">
           <div class="flist" id="ex-files"><span style="color:var(--text-muted);font-size:.8rem">Loading...</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="section" id="s-services">
+      <div class="page-hd"><h1>My Services</h1><p>Additional services and products from your agency.</p></div>
+      <div id="services-list-wrap">
+        <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:.84rem">Loading your services...</div>
       </div>
     </div>
 
@@ -619,28 +630,28 @@ html, body { overscroll-behavior: none; }
       <div class="page-hd"><h1>Refer a Friend</h1><p id="ref-page-sub">Know a business that could use great marketing? Send them our way!</p></div>
       <div class="ref-hero">
         <div><div class="ref-l">Referrals Sent</div><div class="ref-n" id="ref-n">0</div></div>
-        <div style="font-size:2.5rem">🏆</div>
+        <div style="font-size:2.5rem"></div>
       </div>
       <div class="card" id="ref-bonus-card" style="display:none">
         <div class="card-body" style="padding:16px 20px">
-          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:6px">🎁 Referral Bonus</div>
+          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:6px"> Referral Bonus</div>
           <div id="ref-bonus-text" style="font-size:.9rem;font-weight:600;color:var(--text);line-height:1.5"></div>
         </div>
       </div>
       <div class="card" id="ref-resources-card" style="display:none">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◎</span><span class="card-title">Resources</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Resources</span></div></div>
         <div class="card-body">
           <div id="ref-resources-text" style="font-size:.82rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap"></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◎</span><span class="card-title">Send a Referral</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Send a Referral</span></div></div>
         <div class="card-body">
           <div class="perks">
-            <span class="perk" id="perk-bonus">🚀 Fast onboarding</span>
-            <span class="perk">❤️ Help a friend grow</span>
+            <span class="perk" id="perk-bonus"> Fast onboarding</span>
+            <span class="perk"> Help a friend grow</span>
           </div>
-          <div class="success-box" id="ref-ok" style="margin-bottom:14px"><h3>🎉 Referral Submitted!</h3><p>We'll reach out to them right away. You can submit another referral below.</p></div>
+          <div class="success-box" id="ref-ok" style="margin-bottom:14px"><h3> Referral Submitted!</h3><p>We'll reach out to them right away. You can submit another referral below.</p></div>
           <div id="ref-form">
             <div class="frow">
               <div class="fgrp"><label class="flabel">Their Name</label><input class="finput" id="rn" type="text" placeholder="Jane Smith"></div>
@@ -665,14 +676,14 @@ html, body { overscroll-behavior: none; }
     <div class="section" id="s-message">
       <div class="page-hd"><h1>Message Us</h1><p>Have a question? Send us a message and we'll follow up fast.</p></div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◷</span><span class="card-title">Send a Message</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Send a Message</span></div></div>
         <div class="card-body">
           <div id="msg-form">
             <div class="fgrp"><label class="flabel">Subject</label><input class="finput" id="ms" type="text" placeholder="Question about my campaign..."></div>
             <div class="fgrp"><label class="flabel">Message *</label><textarea class="finput" id="mb" rows="5" placeholder="Type your message here..."></textarea></div>
             <button class="btn-primary" id="msg-btn">Send Message</button>
           </div>
-          <div class="success-box" id="msg-ok"><h3>✅ Message Sent!</h3><p>We've received your message and will follow up soon.</p></div>
+          <div class="success-box" id="msg-ok"><h3> Message Sent!</h3><p>We've received your message and will follow up soon.</p></div>
         </div>
       </div>
     </div>
@@ -685,23 +696,23 @@ html, body { overscroll-behavior: none; }
 <!-- Bottom Tab Bar (mobile / PWA) -->
 <nav class="bottom-tabs" id="bottom-tabs">
   <button class="tab-btn active" id="tab-overview" onclick="tabGo('s-overview',this)">
-    <span class="tab-icon">▣</span>
+    <span class="tab-icon"></span>
     <span class="tab-label">Home</span>
   </button>
   <button class="tab-btn" id="tab-plan" onclick="tabGo('s-plan',this)">
-    <span class="tab-icon">◈</span>
+    <span class="tab-icon"></span>
     <span class="tab-label">My Plan</span>
   </button>
   <button class="tab-btn" id="tab-files" onclick="tabGo('s-files',this);loadFiles()">
-    <span class="tab-icon">◫</span>
+    <span class="tab-icon"></span>
     <span class="tab-label">Files</span>
   </button>
   <button class="tab-btn" id="tab-message" onclick="tabGo('s-message',this)">
-    <span class="tab-icon">◷</span>
+    <span class="tab-icon"></span>
     <span class="tab-label">Message</span>
   </button>
   <button class="tab-btn" id="tab-more" onclick="openSB()">
-    <span class="tab-icon">☰</span>
+    <span class="tab-icon"></span>
     <span class="tab-label">More</span>
   </button>
 </nav>
@@ -714,85 +725,85 @@ const _agencyId = _urlp.get('a') || '';
 let C = null;
 let _sessionRefCount = -1; // -1 means not yet set; once set, never decremented
 
-const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-billing':'Billing','s-resources':'Resources','s-refer':'Refer a Friend','s-message':'Message Us'};
+const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-services':'My Services','s-billing':'Billing','s-resources':'Resources','s-refer':'Refer a Friend','s-message':'Message Us'};
 const STEPS  = [
-  {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:'✓'},
-  {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:'◈'},
-  {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:'▶'},
-  {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:'★'},
+  {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:''},
+  {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:''},
+  {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:''},
+  {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:''},
 ];
-// ── Ad Account Platforms ─────────────────────────────────────────
+//  Ad Account Platforms 
 // Each platform: label, icon, agencyIdField (filled at runtime), existingSteps, newSteps, note
 const PLAT_DEFS = {
   meta: {
     label: 'Meta / Facebook',
-    icon: '📘',
+    icon: '',
     color: '#1877f2',
     idLabel: 'Partner Business ID',
     idField: 'metaBusinessId',
     existing: [
       'Go to <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a> and log in.',
-      'Click the grid icon (⊞) in the top left → select your <strong>Business Account</strong>.',
-      'Go to <strong>Settings → Users → Partners</strong>.',
-      'Click <strong>"Add Partner"</strong> → enter our Partner Business ID: <span class="bid-placeholder" data-field="metaBusinessId">your agency will provide this</span>',
+      'Click the grid icon () in the top left  select your <strong>Business Account</strong>.',
+      'Go to <strong>Settings  Users  Partners</strong>.',
+      'Click <strong>"Add Partner"</strong>  enter our Partner Business ID: <span class="bid-placeholder" data-field="metaBusinessId">your agency will provide this</span>',
       'Under your Ad Account, grant <strong>Manage Campaigns</strong> access.',
-      'Click <strong>Save</strong> — we\'ll begin setup within 24 hours. 🎉',
+      'Click <strong>Save</strong>  we\'ll begin setup within 24 hours. ',
     ],
     newAcct: [
-      'Go to <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a> → click <strong>"Create Account"</strong>.',
-      'Enter your business name, your name, and your work email → click <strong>Next</strong>.',
+      'Go to <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a>  click <strong>"Create Account"</strong>.',
+      'Enter your business name, your name, and your work email  click <strong>Next</strong>.',
       'Fill in your business details and click <strong>Submit</strong>.',
-      'Inside Business Manager, click <strong>Accounts → Ad Accounts → Add → Create a New Ad Account</strong>.',
-      'Name it, set your time zone and currency → click <strong>Next</strong>.',
-      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing → Payment Settings → Add Payment Method</strong> (credit card or PayPal).',
+      'Inside Business Manager, click <strong>Accounts  Ad Accounts  Add  Create a New Ad Account</strong>.',
+      'Name it, set your time zone and currency  click <strong>Next</strong>.',
+      ' <strong>Add a payment method</strong>: go to <strong>Billing  Payment Settings  Add Payment Method</strong> (credit card or PayPal).',
       'Now follow the <em>I already have an account</em> steps above to grant us access.',
     ],
     note: 'A Business Manager account is required to run ads. Personal Facebook accounts cannot run campaigns.',
   },
   google: {
     label: 'Google Ads',
-    icon: '🎯',
+    icon: '',
     color: '#4285f4',
     idLabel: 'Manager Account ID',
     idField: 'googleManagerId',
     existing: [
       'Sign in to <a href="https://ads.google.com" target="_blank" rel="noopener">ads.google.com</a> with the Google account linked to your Ads account.',
-      'Click the <strong>⚙️ Settings</strong> icon (top right) → <strong>Setup → Access and security</strong>.',
-      'Click the <strong>Managers</strong> tab → click the <strong>+</strong> button.',
+      'Click the <strong> Settings</strong> icon (top right)  <strong>Setup  Access and security</strong>.',
+      'Click the <strong>Managers</strong> tab  click the <strong>+</strong> button.',
       'Enter our Manager Account ID: <span class="bid-placeholder" data-field="googleManagerId">your agency will provide this</span>',
-      'Click <strong>Send Request</strong> — we\'ll accept and begin setup within 24 hours. 🎉',
+      'Click <strong>Send Request</strong>  we\'ll accept and begin setup within 24 hours. ',
     ],
     newAcct: [
-      'Go to <a href="https://ads.google.com" target="_blank" rel="noopener">ads.google.com</a> → click <strong>"Start now"</strong>.',
+      'Go to <a href="https://ads.google.com" target="_blank" rel="noopener">ads.google.com</a>  click <strong>"Start now"</strong>.',
       'Sign in with your Google account (or create one at google.com).',
-      'Google will try to guide you through a "Smart Campaign" — click <strong>"Switch to Expert Mode"</strong> at the bottom to skip.',
+      'Google will try to guide you through a "Smart Campaign"  click <strong>"Switch to Expert Mode"</strong> at the bottom to skip.',
       'Click <strong>"Create an account without a campaign"</strong>.',
-      'Confirm your billing country, time zone, and currency → click <strong>Submit</strong>.',
-      '⚠️ <strong>Add a payment method</strong>: go to <strong>Tools → Billing → Summary → Add payment method</strong>.',
+      'Confirm your billing country, time zone, and currency  click <strong>Submit</strong>.',
+      ' <strong>Add a payment method</strong>: go to <strong>Tools  Billing  Summary  Add payment method</strong>.',
       'Now follow the <em>I already have an account</em> steps above to grant us access.',
     ],
     note: 'Use the same Google account you want linked to your ads. You can change billing settings at any time.',
   },
   tiktok: {
     label: 'TikTok Ads',
-    icon: '🎵',
+    icon: '',
     color: '#fe2c55',
     idLabel: 'Agency Account ID',
     idField: 'tiktokAgencyId',
     existing: [
       'Go to <a href="https://ads.tiktok.com" target="_blank" rel="noopener">ads.tiktok.com</a> and log in.',
-      'Click your <strong>account name</strong> (top right) → <strong>Account Settings</strong>.',
-      'Go to <strong>User Management → Users → Assign Role</strong>.',
+      'Click your <strong>account name</strong> (top right)  <strong>Account Settings</strong>.',
+      'Go to <strong>User Management  Users  Assign Role</strong>.',
       'Enter our agency email: <span class="bid-placeholder" data-field="tiktokAgencyId">your agency will provide this</span>',
-      'Assign the <strong>Operator</strong> role → click <strong>Confirm</strong>.',
-      'We\'ll begin setup within 24 hours. 🎉',
+      'Assign the <strong>Operator</strong> role  click <strong>Confirm</strong>.',
+      'We\'ll begin setup within 24 hours. ',
     ],
     newAcct: [
-      'Go to <a href="https://ads.tiktok.com" target="_blank" rel="noopener">ads.tiktok.com</a> → click <strong>"Get started"</strong>.',
+      'Go to <a href="https://ads.tiktok.com" target="_blank" rel="noopener">ads.tiktok.com</a>  click <strong>"Get started"</strong>.',
       'Sign up with your email or log in with an existing TikTok account.',
       'Select your <strong>country</strong>, enter your <strong>business name</strong>, and set your <strong>currency</strong>.',
-      'Complete email verification → click <strong>Register</strong>.',
-      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing → Payment → Add Payment Method</strong>.',
+      'Complete email verification  click <strong>Register</strong>.',
+      ' <strong>Add a payment method</strong>: go to <strong>Billing  Payment  Add Payment Method</strong>.',
       'Your account must be a <strong>Business account</strong> to run ads.',
       'Now follow the <em>I already have an account</em> steps above to grant us access.',
     ],
@@ -800,7 +811,7 @@ const PLAT_DEFS = {
   },
   linkedin: {
     label: 'LinkedIn Ads',
-    icon: '💼',
+    icon: '',
     color: '#0a66c2',
     idLabel: 'Agency Account ID',
     idField: 'linkedinAgencyId',
@@ -808,39 +819,39 @@ const PLAT_DEFS = {
       'Go to <a href="https://www.linkedin.com/campaignmanager" target="_blank" rel="noopener">Campaign Manager</a> and log in.',
       'Select your <strong>Ad Account</strong> from the list.',
       'Click <strong>Account Settings</strong> (top right gear icon).',
-      'Go to <strong>Manage Access → Users</strong> → click <strong>"Add User"</strong>.',
+      'Go to <strong>Manage Access  Users</strong>  click <strong>"Add User"</strong>.',
       'Enter our agency email: <span class="bid-placeholder" data-field="linkedinAgencyId">your agency will provide this</span>',
-      'Set role to <strong>Campaign Manager</strong> → click <strong>Save</strong>. 🎉',
+      'Set role to <strong>Campaign Manager</strong>  click <strong>Save</strong>. ',
     ],
     newAcct: [
       'Go to <a href="https://www.linkedin.com/campaignmanager" target="_blank" rel="noopener">linkedin.com/campaignmanager</a>.',
-      'Click <strong>"Create Account"</strong> — you\'ll need a LinkedIn personal profile first.',
+      'Click <strong>"Create Account"</strong>  you\'ll need a LinkedIn personal profile first.',
       'Enter your <strong>Account Name</strong> (your business name) and select your <strong>currency</strong>.',
       'Associate a <strong>LinkedIn Page</strong> for your business (create one free at linkedin.com/company/setup/new/).',
-      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing Center → Add a Payment Method</strong>.',
+      ' <strong>Add a payment method</strong>: go to <strong>Billing Center  Add a Payment Method</strong>.',
       'Now follow the <em>I already have an account</em> steps above to grant us access.',
     ],
     note: 'LinkedIn Ads work best for B2B. You need a LinkedIn Company Page before running ads.',
   },
   wordpress: {
     label: 'WordPress',
-    icon: '🌐',
+    icon: '',
     color: '#21759b',
     idLabel: 'WordPress Site URL',
     idField: 'wordpressSiteUrl',
     existing: [
       'Log in to your WordPress dashboard at <strong>yoursite.com/wp-admin</strong>.',
-      'Go to <strong>Users → Add New</strong>.',
+      'Go to <strong>Users  Add New</strong>.',
       'Enter our agency email: <span class="bid-placeholder" data-field="wordpressSiteUrl">your agency will provide this</span>',
       'Set the <strong>Role</strong> to <strong>Administrator</strong>.',
-      'Click <strong>"Add New User"</strong> — we\'ll receive an email invitation. 🎉',
+      'Click <strong>"Add New User"</strong>  we\'ll receive an email invitation. ',
     ],
     newAcct: [
-      'Go to <a href="https://wordpress.com" target="_blank" rel="noopener">wordpress.com</a> → click <strong>"Start your website"</strong>.',
-      'Enter your email, username, and password → click <strong>Create Account</strong>.',
+      'Go to <a href="https://wordpress.com" target="_blank" rel="noopener">wordpress.com</a>  click <strong>"Start your website"</strong>.',
+      'Enter your email, username, and password  click <strong>Create Account</strong>.',
       'Choose a <strong>domain name</strong> (or use a free .wordpress.com subdomain to start).',
-      'Select a <strong>plan</strong> — the Business plan is needed for plugins and custom themes.',
-      '⚠️ <strong>Add a payment method</strong> if you choose a paid plan: enter your card details at checkout.',
+      'Select a <strong>plan</strong>  the Business plan is needed for plugins and custom themes.',
+      ' <strong>Add a payment method</strong> if you choose a paid plan: enter your card details at checkout.',
       'Once your site is live, follow the <em>I already have an account</em> steps above.',
     ],
     note: 'For best results give us Administrator access. This lets us install plugins, manage SEO, and build landing pages.',
@@ -849,13 +860,13 @@ const PLAT_DEFS = {
 
 function copyBid(id) {
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(id).then(() => toast('✅ Copied!')).catch(() => toast('Copy: ' + id));
+    navigator.clipboard.writeText(id).then(() => toast(' Copied!')).catch(() => toast('Copy: ' + id));
   } else { toast('ID: ' + id); }
 }
 
 function copyBid(id) {
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(id).then(() => toast('✅ Copied!')).catch(() => toast('Copy: ' + id));
+    navigator.clipboard.writeText(id).then(() => toast(' Copied!')).catch(() => toast('Copy: ' + id));
   } else {
     toast('ID: ' + id);
   }
@@ -863,7 +874,7 @@ function copyBid(id) {
 function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),d);}
 function statusStep(s){return{new:0,active:1,launched:2,paused:2,completed:3}[s]??0;}
 function fmtBytes(b){b=parseInt(b)||0;if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
-function fIcon(n){const e=(n||'').split('.').pop().toLowerCase();if(['jpg','jpeg','png','gif','webp'].includes(e))return'🖼️';if(e==='pdf')return'📄';if(['doc','docx'].includes(e))return'📝';if(['xls','xlsx'].includes(e))return'📊';if(['mp4','mov','avi'].includes(e))return'🎬';if(e==='zip')return'📦';return'📎';}
+function fIcon(n){const e=(n||'').split('.').pop().toLowerCase();if(['jpg','jpeg','png','gif','webp'].includes(e))return'';if(e==='pdf')return'';if(['doc','docx'].includes(e))return'';if(['xls','xlsx'].includes(e))return'';if(['mp4','mov','avi'].includes(e))return'';if(e==='zip')return'';return'';}
 
 function go(id, btn) {
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -886,7 +897,7 @@ function buildTL(status) {
   return STEPS.map((s,i)=>{
     const state = i<cur?'done':i===cur?'current':'pending';
     return `<div class="tl-row ${state}">
-      <div class="tl-dot">${i<cur?'✓':s.icon}</div>
+      <div class="tl-dot">${i<cur?'':s.icon}</div>
       <div class="tl-info"><div class="tl-label">${s.label}</div><div class="tl-desc">${s.desc}</div></div>
     </div>`;
   }).join('');
@@ -915,7 +926,7 @@ function buildPlatforms(adPlatforms, agencyIds) {
       // Replace bid-placeholder with actual value if available
       let html = s;
       if (agencyVal && s.includes('bid-placeholder')) {
-        const display = `<span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 10px;border-radius:6px;color:var(--teal);font-weight:700">${agencyVal}</span> <button onclick="copyBid('${agencyVal}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:6px;padding:2px 10px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px">📋 Copy</button>`;
+        const display = `<span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 10px;border-radius:6px;color:var(--teal);font-weight:700">${agencyVal}</span> <button onclick="copyBid('${agencyVal}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:6px;padding:2px 10px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px"> Copy</button>`;
         html = s.replace(/<span class="bid-placeholder"[^>]*>[^<]*<\/span>/, display);
       } else if (!agencyVal && s.includes('bid-placeholder')) {
         html = s.replace(/<span class="bid-placeholder"[^>]*>[^<]*<\/span>/, '<em style="color:var(--text-muted)">Contact your agency for this ID</em>');
@@ -932,20 +943,20 @@ function buildPlatforms(adPlatforms, agencyIds) {
         </div>
       </div>
       <div class="acc-subtabs">
-        <button class="acc-subtab active" onclick="switchSubtab('${k}','existing',this)">✅ I have an account</button>
-        <button class="acc-subtab" onclick="switchSubtab('${k}','new',this)">🆕 I need an account</button>
+        <button class="acc-subtab active" onclick="switchSubtab('${k}','existing',this)"> I have an account</button>
+        <button class="acc-subtab" onclick="switchSubtab('${k}','new',this)"> I need an account</button>
       </div>
       <div class="acc-subpane active" id="acc-${k}-existing">
         <ul class="acc-steps">${renderSteps(pl.existing)}</ul>
       </div>
       <div class="acc-subpane" id="acc-${k}-new">
         <div class="acc-new-banner">
-          <span>🚀</span>
+          <span></span>
           <div><strong>Creating a new ${pl.label} account?</strong> Follow these steps to get set up, then come back here to grant us access.</div>
         </div>
         <ul class="acc-steps">${renderSteps(pl.newAcct)}</ul>
       </div>
-      <div class="acc-note-bar">💡 ${pl.note}</div>
+      <div class="acc-note-bar"> ${pl.note}</div>
     </div>`;
   }).join('');
 }
@@ -966,13 +977,13 @@ function switchSubtab(platKey, tab, btn) {
 }
 
 async function uploadFile(file) {
-  if(file.size>10*1024*1024){toast('❌ File too large (max 10MB)');return;}
+  if(file.size>10*1024*1024){toast(' File too large (max 10MB)');return;}
   const id='up-'+Date.now()+Math.random().toString(36).slice(2);
   document.getElementById('up-list').insertAdjacentHTML('beforeend',`
     <div class="fitem" id="${id}">
       <div class="fitem-icon">${fIcon(file.name)}</div>
       <div class="fitem-info"><div class="fitem-name">${file.name}</div><div class="fitem-meta">${fmtBytes(file.size)}</div></div>
-      <div class="fitem-st uploading" id="${id}-s">⏳ Uploading...</div>
+      <div class="fitem-st uploading" id="${id}-s"> Uploading...</div>
     </div>`);
   const reader=new FileReader();
   reader.onload=async(e)=>{
@@ -981,16 +992,16 @@ async function uploadFile(file) {
       const res=await fetch(API+'/upload-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,fileName:file.name,fileBase64:b64,fileType:file.type,fileSize:file.size})});
       const data=await res.json();
       if(data.success){
-        document.getElementById(id+'-s').textContent='✅ Saved';
+        document.getElementById(id+'-s').textContent=' Saved';
         document.getElementById(id+'-s').className='fitem-st done';
         const sf=document.getElementById('st-files');sf.textContent=parseInt(sf.textContent||'0')+1;
         loadFiles();
       } else {
-        document.getElementById(id+'-s').textContent='❌ '+(data.error||'Failed');
+        document.getElementById(id+'-s').textContent=' '+(data.error||'Failed');
         document.getElementById(id+'-s').className='fitem-st error';
       }
     }catch(err){
-      document.getElementById(id+'-s').textContent='❌ '+err.message;
+      document.getElementById(id+'-s').textContent=' '+err.message;
       document.getElementById(id+'-s').className='fitem-st error';
     }
   };
@@ -1008,8 +1019,8 @@ async function loadFiles() {
     el.innerHTML=data.files.map(f=>`
       <div class="fitem">
         <div class="fitem-icon">${fIcon(f.name)}</div>
-        <div class="fitem-info"><div class="fitem-name">${f.name}</div><div class="fitem-meta">${fmtBytes(f.size)} · ${f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div></div>
-        ${f.url?`<a class="dl-link" href="${f.url}" target="_blank">↓ Download</a>`:''}
+        <div class="fitem-info"><div class="fitem-name">${f.name}</div><div class="fitem-meta">${fmtBytes(f.size)}  ${f.uploadedAt?new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div></div>
+        ${f.url?`<a class="dl-link" href="${f.url}" target="_blank"> Download</a>`:''}
       </div>`).join('');
   }catch(e){el.innerHTML=`<span style="color:var(--text-muted);font-size:.8rem">Could not load files.</span>`;}
 }
@@ -1024,14 +1035,14 @@ document.getElementById('ref-btn').addEventListener('click',async()=>{
   if(!C)return;
   const btn=document.getElementById('ref-btn');
   const email=document.getElementById('re').value.trim();
-  if(!email){toast('❌ Please enter their email');return;}
+  if(!email){toast(' Please enter their email');return;}
   btn.disabled=true;btn.textContent='Submitting...';
   try{
     const res=await fetch(API+'/submit-referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({referrerSlug:slug,agencyId:_agencyId,referrerName:C.clientName,referrerBusiness:C.businessName,refereeName:document.getElementById('rn').value.trim(),refereeBusinessName:document.getElementById('rb').value.trim(),refereeEmail:email,refereePhone:document.getElementById('rp').value.trim(),refereeNote:document.getElementById('rnote').value.trim()})});
     const data=await res.json();
     if(data.success){
       // Increment count permanently in DOM
-      // Increment session count — this persists even if page re-fetches from Firestore
+      // Increment session count  this persists even if page re-fetches from Firestore
       _sessionRefCount = (_sessionRefCount < 0 ? 0 : _sessionRefCount) + 1;
       document.getElementById('ref-n').textContent = _sessionRefCount;
       const sr = document.getElementById('st-refs');
@@ -1046,10 +1057,10 @@ document.getElementById('ref-btn').addEventListener('click',async()=>{
       document.getElementById('re').value='';
       document.getElementById('rp').value='';
       document.getElementById('rnote').value='';
-      // Hide success banner after 4 seconds — form stays visible
+      // Hide success banner after 4 seconds  form stays visible
       setTimeout(()=>ok.classList.remove('on'), 4000);
-    }else toast('❌ '+(data.error||'Failed'));
-  }catch(e){toast('❌ '+e.message);}
+    }else toast(' '+(data.error||'Failed'));
+  }catch(e){toast(' '+e.message);}
   finally{btn.disabled=false;btn.textContent='Submit Referral';}
 });
 
@@ -1057,16 +1068,68 @@ document.getElementById('msg-btn').addEventListener('click',async()=>{
   if(!C)return;
   const btn=document.getElementById('msg-btn');
   const body=document.getElementById('mb').value.trim();
-  if(!body){toast('❌ Please enter a message');return;}
+  if(!body){toast(' Please enter a message');return;}
   btn.disabled=true;btn.textContent='Sending...';
   try{
     const res=await fetch(API+'/send-message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,clientName:C.clientName,businessName:C.businessName,clientEmail:C.clientEmail,subject:document.getElementById('ms').value.trim(),message:body})});
     const data=await res.json();
     if(data.success){document.getElementById('msg-form').style.display='none';document.getElementById('msg-ok').classList.add('on');}
-    else toast('❌ '+(data.error||'Failed'));
-  }catch(e){toast('❌ '+e.message);}
+    else toast(' '+(data.error||'Failed'));
+  }catch(e){toast(' '+e.message);}
   finally{btn.disabled=false;btn.textContent='Send Message';}
 });
+
+function renderServices(services) {
+  const wrap = document.getElementById('services-list-wrap');
+  if (!wrap) return;
+
+  const PAY_LABEL = {pending:'Pending',paid:'Paid',partial:'Partial',overdue:'Overdue',refunded:'Refunded'};
+  const PAY_COLOR = {pending:'rgba(249,115,22,.15)',paid:'rgba(0,217,163,.15)',partial:'rgba(59,130,246,.15)',overdue:'rgba(239,68,68,.15)',refunded:'rgba(156,163,175,.15)'};
+  const PAY_TEXT  = {pending:'#fdba74',paid:'#00d9a3',partial:'#93c5fd',overdue:'#fca5a5',refunded:'#9ca3af'};
+  const ORD_LABEL = {pending:'Pending',active:'Active',in_progress:'In Progress',completed:'Completed',cancelled:'Cancelled',on_hold:'On Hold'};
+  const ORD_COLOR = {pending:'rgba(249,115,22,.15)',active:'rgba(0,217,163,.15)',in_progress:'rgba(59,130,246,.15)',completed:'rgba(0,217,163,.1)',cancelled:'rgba(239,68,68,.15)',on_hold:'rgba(156,163,175,.15)'};
+  const ORD_TEXT  = {pending:'#fdba74',active:'#00d9a3',in_progress:'#93c5fd',completed:'#00d9a3',cancelled:'#fca5a5',on_hold:'#9ca3af'};
+
+  if (!services || !services.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:.84rem">No additional services yet. Your agency will add services here as your campaign grows.</div>';
+    return;
+  }
+
+  // Show nav badge if any services
+  const navBtn = document.getElementById('nav-services');
+  if (navBtn && services.length) {
+    const badge = navBtn.querySelector('.nav-badge');
+    if (!badge) navBtn.insertAdjacentHTML('beforeend', `<span class="nav-badge">${services.length}</span>`);
+  }
+
+  wrap.innerHTML = services.map(s => {
+    const payBg   = PAY_COLOR[s.paymentStatus] || PAY_COLOR.pending;
+    const payTxt  = PAY_TEXT[s.paymentStatus]  || PAY_TEXT.pending;
+    const payLbl  = PAY_LABEL[s.paymentStatus] || s.paymentStatus;
+    const ordBg   = ORD_COLOR[s.orderStatus]   || ORD_COLOR.pending;
+    const ordTxt  = ORD_TEXT[s.orderStatus]    || ORD_TEXT.pending;
+    const ordLbl  = ORD_LABEL[s.orderStatus]   || s.orderStatus;
+    const dateStr = s.orderDate ? new Date(s.orderDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '';
+
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-body" style="padding:16px 18px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="font-size:.9rem;font-weight:800;color:var(--text);line-height:1.3">${s.headline}</div>
+          ${s.amount ? `<div style="font-size:.88rem;font-weight:800;color:var(--teal);flex-shrink:0">${s.amount}</div>` : ''}
+        </div>
+        ${s.description ? `<div style="font-size:.78rem;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${s.description}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+          ${dateStr ? `<span style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:4px">
+            <span style="opacity:.6"></span> ${dateStr}</span>` : ''}
+          <span style="padding:3px 10px;border-radius:20px;font-size:.69rem;font-weight:700;background:${payBg};color:${payTxt}">
+            ${payLbl}</span>
+          <span style="padding:3px 10px;border-radius:20px;font-size:.69rem;font-weight:700;background:${ordBg};color:${ordTxt}">
+            ${ordLbl}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 function buildResources(data) {
   const wrap = document.getElementById('resources-content');
@@ -1082,35 +1145,35 @@ function buildResources(data) {
 
   let html = '';
 
-  // ── Booking / Scheduling ──
+  //  Booking / Scheduling 
   if (bookingUrl) {
     const url = bookingUrl.startsWith('http') ? bookingUrl : 'https://' + bookingUrl;
     html += `
     <div class="card" style="margin-bottom:14px">
       <div class="card-hd">
-        <div class="card-hd-left"><span class="card-icon">📅</span><span class="card-title">Schedule a Call</span></div>
+        <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Schedule a Call</span></div>
       </div>
       <div class="card-body" style="padding:16px 18px">
         <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px;line-height:1.6">Book a time to speak with your agency team about your campaign.</p>
-        <a href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:#0a0e1a;padding:9px 20px;border-radius:8px;font-weight:700;font-size:.84rem;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Book Now</a>
+        <a href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:#0a0e1a;padding:9px 20px;border-radius:8px;font-weight:700;font-size:.84rem;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"> Book Now</a>
       </div>
     </div>`;
   }
 
-  // ── Contact ──
+  //  Contact 
   if (supportPhone || supportEmail || agencyWebsite) {
-    html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon">📞</span><span class="card-title">Contact Your Agency</span></div></div><div class="card-body" style="padding:0">`;
+    html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Contact Your Agency</span></div></div><div class="card-body" style="padding:0">`;
 
     if (supportPhone) {
       html += `<a href="tel:${supportPhone}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">📞</div>
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportPhone}</div><div style="font-size:.72rem;color:var(--text-muted)">Tap to call</div></div>
       </a>`;
     }
 
     if (supportEmail) {
       html += `<a href="mailto:${supportEmail}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">✉️</div>
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportEmail}</div><div style="font-size:.72rem;color:var(--text-muted)">Send an email</div></div>
       </a>`;
     }
@@ -1118,7 +1181,7 @@ function buildResources(data) {
     if (agencyWebsite) {
       const wsUrl = agencyWebsite.startsWith('http') ? agencyWebsite : 'https://' + agencyWebsite;
       html += `<a href="${wsUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:14px 18px;text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">🌐</div>
+        <div style="width:34px;height:34px;border-radius:8px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${agencyWebsite}</div><div style="font-size:.72rem;color:var(--text-muted)">Visit website</div></div>
       </a>`;
     }
@@ -1126,7 +1189,7 @@ function buildResources(data) {
     html += '</div></div>';
   }
 
-  // ── Custom Links ──
+  //  Custom Links 
   if (customLinks && customLinks.trim()) {
     const links = customLinks.split('\n')
       .map(l => l.trim()).filter(Boolean)
@@ -1138,12 +1201,12 @@ function buildResources(data) {
       });
 
     if (links.length) {
-      html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon">🔗</span><span class="card-title">Links & Resources</span></div></div><div class="card-body" style="padding:0">`;
+      html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Links & Resources</span></div></div><div class="card-body" style="padding:0">`;
       links.forEach((link, i) => {
         const border = i < links.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
         html += `<a href="${link.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;${border}text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
           <span style="font-size:.82rem;font-weight:600;color:var(--text)">${link.label}</span>
-          <span style="color:var(--text-muted);font-size:.8rem">↗</span>
+          <span style="color:var(--text-muted);font-size:.8rem"></span>
         </a>`;
       });
       html += '</div></div>';
@@ -1179,7 +1242,7 @@ async function init() {
 
     // Hero
     document.getElementById('h-biz').textContent=C.businessName;
-    document.getElementById('h-greet').textContent=`Welcome back, ${C.clientName} 👋`;
+    document.getElementById('h-greet').textContent=`Welcome back, ${C.clientName} `;
     document.getElementById('h-status').textContent=C.statusLabel||C.status||'Active';
     if(C.statusUpdated) document.getElementById('h-updated').textContent='Updated '+new Date(C.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
@@ -1195,7 +1258,7 @@ async function init() {
     document.getElementById('tl').innerHTML=buildTL(C.status);
 
     // Plan info
-    // ── Render My Plan tab ────────────────────────────────────────────────
+    //  Render My Plan tab 
     // Plan CTA button
     if (C.dashboardUrl) {
       document.getElementById('plan-link').href = C.dashboardUrl;
@@ -1244,7 +1307,7 @@ async function init() {
       document.getElementById('offer-wrap').innerHTML=`
         <div class="offer">
           <div>
-            <div class="offer-tag">🎁 Special Offer</div>
+            <div class="offer-tag"> Special Offer</div>
             <div class="offer-title">${offer.title}</div>
             ${offer.description?`<div class="offer-desc">${offer.description}</div>`:''}
             ${offer.expiresAt?`<div class="offer-exp">Expires ${new Date(offer.expiresAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`:''}
@@ -1263,7 +1326,7 @@ async function init() {
     if (refBonus) {
       document.getElementById('ref-bonus-card').style.display = 'block';
       document.getElementById('ref-bonus-text').textContent = refBonus;
-      document.getElementById('perk-bonus').textContent = '🎁 ' + refBonus;
+      document.getElementById('perk-bonus').textContent = ' ' + refBonus;
       document.getElementById('ref-page-sub').textContent = 'Know a business that could use great marketing? Send them our way!';
     }
     if (refResources) {
@@ -1280,6 +1343,9 @@ async function init() {
       customLinks:   data.customLinks   || '',
     });
 
+    // Render services
+    renderServices(data.services || []);
+
     document.getElementById('loading').classList.add('out');
     // Show notification card if eligible (backup trigger independent of SW)
     setTimeout(showNotifCardIfNeeded, 1500);
@@ -1293,16 +1359,16 @@ function renderBilling(b) {
   const el = document.getElementById('billing-content');
   if (!el) return;
   if (!b) {
-    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
+    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon"></div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
     return;
   }
   const curr = b.currency || 'USD';
-  const sym  = {USD:'$',CAD:'$',EUR:'€',GBP:'£',AUD:'$'}[curr] || '$';
+  const sym  = {USD:'$',CAD:'$',EUR:'',GBP:'',AUD:'$'}[curr] || '$';
   const fmt  = amt => sym + parseFloat(amt||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const termLabels = {'month-to-month':'Month-to-Month','monthly':'Monthly','quarterly':'Quarterly','biannual':'Semi-Annual','annual':'Annual','custom':'Custom'};
   const cycleLabels = {'monthly':'Monthly','weekly':'Weekly','biweekly':'Bi-Weekly','quarterly':'Quarterly','biannual':'Semi-Annual','annual':'Annual','one-time':'One-Time'};
   const bonusLabels = {'none':'','free-website':'Free Website Included','free-trial':'Free Trial Period','free-months':'Free Month(s) Included','free-setup':'Setup Fee Waived','discount':'Discounted Rate','custom':'Special Bonus'};
-  const statusMap = {pending:{label:'⏳ Pending',col:'var(--gold)'},paid:{label:'✅ Paid',col:'var(--teal)'},late:{label:'🔴 Overdue',col:'var(--red)'},cancelled:{label:'❌ Cancelled',col:'var(--text-muted)'},waived:{label:'🟤 Waived',col:'var(--purple)'}};
+  const statusMap = {pending:{label:' Pending',col:'var(--gold)'},paid:{label:' Paid',col:'var(--teal)'},late:{label:' Overdue',col:'var(--red)'},cancelled:{label:' Cancelled',col:'var(--text-muted)'},waived:{label:' Waived',col:'var(--purple)'}};
   const payments = b.payments || [];
   const today = new Date().toISOString().slice(0,10);
   const nextPayment = payments.find(p => p.status==='pending' || p.status==='late');
@@ -1314,44 +1380,44 @@ function renderBilling(b) {
   // Plan summary
   html += `<div class="bill-summary">
     <div class="bill-summary-hdr">
-      <span class="bill-summary-title">📋 Your Plan</span>
+      <span class="bill-summary-title"> Your Plan</span>
       ${b.planType?`<span class="bill-summary-badge">${esc(b.planType)}</span>`:''}
     </div>
     ${b.contractTerm?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Contract Term</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${termLabels[b.contractTerm]||b.contractTerm}</div></div>`:''}
     ${b.billingCycle&&b.billingCycle!=='one-time'?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Billing Cycle</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${cycleLabels[b.billingCycle]||b.billingCycle}</div></div>`:''}
     ${b.startDate?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Start Date</div><div class="bill-row-amt" style="font-family:var(--font);font-size:.82rem;color:var(--text)">${new Date(b.startDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div></div>`:''}
-    ${b.setupFee>0?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Setup / Deposit</div><div class="bill-row-amt">${fmt(b.setupFee)} ${b.setupFeePaid?'<span style="font-size:.62rem;color:var(--teal)">✅ Paid</span>':'<span style="font-size:.62rem;color:var(--gold)">⏳ Pending</span>'}</div></div>`:''}
+    ${b.setupFee>0?`<div class="bill-row"><div class="bill-row-desc" style="color:var(--text-muted);font-size:.72rem">Setup / Deposit</div><div class="bill-row-amt">${fmt(b.setupFee)} ${b.setupFeePaid?'<span style="font-size:.62rem;color:var(--teal)"> Paid</span>':'<span style="font-size:.62rem;color:var(--gold)"> Pending</span>'}</div></div>`:''}
     ${b.recurringAmount>0?`<div class="bill-footer"><div><div class="bill-footer-lbl">Recurring</div></div><div class="bill-footer-amt">${fmt(b.recurringAmount)}<span style="font-size:.65rem;font-weight:400;color:var(--text-muted)"> /${(cycleLabels[b.billingCycle]||'cycle').toLowerCase()}</span></div></div>`:''}
-    ${b.autoRenew?'<div style="padding:8px 18px;font-size:.7rem;color:var(--teal)">✅ Auto-renewal enabled</div>':''}
-    ${b.bonus&&b.bonus!=='none'?`<div style="padding:10px 18px;background:rgba(249,115,22,.08);border-top:1px solid rgba(249,115,22,.15);font-size:.78rem;color:var(--orange)">🎁 ${esc(bonusLabels[b.bonus]||b.bonus)}${b.bonusDetail?' — '+esc(b.bonusDetail):''}${b.bonusDuration?' ('+esc(b.bonusDuration)+')':''}</div>`:''}
+    ${b.autoRenew?'<div style="padding:8px 18px;font-size:.7rem;color:var(--teal)"> Auto-renewal enabled</div>':''}
+    ${b.bonus&&b.bonus!=='none'?`<div style="padding:10px 18px;background:rgba(249,115,22,.08);border-top:1px solid rgba(249,115,22,.15);font-size:.78rem;color:var(--orange)"> ${esc(bonusLabels[b.bonus]||b.bonus)}${b.bonusDetail?'  '+esc(b.bonusDetail):''}${b.bonusDuration?' ('+esc(b.bonusDuration)+')':''}</div>`:''}
   </div>`;
 
   // Next payment highlight
   if (nextPayment) {
-    const dueStr = nextDueDate?new Date(nextDueDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'—';
+    const dueStr = nextDueDate?new Date(nextDueDate+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
     html += `<div style="background:${isLate?'var(--red-dim)':'rgba(0,217,163,.08)'};border:1px solid ${isLate?'rgba(239,68,68,.3)':'rgba(0,217,163,.25)'};border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${isLate?'var(--red)':'var(--teal)'};margin-bottom:4px">${isLate?'⚠️ Payment Overdue':'💳 Next Payment Due'}</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${isLate?'var(--red)':'var(--teal)'};margin-bottom:4px">${isLate?' Payment Overdue':' Next Payment Due'}</div>
         <div style="font-family:var(--display);font-size:1.2rem;font-weight:800;color:var(--text)">${fmt(nextPayment.amount)}</div>
         <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">Due: ${dueStr}</div>
       </div>
-      ${b.paymentLink?`<a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn">${isLate?'⚠️ Pay Now →':'💳 Pay Now →'}</a>`:''}
+      ${b.paymentLink?`<a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn">${isLate?' Pay Now ':' Pay Now '}</a>`:''}
     </div>`;
   } else if (!payments.length && b.paymentLink) {
-    html += `<div style="margin-bottom:14px"><a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn">💳 Pay Now →</a></div>`;
+    html += `<div style="margin-bottom:14px"><a href="${esc(b.paymentLink)}" target="_blank" class="bill-pay-btn"> Pay Now </a></div>`;
   }
 
   // Payment history
   if (payments.length) {
-    html += `<div class="bill-summary"><div class="bill-summary-hdr"><span class="bill-summary-title">📊 Payment History</span></div>`;
+    html += `<div class="bill-summary"><div class="bill-summary-hdr"><span class="bill-summary-title"> Payment History</span></div>`;
     payments.forEach(p => {
       const isOvd = p.status==='pending' && p.dueDate && p.dueDate < today;
       const s = statusMap[isOvd?'late':p.status] || statusMap.pending;
-      const dueStr = p.dueDate?new Date(p.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      const dueStr = p.dueDate?new Date(p.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
       const paidStr = p.paidAt?new Date(p.paidAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
       html += `<div class="bill-row">
         <div style="flex:1"><div class="bill-row-desc">${esc(p.label||'Payment')}</div>
-        <div style="font-size:.68rem;color:var(--text-muted);margin-top:2px">Due: ${dueStr}${paidStr?' · Paid: '+paidStr:''}</div></div>
+        <div style="font-size:.68rem;color:var(--text-muted);margin-top:2px">Due: ${dueStr}${paidStr?'  Paid: '+paidStr:''}</div></div>
         <div style="display:flex;align-items:center;gap:10px">
           <div class="bill-row-amt">${sym}${parseFloat(p.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <span style="font-size:.62rem;font-weight:700;color:${s.col};white-space:nowrap">${s.label}</span>
@@ -1362,11 +1428,11 @@ function renderBilling(b) {
   }
 
   if (b.notes) {
-    html += `<div class="bill-notes-box"><div class="bill-notes-lbl">📋 Notes</div><div class="bill-notes-text">${esc(b.notes)}</div></div>`;
+    html += `<div class="bill-notes-box"><div class="bill-notes-lbl"> Notes</div><div class="bill-notes-text">${esc(b.notes)}</div></div>`;
   }
 
   if (!html || !html.trim()) {
-    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon">💳</div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
+    el.innerHTML = '<div class="bill-empty"><div class="bill-empty-icon"></div><div class="bill-empty-text" style="font-size:.85rem;line-height:1.6">No billing information available yet.<br><span style="font-size:.75rem;opacity:.7">Your agency will add your billing details here.</span></div></div>';
     return;
   }
 
@@ -1378,7 +1444,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 init();
 
-// ── Real-time status polling — updates UI without reopening app ──────────────
+//  Real-time status polling  updates UI without reopening app 
 let _lastStatus = null;
 let _lastDashUrl = null;
 
@@ -1392,9 +1458,9 @@ async function pollStatus() {
     if (!data.client) return;
     const fresh = data.client;
 
-    // Status changed — update UI live
+    // Status changed  update UI live
     if (_lastStatus !== null && fresh.status !== _lastStatus) {
-      console.log('[portal] Status changed:', _lastStatus, '→', fresh.status);
+      console.log('[portal] Status changed:', _lastStatus, '', fresh.status);
 
       // Update status badge and timeline
       const statusEl = document.getElementById('h-status');
@@ -1411,34 +1477,34 @@ async function pollStatus() {
       if ('Notification' in window && Notification.permission === 'granted') {
         const labels = {
           active: 'Your campaign is now active!',
-          launched: '🚀 Your ads are live!',
-          completed: '✅ Campaign completed!',
+          launched: ' Your ads are live!',
+          completed: ' Campaign completed!',
           paused: 'Your campaign has been paused.',
           new: 'Your onboarding is being reviewed.',
         };
         const msg = labels[fresh.status] || `Status updated to: ${fresh.statusLabel || fresh.status}`;
-        new Notification('Campaign Update 📢', {
+        new Notification('Campaign Update ', {
           body: msg,
           icon: '/icons/portal-icon-192.png',
           tag: 'status-update',
         });
       }
-      toast('📢 Status updated: ' + (fresh.statusLabel || fresh.status));
+      toast(' Status updated: ' + (fresh.statusLabel || fresh.status));
     }
 
-    // Plan URL available now — update button
+    // Plan URL available now  update button
     if (fresh.dashboardUrl && fresh.dashboardUrl !== _lastDashUrl) {
       const planLink = document.getElementById('plan-link');
       if (planLink) planLink.href = fresh.dashboardUrl;
       _lastDashUrl = fresh.dashboardUrl;
-      if (_lastStatus !== null && !_lastDashUrl) toast('✨ Your marketing plan is ready!');
+      if (_lastStatus !== null && !_lastDashUrl) toast(' Your marketing plan is ready!');
     }
 
     _lastStatus = fresh.status;
     _lastDashUrl = fresh.dashboardUrl || _lastDashUrl;
     C = fresh; // Update global client object
   } catch(e) {
-    // Silent fail — don't disrupt UX on network error
+    // Silent fail  don't disrupt UX on network error
     console.log('[portal] Poll error:', e.message);
   }
 }
@@ -1460,7 +1526,7 @@ window.addEventListener('portalLoaded', () => {
   });
 });
 
-// ── PWA: Debug reset (add ?reset_pwa=1 to URL to clear dismissal flags) ─────
+//  PWA: Debug reset (add ?reset_pwa=1 to URL to clear dismissal flags) 
 if (new URLSearchParams(location.search).get('reset_pwa') === '1') {
   localStorage.removeItem('pwa-banner-dismissed');
   localStorage.removeItem('notif-bar-dismissed');
@@ -1468,8 +1534,8 @@ if (new URLSearchParams(location.search).get('reset_pwa') === '1') {
   console.log('[PWA] Reset all PWA flags');
 }
 
-// ── PWA: Service Worker inlined as blob — Netlify won't intercept it ────────
-// ── PWA: Service Worker at /sw.js (served by Netlify function with correct headers)
+//  PWA: Service Worker inlined as blob  Netlify won't intercept it 
+//  PWA: Service Worker at /sw.js (served by Netlify function with correct headers)
 let _swReg = null;
 
 window.addEventListener('load', () => {
@@ -1478,13 +1544,13 @@ window.addEventListener('load', () => {
     return;
   }
   // /sw.js is served by a Netlify function with Content-Type: application/javascript
-  // and Service-Worker-Allowed: / — required by iOS Safari
+  // and Service-Worker-Allowed: /  required by iOS Safari
   navigator.serviceWorker.register('/sw.js', { scope: '/' })
     .then(async reg => {
       _swReg = reg;
       console.log('[PWA] SW registered:', reg.scope);
       setTimeout(showNotifCardIfNeeded, 500);
-      // Re-save push subscription on every open — refreshes stale APNS tokens
+      // Re-save push subscription on every open  refreshes stale APNS tokens
       // iOS rotates push tokens after app suspension; stale tokens = silent drop
       if (Notification.permission === 'granted' && slug && _agencyId) {
         try {
@@ -1505,7 +1571,7 @@ window.addEventListener('load', () => {
     });
 });
 
-// ── PWA: iOS Install Banner ──────────────────────────────────────────────────
+//  PWA: iOS Install Banner 
 function isIOS() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
@@ -1528,7 +1594,7 @@ window.addEventListener('beforeinstallprompt', e => {
 window.addEventListener('DOMContentLoaded', function() {
   // Small delay so iOS has time to correctly report standalone mode
   setTimeout(function() {
-    if (isStandalone()) return; // Already installed — hide button
+    if (isStandalone()) return; // Already installed  hide button
     const dismissed = localStorage.getItem('pwa-banner-dismissed');
     if (dismissed && Date.now() - parseInt(dismissed) < 86400000) return;
     const installBtn = document.getElementById('install-app-btn');
@@ -1555,7 +1621,7 @@ async function showInstallInstructions() {
     const { outcome } = await _deferredInstallPrompt.userChoice;
     _deferredInstallPrompt = null;
     dismissBanner();
-    if (outcome === 'accepted') toast('✅ App installed! Find it on your home screen.');
+    if (outcome === 'accepted') toast(' App installed! Find it on your home screen.');
     return;
   }
   // iOS Safari: show visual modal instead of alert()
@@ -1570,33 +1636,33 @@ async function showInstallInstructions() {
       <div style="background:#1a2235;border-radius:16px;padding:24px 20px;width:100%;max-width:440px;border:1px solid rgba(0,217,163,.2)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
           <div style="font-size:1rem;font-weight:800;color:#e2e8f0">Install Your Portal App</div>
-          <button onclick="document.getElementById('ios-install-modal').remove()" style="background:none;border:none;color:#8892a4;font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
+          <button onclick="document.getElementById('ios-install-modal').remove()" style="background:none;border:none;color:#8892a4;font-size:1.2rem;cursor:pointer;padding:4px"></button>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
           <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
-            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${isIpad ? '⬆️' : '⬜️'}</div>
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${isIpad ? '' : ''}</div>
             <div>
-              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 1 — Tap Share</div>
-              <div style="font-size:.78rem;color:#8892a4">Tap the <strong style="color:#e2e8f0">${isIpad ? '↑ Share' : '□↑ Share'}</strong> button in ${isIpad ? "Safari's top bar" : "Safari's bottom toolbar"}</div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 1  Tap Share</div>
+              <div style="font-size:.78rem;color:#8892a4">Tap the <strong style="color:#e2e8f0">${isIpad ? ' Share' : ' Share'}</strong> button in ${isIpad ? "Safari's top bar" : "Safari's bottom toolbar"}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
-            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">➕</div>
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0"></div>
             <div>
-              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 2 — Add to Home Screen</div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 2  Add to Home Screen</div>
               <div style="font-size:.78rem;color:#8892a4">Scroll down in the menu and tap <strong style="color:#e2e8f0">"Add to Home Screen"</strong></div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
-            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">✅</div>
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0"></div>
             <div>
-              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 3 — Tap Add</div>
-              <div style="font-size:.78rem;color:#8892a4">Tap <strong style="color:#e2e8f0">"Add"</strong> in the top right — your portal icon appears on your home screen!</div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 3  Tap Add</div>
+              <div style="font-size:.78rem;color:#8892a4">Tap <strong style="color:#e2e8f0">"Add"</strong> in the top right  your portal icon appears on your home screen!</div>
             </div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;background:rgba(0,217,163,.08);border:1px solid rgba(0,217,163,.2);border-radius:8px;padding:10px 12px">
-          <span style="font-size:1rem">💡</span>
+          <span style="font-size:1rem"></span>
           <span style="font-size:.75rem;color:#8892a4;line-height:1.5">Once installed, open from your home screen to enable notifications and get updates when your plan is ready.</span>
         </div>
       </div>`;
@@ -1606,8 +1672,8 @@ async function showInstallInstructions() {
   }
 }
 
-// ── PWA: Push Notification Bar ───────────────────────────────────────────────
-// Show notification card — called both from SW registration and from init()
+//  PWA: Push Notification Bar 
+// Show notification card  called both from SW registration and from init()
 function showNotifCardIfNeeded() {
   const card = document.getElementById('notif-card');
   if (!card) return;
@@ -1616,13 +1682,13 @@ function showNotifCardIfNeeded() {
   if (isIOS() && !isStandalone()) return;
   if (!('Notification' in window) || !('PushManager' in window)) return;
 
-  // Already denied — can't do anything
+  // Already denied  can't do anything
   if (Notification.permission === 'denied') return;
 
   // Already enabled (saved to localStorage on successful subscribe + server save)
   if (localStorage.getItem('notif-enabled') === '1') return;
 
-  // Already granted permission — show card briefly then check subscription async
+  // Already granted permission  show card briefly then check subscription async
   // This handles the case where permission was granted but subscription wasn't saved
   card.style.display = 'flex';
 
@@ -1633,7 +1699,7 @@ function showNotifCardIfNeeded() {
       return reg.pushManager.getSubscription();
     }).then(sub => {
       if (sub) {
-        // Have a subscription — mark as enabled and hide
+        // Have a subscription  mark as enabled and hide
         localStorage.setItem('notif-enabled', '1');
         card.style.display = 'none';
       }
@@ -1642,20 +1708,20 @@ function showNotifCardIfNeeded() {
 }
 
 async function checkNotifBar(reg) {
-  // Push not supported on this browser — hide everything silently
+  // Push not supported on this browser  hide everything silently
   if (!('Notification' in window) || !('PushManager' in window)) return;
 
-  // iOS Safari NOT installed as PWA — push doesn't work until installed
+  // iOS Safari NOT installed as PWA  push doesn't work until installed
   if (isIOS() && !isStandalone()) return;
 
-  // Already denied — nothing we can do
+  // Already denied  nothing we can do
   if (Notification.permission === 'denied') return;
 
-  // Already granted and subscribed — card stays hidden
+  // Already granted and subscribed  card stays hidden
   if (Notification.permission === 'granted') {
     try {
       const sub = await reg.pushManager.getSubscription();
-      if (sub) return; // already subscribed — hide card
+      if (sub) return; // already subscribed  hide card
     } catch(e) {}
   }
 
@@ -1683,12 +1749,12 @@ async function requestNotifPermission() {
   dismissNotifBar();
   // Show loading state on button
   const enableBtn = document.getElementById('notif-enable-btn');
-  if (enableBtn) { enableBtn.textContent = '⏳ Enabling...'; enableBtn.disabled = true; }
+  if (enableBtn) { enableBtn.textContent = ' Enabling...'; enableBtn.disabled = true; }
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       if (enableBtn) { enableBtn.textContent = 'Enable Notifications'; enableBtn.disabled = false; }
-      toast('Notifications blocked — enable in iPhone Settings → Notifications');
+      toast('Notifications blocked  enable in iPhone Settings  Notifications');
       return;
     }
 
@@ -1700,7 +1766,7 @@ async function requestNotifPermission() {
         new Promise(resolve => {
           const check = setInterval(() => { if (_swReg) { clearInterval(check); resolve(_swReg); } }, 200);
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker not ready — try again in a moment')), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker not ready  try again in a moment')), 5000))
       ]);
     }
 
@@ -1710,20 +1776,20 @@ async function requestNotifPermission() {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
     });
 
-    // Mark as enabled immediately — so card stays hidden even if API call fails
+    // Mark as enabled immediately  so card stays hidden even if API call fails
     localStorage.setItem('notif-enabled', '1');
 
-    // Hide card and show success RIGHT NOW — don't wait for server
+    // Hide card and show success RIGHT NOW  don't wait for server
     const card = document.getElementById('notif-card');
     if (card) card.style.display = 'none';
     document.getElementById('notif-bar').classList.remove('show');
-    reg.showNotification('Notifications Enabled! 🔔', {
+    reg.showNotification('Notifications Enabled! ', {
       body: "You'll get notified when your plan is ready and when your agency has updates.",
       icon: '/icons/portal-icon-192.png',
       tag:  'welcome',
       data: { url: `/onboard/portal?a=${_agencyId}&s=${slug}` },
     });
-    toast('✅ Notifications enabled!');
+    toast(' Notifications enabled!');
 
     // Save subscription to server in background (non-blocking)
     fetch('/api/save-push-subscription', {
@@ -1744,7 +1810,7 @@ async function requestNotifPermission() {
   }
 }
 
-// ── PWA: Handle URL shortcuts (goto param) ───────────────────────────────────
+//  PWA: Handle URL shortcuts (goto param) 
 (function handleShortcuts() {
   const goto = new URLSearchParams(location.search).get('goto');
   if (goto && document.getElementById(goto)) {
@@ -1756,7 +1822,7 @@ async function requestNotifPermission() {
   }
 })();
 
-// ── PWA: Fire portalLoaded event when init completes ────────────────────────
+//  PWA: Fire portalLoaded event when init completes 
 // (patched into init success path via MutationObserver on loading div)
 const _loadObs = new MutationObserver(() => {
   const loading = document.getElementById('loading');
