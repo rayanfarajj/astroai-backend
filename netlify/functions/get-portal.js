@@ -184,6 +184,11 @@ export default async (req) => {
     // ── REFERRAL BONUS ────────────────────────────────────
     let referralBonus = '';
     let referralResources = '';
+    let bookingUrl = '';
+    let supportPhone = '';
+    let supportEmail = '';
+    let agencyWebsite = '';
+    let customLinks = '';
     if (agencyId) {
       try {
         const agencyDoc = await fsGet(token, `agencies/${agencyId}`);
@@ -191,6 +196,11 @@ export default async (req) => {
         if (agencyDoc?.fields) {
           referralBonus     = agencyDoc.fields.referralBonus?.stringValue     || '';
           referralResources = agencyDoc.fields.referralResources?.stringValue || '';
+          bookingUrl        = agencyDoc.fields.bookingUrl?.stringValue        || '';
+          supportPhone      = agencyDoc.fields.supportPhone?.stringValue      || '';
+          supportEmail      = agencyDoc.fields.supportEmail?.stringValue      || '';
+          agencyWebsite     = agencyDoc.fields.agencyWebsite?.stringValue     || '';
+          customLinks       = agencyDoc.fields.customLinks?.stringValue       || '';
           console.log('[get-portal] referralBonus:', referralBonus);
         }
       } catch(e) {
@@ -198,7 +208,7 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources}),{status:200,headers:CORS});
+    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]', e.message);
