@@ -41,9 +41,14 @@ exports.handler = async function(event) {
         welcomeMsg:      body.welcomeMsg       !== undefined ? body.welcomeMsg : agency.welcomeMsg,
         termsText:       body.termsText        !== undefined ? body.termsText  : agency.termsText,
         termsUrl:        body.termsUrl         !== undefined ? body.termsUrl   : (agency.termsUrl||''),
-        privacyUrl:      body.privacyUrl       !== undefined ? body.privacyUrl : (agency.privacyUrl||''),
-        referralBonus:   body.referralBonus     !== undefined ? body.referralBonus   : (agency.referralBonus||''),
-        referralResources: body.referralResources !== undefined ? body.referralResources : (agency.referralResources||''),
+        privacyUrl:        body.privacyUrl           !== undefined ? body.privacyUrl           : (agency.privacyUrl||''),
+        referralBonus:     body.referralBonus         !== undefined ? body.referralBonus         : (agency.referralBonus||''),
+        referralResources: body.referralResources     !== undefined ? body.referralResources     : (agency.referralResources||''),
+        bookingUrl:        body.bookingUrl             !== undefined ? body.bookingUrl            : (agency.bookingUrl||''),
+        supportPhone:      body.supportPhone           !== undefined ? body.supportPhone          : (agency.supportPhone||''),
+        supportEmail:      body.supportEmail           !== undefined ? body.supportEmail          : (agency.supportEmail||''),
+        agencyWebsite:     body.agencyWebsite          !== undefined ? body.agencyWebsite         : (agency.agencyWebsite||''),
+        customLinks:       body.customLinks            !== undefined ? body.customLinks           : (agency.customLinks||''),
         updatedAt:       new Date().toISOString(),
       };
       await fsSet('agencies', agencyId, updated);
