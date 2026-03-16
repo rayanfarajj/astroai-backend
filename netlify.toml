@@ -85,6 +85,12 @@
 # Friendly URLs for public pages
 # Serve SW as static file — prevents Netlify treating it as a function
 [[redirects]]
+  from = "/api/agency/services"
+  to = "/.netlify/functions/agency-services"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/service-worker.js"
   to = "/service-worker.js"
   status = 200
