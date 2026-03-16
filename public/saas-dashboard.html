@@ -780,6 +780,23 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </label>
     <input class="sf-input" id="set-privacy-url" placeholder="https://yoursite.com/privacy">
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="sf-label" style="margin-bottom:6px;display:block">📚 Client Resources</label>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5">These appear in the Resources tab of every client portal.</div>
+      <label class="sf-label">Scheduling / Booking URL</label>
+      <input class="sf-input" id="set-booking-url" placeholder="https://calendly.com/youragency">
+      <label class="sf-label" style="margin-top:8px">Support Phone</label>
+      <input class="sf-input" id="set-support-phone" placeholder="+1 (555) 000-0000">
+      <label class="sf-label" style="margin-top:8px">Support Email</label>
+      <input class="sf-input" id="set-support-email" placeholder="support@youragency.com">
+      <label class="sf-label" style="margin-top:8px">Agency Website</label>
+      <input class="sf-input" id="set-agency-website" placeholder="https://youragency.com">
+      <label class="sf-label" style="margin-top:8px">Custom Links
+        <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">One per line: Label | URL</span>
+      </label>
+      <textarea class="sf-ta" id="set-custom-links" placeholder="Facebook Group | https://facebook.com/groups/...&#10;Training Videos | https://youtube.com/...&#10;Client Handbook | https://docs.google.com/..." style="height:80px"></textarea>
+    </div>
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
       <label class="sf-label" style="margin-bottom:10px;display:block">🎨 Appearance</label>
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px">
         <div>
@@ -1804,9 +1821,9 @@ async function saveOffer(clientId,clear){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────
-function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('set-privacy-url').value=agencyConfig.privacyUrl||'';document.getElementById('settings-sheet').classList.add('open');}
+function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('set-privacy-url').value=agencyConfig.privacyUrl||'';document.getElementById('set-booking-url').value=agencyConfig.bookingUrl||'';document.getElementById('set-support-phone').value=agencyConfig.supportPhone||'';document.getElementById('set-support-email').value=agencyConfig.supportEmail||'';document.getElementById('set-agency-website').value=agencyConfig.agencyWebsite||'';document.getElementById('set-custom-links').value=agencyConfig.customLinks||'';document.getElementById('settings-sheet').classList.add('open');}
 function closeSettings(){document.getElementById('settings-sheet').classList.remove('open');}
-async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
 
 // ── BLAST ─────────────────────────────────────────────────────
 function openBlast(){document.getElementById('blast-sheet').classList.add('open');}
