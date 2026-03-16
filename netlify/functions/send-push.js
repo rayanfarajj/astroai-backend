@@ -1,25 +1,20 @@
 // netlify/functions/send-push.js
-// Sends a Web Push notification to a client's push subscription
-// Called from: agency-generate-background (plan ready), send-message (new message), agency dashboard
+// Full RFC 8291 aes128gcm encrypted Web Push — required for iOS Safari
 import https from 'https';
 import crypto from 'crypto';
 
-const CORS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-};
+const CORS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
 
-// ── Firebase helpers ─────────────────────────────────────────────────────────
 function getToken() {
   return new Promise((resolve, reject) => {
     const email = process.env.FIREBASE_CLIENT_EMAIL;
     const key   = (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n');
     const b64   = s => Buffer.from(s).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
     const now   = Math.floor(Date.now()/1000);
-    const h     = b64(JSON.stringify({alg:'RS256',typ:'JWT'}));
-    const p     = b64(JSON.stringify({iss:email,sub:email,aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600,scope:'https://www.googleapis.com/auth/datastore'}));
-    const s     = b64(crypto.createSign('RSA-SHA256').update(h+'.'+p).sign(key));
-    const body  = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${h}.${p}.${s}`;
+    const h = b64(JSON.stringify({alg:'RS256',typ:'JWT'}));
+    const p = b64(JSON.stringify({iss:email,sub:email,aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+3600,scope:'https://www.googleapis.com/auth/datastore'}));
+    const s = b64(crypto.createSign('RSA-SHA256').update(h+'.'+p).sign(key));
+    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${h}.${p}.${s}`;
     const r = https.request({hostname:'oauth2.googleapis.com',path:'/token',method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{
       let d=''; res.on('data',c=>d+=c);
       res.on('end',()=>{const t=JSON.parse(d).access_token; t?resolve(t):reject(new Error(d));});
@@ -39,153 +34,128 @@ function fsHttp(method, path, body, token) {
   });
 }
 
-function fromFS(v) {
-  if(!v) return null;
-  if('stringValue' in v) return v.stringValue;
-  if('mapValue' in v) return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,val])=>[k,fromFS(val)]));
-  return null;
-}
-
 const BASE = () => `/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
-// ── VAPID Web Push implementation (no npm packages needed) ──────────────────
-function vapidSign(audience) {
-  const email  = process.env.VAPID_SUBJECT || 'mailto:info@astroaibots.com';
-  const pubKey = process.env.VAPID_PUBLIC_KEY;
-  const privKey= process.env.VAPID_PRIVATE_KEY;
-
-  if (!pubKey || !privKey) throw new Error('VAPID keys not configured');
-
-  const b64u = s => Buffer.from(s).toString('base64url');
+function makeVapidJWT(audience) {
+  const subject    = process.env.VAPID_SUBJECT || 'mailto:info@astroaibots.com';
+  const pubKeyB64  = process.env.VAPID_PUBLIC_KEY;
+  const privKeyB64 = process.env.VAPID_PRIVATE_KEY;
+  if (!pubKeyB64 || !privKeyB64) throw new Error('VAPID keys not set');
+  const b64u = b => Buffer.from(b).toString('base64url');
   const now  = Math.floor(Date.now()/1000);
-  const header = b64u(JSON.stringify({ typ:'JWT', alg:'ES256' }));
-  const payload= b64u(JSON.stringify({ aud: audience, exp: now+43200, sub: email }));
-
-  // Import private key from base64url
-  const privDer = Buffer.from(privKey, 'base64url');
-  // Build PKCS8 DER for P-256 private key
-  const pkcs8Header = Buffer.from('308141020100301306072a8648ce3d020106082a8648ce3d030107042730250201010420','hex');
-  const privKeyDer  = Buffer.concat([pkcs8Header, privDer]);
-  const key = crypto.createPrivateKey({ key: privKeyDer, format: 'der', type: 'pkcs8' });
-  const sig = crypto.createSign('SHA256').update(header+'.'+payload).sign(key);
-
-  // DER to raw R||S (64 bytes)
+  const header  = b64u(JSON.stringify({typ:'JWT',alg:'ES256'}));
+  const payload = b64u(JSON.stringify({aud:audience,exp:now+43200,sub:subject}));
+  const privRaw = Buffer.from(privKeyB64,'base64url');
+  const pkcs8   = Buffer.concat([Buffer.from('308141020100301306072a8648ce3d020106082a8648ce3d030107042730250201010420','hex'),privRaw]);
+  const privKey = crypto.createPrivateKey({key:pkcs8,format:'der',type:'pkcs8'});
+  const sigDer  = crypto.createSign('SHA256').update(`${header}.${payload}`).sign(privKey);
   const derToRaw = der => {
-    let i = 2; // skip SEQUENCE tag+len
-    i += (der[1] & 0x80) ? (der[1] & 0x7f) + 1 : 1; // skip outer length
-    i++; // skip INTEGER tag
-    const rLen = der[i++]; const r = der.slice(i + (rLen > 32 ? 1:0), i + rLen);
-    i += rLen; i++; // skip INTEGER tag
-    const sLen = der[i++]; const s = der.slice(i + (sLen > 32 ? 1:0), i + sLen);
-    return Buffer.concat([Buffer.alloc(32-r.length), r, Buffer.alloc(32-s.length), s]);
+    let i=2; if(der[1]&0x80) i+=der[1]&0x7f;
+    i++; const rLen=der[i++]; const r=der.slice(i+(rLen>32?rLen-32:0),i+rLen); i+=rLen;
+    i++; const sLen=der[i++]; const s=der.slice(i+(sLen>32?sLen-32:0),i+sLen);
+    return Buffer.concat([Buffer.alloc(32-r.length),r,Buffer.alloc(32-s.length),s]);
   };
-
-  const rawSig = b64u(derToRaw(sig));
-  return `${header}.${payload}.${rawSig}`;
+  return `${header}.${payload}.${b64u(derToRaw(sigDer))}`;
 }
 
-// Send a single push message to a subscription endpoint
+// RFC 8291 aes128gcm encryption — the ONLY format iOS Safari accepts
+function encryptPayload(plaintext, subscription) {
+  const clientPub  = Buffer.from(subscription.keys.p256dh,'base64url');
+  const authSecret = Buffer.from(subscription.keys.auth,'base64url');
+  const serverECDH = crypto.createECDH('prime256v1');
+  serverECDH.generateKeys();
+  const serverPub    = serverECDH.getPublicKey();
+  const sharedSecret = serverECDH.computeSecret(clientPub);
+  const salt = crypto.randomBytes(16);
+
+  const prkKey = Buffer.from(crypto.hkdfSync('sha256', sharedSecret, authSecret,
+    Buffer.concat([Buffer.from('WebPush: info\x00'), clientPub, serverPub]), 32));
+
+  const cek   = Buffer.from(crypto.hkdfSync('sha256', prkKey, salt, Buffer.from('Content-Encoding: aes128gcm\x00'), 16));
+  const nonce = Buffer.from(crypto.hkdfSync('sha256', prkKey, salt, Buffer.from('Content-Encoding: nonce\x00'), 12));
+
+  const padded = Buffer.concat([Buffer.from(plaintext), Buffer.from([0x02])]);
+  const cipher = crypto.createCipheriv('aes-128-gcm', cek, nonce);
+  const encrypted = Buffer.concat([cipher.update(padded), cipher.final(), cipher.getAuthTag()]);
+
+  const rs = Buffer.allocUnsafe(4); rs.writeUInt32BE(4096,0);
+  return Buffer.concat([salt, rs, Buffer.from([serverPub.length]), serverPub, encrypted]);
+}
+
 function sendWebPush(subscription, payload) {
   return new Promise((resolve, reject) => {
-    if (!subscription?.endpoint) return reject(new Error('No endpoint in subscription'));
+    if (!subscription?.endpoint) return reject(new Error('No endpoint'));
+    if (!subscription?.keys?.p256dh || !subscription?.keys?.auth)
+      return reject(new Error('Missing encryption keys in subscription'));
 
-    const endpointUrl = new URL(subscription.endpoint);
-    const audience    = `${endpointUrl.protocol}//${endpointUrl.host}`;
-    const jwt         = vapidSign(audience);
-    const pubKey      = process.env.VAPID_PUBLIC_KEY;
-
-    const body = Buffer.from(JSON.stringify(payload));
-
-    // For now send as plaintext (no encryption) — works for most push services
-    // For full RFC8291 encryption you'd need ece library
-    const headers = {
-      'Authorization': `vapid t=${jwt},k=${pubKey}`,
-      'Content-Type':  'application/json',
-      'Content-Length': body.length,
-      'TTL': '86400',
-    };
+    const body         = encryptPayload(JSON.stringify(payload), subscription);
+    const endpointUrl  = new URL(subscription.endpoint);
+    const jwt          = makeVapidJWT(`${endpointUrl.protocol}//${endpointUrl.host}`);
 
     const r = https.request({
       hostname: endpointUrl.hostname,
       path:     endpointUrl.pathname + endpointUrl.search,
       method:   'POST',
-      headers,
+      headers:  {
+        'Authorization':    `vapid t=${jwt},k=${process.env.VAPID_PUBLIC_KEY}`,
+        'Content-Type':     'application/octet-stream',
+        'Content-Encoding': 'aes128gcm',
+        'Content-Length':   body.length,
+        'TTL':              '86400',
+      },
     }, res => {
-      let d = ''; res.on('data', c => d += c);
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve({ ok: true, status: res.statusCode });
-        } else if (res.statusCode === 410 || res.statusCode === 404) {
-          resolve({ ok: false, gone: true, status: res.statusCode }); // subscription expired
-        } else {
-          resolve({ ok: false, status: res.statusCode, body: d.slice(0,200) });
-        }
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{
+        console.log('[send-push]',res.statusCode, endpointUrl.hostname);
+        if (res.statusCode>=200&&res.statusCode<300) resolve({ok:true,status:res.statusCode});
+        else if (res.statusCode===410||res.statusCode===404) resolve({ok:false,gone:true,status:res.statusCode});
+        else resolve({ok:false,status:res.statusCode,body:d.slice(0,200)});
       });
     });
-    r.on('error', reject);
-    r.write(body);
-    r.end();
+    r.setTimeout(15000,()=>{r.destroy();reject(new Error('Push timeout'));});
+    r.on('error',reject); r.write(body); r.end();
   });
 }
 
-// ── Main handler ─────────────────────────────────────────────────────────────
 export default async (req) => {
-  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'POST only' }), { status: 405, headers: CORS });
-
+  if (req.method==='OPTIONS') return new Response('',{status:200,headers:CORS});
+  if (req.method!=='POST') return new Response(JSON.stringify({error:'POST only'}),{status:405,headers:CORS});
   let data;
-  try { data = await req.json(); } catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: CORS }); }
+  try { data=await req.json(); } catch { return new Response(JSON.stringify({error:'Invalid JSON'}),{status:400,headers:CORS}); }
 
-  const { agencyId, clientId, title, body: msgBody, url, tag } = data;
-
-  if (!agencyId || !clientId) {
-    return new Response(JSON.stringify({ error: 'agencyId and clientId required' }), { status: 400, headers: CORS });
-  }
+  const {agencyId,clientId,title,body:msgBody,url,tag} = data;
+  if (!agencyId||!clientId) return new Response(JSON.stringify({error:'agencyId and clientId required'}),{status:400,headers:CORS});
 
   try {
     const token = await getToken();
-
-    // Get client doc to find push subscription
-    const doc = await fsHttp('GET', `${BASE()}/agencies/${agencyId}/clients/${clientId}`, null, token);
-    if (!doc.fields) {
-      return new Response(JSON.stringify({ error: 'Client not found' }), { status: 404, headers: CORS });
-    }
+    const doc   = await fsHttp('GET',`${BASE()}/agencies/${agencyId}/clients/${clientId}`,null,token);
+    if (!doc.fields) return new Response(JSON.stringify({error:'Client not found'}),{status:404,headers:CORS});
 
     const pushSubRaw = doc.fields.pushSubscription?.stringValue;
-    if (!pushSubRaw) {
-      return new Response(JSON.stringify({ ok: false, reason: 'No push subscription on file' }), { status: 200, headers: CORS });
-    }
+    if (!pushSubRaw) return new Response(JSON.stringify({ok:false,reason:'No subscription'}),{status:200,headers:CORS});
 
-    let subscription;
-    try { subscription = JSON.parse(pushSubRaw); } catch {
-      return new Response(JSON.stringify({ ok: false, reason: 'Invalid subscription data' }), { status: 200, headers: CORS });
-    }
+    let sub;
+    try { sub=JSON.parse(pushSubRaw); } catch { return new Response(JSON.stringify({ok:false,reason:'Bad subscription JSON'}),{status:200,headers:CORS}); }
 
-    const payload = {
-      title: title || 'Marketing Portal',
-      body:  msgBody || 'You have a new update.',
+    const portalUrl = url||`/onboard/portal?a=${agencyId}&s=${clientId}`;
+    const result = await sendWebPush(sub, {
+      title: title||'Marketing Portal',
+      body:  msgBody||'You have a new update.',
       icon:  '/icons/portal-icon-192.png',
       badge: '/icons/portal-icon-192.png',
-      tag:   tag || 'portal',
-      url:   url || `/onboard/portal?a=${agencyId}&s=${clientId}`,
-      data:  { agencyId, clientId, url: url || `/onboard/portal?a=${agencyId}&s=${clientId}` },
-    };
+      tag:   tag||'portal',
+      url:   portalUrl,
+      data:  {url:portalUrl},
+    });
 
-    const result = await sendWebPush(subscription, payload);
-    console.log('[send-push] result:', result, 'for client:', clientId);
-
-    // If subscription expired, remove it from Firestore
     if (result.gone) {
-      await fsHttp('PATCH', `${BASE()}/agencies/${agencyId}/clients/${clientId}?updateMask.fieldPaths=pushSubscription`, {
-        fields: { pushSubscription: { nullValue: null } }
-      }, token);
+      await fsHttp('PATCH',`${BASE()}/agencies/${agencyId}/clients/${clientId}?updateMask.fieldPaths=pushSubscription`,
+        {fields:{pushSubscription:{nullValue:null}}},token).catch(()=>{});
     }
-
-    return new Response(JSON.stringify({ ok: result.ok, status: result.status }), { status: 200, headers: CORS });
-
+    return new Response(JSON.stringify(result),{status:200,headers:CORS});
   } catch(e) {
-    console.error('[send-push] error:', e.message);
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: CORS });
+    console.error('[send-push] error:',e.message);
+    return new Response(JSON.stringify({error:e.message}),{status:500,headers:CORS});
   }
 };
 
