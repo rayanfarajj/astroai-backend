@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <!-- PORTAL-VERSION: BILLING-v3 -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Portal">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="manifest" href="/client-portal-manifest.json">
+<link rel="apple-touch-icon" href="/icons/portal-icon-192.png">
 <title>Client Portal — Astro AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -251,9 +258,104 @@ textarea.finput{resize:vertical;line-height:1.6;}
   .stats{grid-template-columns:1fr;}
   .offer{flex-direction:column;align-items:flex-start;}
 }
+
+/* ── PWA / iPhone safe area ── */
+@supports(padding: env(safe-area-inset-top)) {
+  .topbar {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .sidebar {
+    padding-top: env(safe-area-inset-top);
+  }
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+/* Standalone: add top padding for status bar */
+@media all and (display-mode: standalone) {
+  .topbar { padding-top: 4px; }
+  .sidebar { box-shadow: 2px 0 20px rgba(0,0,0,.5); }
+}
+/* No rubber-band scroll */
+html, body { overscroll-behavior: none; }
+
+/* ── Install banner ── */
+#pwa-banner {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #111827;
+  border-top: 1px solid rgba(0,217,163,.3);
+  padding: 14px 20px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 9998;
+  align-items: center;
+  gap: 12px;
+  animation: slideup .3s ease;
+}
+#pwa-banner.show { display: flex; }
+@keyframes slideup { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.pwa-banner-icon { font-size: 1.8rem; flex-shrink: 0; }
+.pwa-banner-text { flex: 1; }
+.pwa-banner-title { font-size: .85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
+.pwa-banner-sub { font-size: .72rem; color: #8892a4; line-height: 1.4; }
+.pwa-banner-btn {
+  background: #00d9a3; color: #0a0e1a;
+  border: none; border-radius: 8px;
+  padding: 9px 16px; font-size: .78rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+  flex-shrink: 0;
+}
+.pwa-banner-close {
+  background: none; border: none; color: #4a5568;
+  font-size: 1.1rem; cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+
+/* ── Push notification permission bar ── */
+#notif-bar {
+  display: none;
+  background: rgba(0,217,163,.08);
+  border-bottom: 1px solid rgba(0,217,163,.15);
+  padding: 10px 20px;
+  align-items: center;
+  gap: 10px;
+  font-size: .78rem;
+}
+#notif-bar.show { display: flex; }
+.notif-bar-text { flex: 1; color: #8892a4; }
+.notif-bar-text strong { color: #e2e8f0; }
+.notif-bar-btn {
+  background: #00d9a3; color: #0a0e1a;
+  border: none; border-radius: 6px;
+  padding: 6px 12px; font-size: .74rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; flex-shrink: 0;
+}
+.notif-bar-dismiss {
+  background: none; border: none; color: #4a5568;
+  cursor: pointer; font-size: .9rem; flex-shrink: 0;
+}
 </style>
 </head>
 <body>
+
+<!-- PWA Install Banner (iOS) -->
+<div id="pwa-banner">
+  <div class="pwa-banner-icon">📱</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Add to Home Screen</div>
+    <div class="pwa-banner-sub">Install your portal for instant access, offline support, and notifications.</div>
+  </div>
+  <button class="pwa-banner-btn" onclick="showInstallInstructions()">Install</button>
+  <button class="pwa-banner-close" onclick="dismissBanner()">✕</button>
+</div>
+
+<!-- Push Notification Permission Bar -->
+<div id="notif-bar">
+  <span class="notif-bar-text">🔔 <strong>Stay updated</strong> — get notified when your plan is ready or your agency sends updates.</span>
+  <button class="notif-bar-btn" onclick="requestNotifPermission()">Enable</button>
+  <button class="notif-bar-dismiss" onclick="dismissNotifBar()">✕</button>
+</div>
 
 <div id="loading">
   <div class="load-logo">
@@ -800,6 +902,112 @@ function renderBilling(b) {
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 init();
+
+// ── PWA: Service Worker Registration ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/portal-sw.js')
+      .then(reg => {
+        console.log('[PWA] SW registered:', reg.scope);
+        // Check for push subscription after registration
+        checkNotifBar(reg);
+      })
+      .catch(err => console.log('[PWA] SW failed:', err));
+  });
+}
+
+// ── PWA: iOS Install Banner ──────────────────────────────────────────────────
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+(function checkInstallBanner() {
+  // Only show on iOS Safari, not already installed, not dismissed recently
+  if (!isIOS() || isStandalone()) return;
+  const dismissed = localStorage.getItem('pwa-banner-dismissed');
+  if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return; // 7 days
+  // Show after 3 seconds
+  setTimeout(() => {
+    document.getElementById('pwa-banner').classList.add('show');
+  }, 3000);
+})();
+
+function dismissBanner() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('pwa-banner-dismissed', Date.now().toString());
+}
+
+function showInstallInstructions() {
+  dismissBanner();
+  // iOS-specific: show share sheet instructions
+  const msg = 'To install:\n\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right\n\nYour portal will appear as an app icon!';
+  alert(msg);
+}
+
+// ── PWA: Push Notification Bar ───────────────────────────────────────────────
+async function checkNotifBar(reg) {
+  // Don't show if already granted/denied or dismissed
+  if (Notification.permission !== 'default') return;
+  const dismissed = localStorage.getItem('notif-bar-dismissed');
+  if (dismissed) return;
+  // Show after 8 seconds (after user has engaged with the portal)
+  setTimeout(() => {
+    document.getElementById('notif-bar').classList.add('show');
+  }, 8000);
+}
+
+function dismissNotifBar() {
+  document.getElementById('notif-bar').classList.remove('show');
+  localStorage.setItem('notif-bar-dismissed', '1');
+}
+
+async function requestNotifPermission() {
+  dismissNotifBar();
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      // Subscribe to push notifications
+      const reg = await navigator.serviceWorker.ready;
+      // For now just show a confirmation — full VAPID push requires backend setup
+      new Notification('Notifications Enabled! 🎉', {
+        body: 'You\'ll be notified when your marketing plan is ready and when your agency sends updates.',
+        icon: '/icons/portal-icon-192.png',
+        tag: 'welcome',
+      });
+      // Store subscription info
+      localStorage.setItem('notif-enabled', '1');
+      localStorage.setItem('notif-slug', slug);
+    }
+  } catch(e) {
+    console.log('[PWA] Notification permission error:', e.message);
+  }
+}
+
+// ── PWA: Handle URL shortcuts (goto param) ───────────────────────────────────
+(function handleShortcuts() {
+  const goto = new URLSearchParams(location.search).get('goto');
+  if (goto && document.getElementById(goto)) {
+    // Navigate to the section after portal loads
+    window.addEventListener('portalLoaded', () => {
+      const btn = document.querySelector(`[onclick*="${goto}"]`);
+      go(goto, btn);
+    });
+  }
+})();
+
+// ── PWA: Fire portalLoaded event when init completes ────────────────────────
+// (patched into init success path via MutationObserver on loading div)
+const _loadObs = new MutationObserver(() => {
+  const loading = document.getElementById('loading');
+  if (loading && loading.classList.contains('out')) {
+    window.dispatchEvent(new Event('portalLoaded'));
+    _loadObs.disconnect();
+  }
+});
+_loadObs.observe(document.getElementById('loading'), { attributes: true, attributeFilter: ['class'] });
 </script>
 </body>
 </html>
