@@ -477,6 +477,17 @@ html, body { overscroll-behavior: none; }
     <!-- OVERVIEW -->
     <div class="section active" id="s-overview">
       <div id="offer-wrap"></div>
+
+      <!-- Notification enable card — only shown when not yet subscribed -->
+      <div id="notif-card" style="display:none;background:linear-gradient(135deg,rgba(0,217,163,.08),rgba(0,217,163,.03));border:1px solid rgba(0,217,163,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="font-size:1.4rem;flex-shrink:0">🔔</div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:.85rem;color:#e2e8f0;margin-bottom:2px">Get notified instantly</div>
+          <div style="font-size:.75rem;color:#8892a4;line-height:1.4">Get alerts when your plan is ready or your agency has updates — even when the app is closed.</div>
+        </div>
+        <button id="notif-enable-btn" onclick="requestNotifPermission()" style="background:#00d9a3;color:#0a0e1a;border:none;border-radius:8px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">Enable Notifications</button>
+      </div>
+
       <div class="hero" id="hero">
         <div class="hero-biz" id="h-biz">—</div>
         <div class="hero-greet" id="h-greet"></div>
@@ -1155,43 +1166,26 @@ async function showInstallInstructions() {
 
 // ── PWA: Push Notification Bar ───────────────────────────────────────────────
 async function checkNotifBar(reg) {
-  const dismissed = localStorage.getItem('notif-bar-dismissed');
-  if (dismissed) return;
+  // Push not supported on this browser — hide everything silently
+  if (!('Notification' in window) || !('PushManager' in window)) return;
 
-  // iOS Safari NOT installed as PWA = push not available yet
-  // Show a different message prompting them to install first
-  if (isIOS() && !isStandalone()) {
-    // Don't show notif bar on uninstalled iOS — install banner handles it
-    return;
-  }
+  // iOS Safari NOT installed as PWA — push doesn't work until installed
+  if (isIOS() && !isStandalone()) return;
 
-  // Check if push is supported
-  if (!('Notification' in window) || !('PushManager' in window)) {
-    // Browser doesn't support push — skip silently
-    return;
-  }
+  // Already denied — nothing we can do
+  if (Notification.permission === 'denied') return;
 
-  // Already granted and subscribed — skip
+  // Already granted and subscribed — card stays hidden
   if (Notification.permission === 'granted') {
     try {
       const sub = await reg.pushManager.getSubscription();
-      if (sub) return;
+      if (sub) return; // already subscribed — hide card
     } catch(e) {}
   }
 
-  // Explicitly denied — skip
-  if (Notification.permission === 'denied') return;
-
-  // Show after 8 seconds
-  setTimeout(() => {
-    // Update text based on context
-    const isInstalledPWA = isStandalone();
-    if (isInstalledPWA) {
-      document.getElementById('notif-bar-text').innerHTML = 
-        '🔔 <strong>Enable notifications</strong> — get alerted when your marketing plan is ready.';
-    }
-    document.getElementById('notif-bar').classList.add('show');
-  }, 8000);
+  // Show the in-dashboard notification card (no annoying auto-popup)
+  const card = document.getElementById('notif-card');
+  if (card) card.style.display = 'flex';
 }
 
 function dismissNotifBar() {
@@ -1211,6 +1205,9 @@ function urlBase64ToUint8Array(base64String) {
 
 async function requestNotifPermission() {
   dismissNotifBar();
+  // Show loading state on button
+  const enableBtn = document.getElementById('notif-enable-btn');
+  if (enableBtn) { enableBtn.textContent = '⏳ Enabling...'; enableBtn.disabled = true; }
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -1241,6 +1238,10 @@ async function requestNotifPermission() {
 
     if (result.ok) {
       localStorage.setItem('notif-enabled', '1');
+      // Hide the card permanently
+      const card = document.getElementById('notif-card');
+      if (card) card.style.display = 'none';
+      document.getElementById('notif-bar').classList.remove('show');
       // Show a welcome notification immediately to confirm it works
       reg.showNotification('Notifications Enabled! 🔔', {
         body: "You'll be notified when your plan is ready and when your agency has updates for you.",
@@ -1248,17 +1249,17 @@ async function requestNotifPermission() {
         tag:  'welcome',
         data: { url: `/onboard/portal?a=${_agencyId}&s=${slug}` },
       });
-      toast('✅ Push notifications enabled!');
+      toast('✅ Notifications enabled!');
     } else {
       toast('❌ Could not save notification settings');
     }
   } catch(e) {
     console.log('[PWA] Push subscription error:', e.message);
-    // iOS Safari < 16.4 doesn't support push — graceful fallback
+    if (enableBtn) { enableBtn.textContent = 'Enable Notifications'; enableBtn.disabled = false; }
     if (e.name === 'NotSupportedError' || e.message.includes('not supported')) {
-      toast('Push notifications require iOS 16.4+ with Safari');
+      toast('Push notifications require iOS 16.4+ or Chrome');
     } else {
-      toast('Could not enable notifications: ' + e.message.slice(0, 60));
+      toast('Could not enable: ' + e.message.slice(0, 60));
     }
   }
 }
