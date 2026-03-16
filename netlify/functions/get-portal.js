@@ -193,6 +193,7 @@ export default async (req) => {
     }
 
     //  REFERRAL BONUS 
+    let services = [];
     // -- SERVICES
     if (agencyId && slug) {
       try {
@@ -224,7 +225,6 @@ export default async (req) => {
     let tiktokAgencyId = '';
     let linkedinAgencyId = '';
     let wordpressSiteUrl = '';
-    let services = [];
     let bookingUrl = '';
     let supportPhone = '';
     let supportEmail = '';
