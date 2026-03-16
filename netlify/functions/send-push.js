@@ -102,6 +102,7 @@ function sendWebPush(subscription, payload) {
         'Content-Encoding': 'aes128gcm',
         'Content-Length':   body.length,
         'TTL':              '86400',
+        'Urgency':          'high',
       },
     }, res => {
       let d=''; res.on('data',c=>d+=c);
