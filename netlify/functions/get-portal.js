@@ -50,6 +50,17 @@ function fsListPayments(token, agencyId, slug) {
   });
 }
 
+function fsListServices(token, agencyId, slug) {
+  return new Promise((resolve) => {
+    const path = `${BASE()}/agencies/${agencyId}/clients/${slug}/services?pageSize=100`;
+    const r = https.request({hostname:'firestore.googleapis.com',path,method:'GET',headers:{'Authorization':'Bearer '+token}},res=>{
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){resolve({})}});
+    });
+    r.on('error',()=>resolve({})); r.end();
+  });
+}
+
 function fromFS(v) {
   if (!v) return null;
   if ('stringValue'  in v) return v.stringValue;
@@ -182,6 +193,29 @@ export default async (req) => {
     }
 
     //  REFERRAL BONUS 
+    // -- SERVICES
+    if (agencyId && slug) {
+      try {
+        const svcResp = await fsListServices(token, agencyId, slug);
+        services = (svcResp.documents || []).map(doc => {
+          const f = doc.fields || {};
+          const s = k => f[k]?.stringValue || '';
+          return {
+            id:            doc.name.split('/').pop(),
+            headline:      s('headline'),
+            description:   s('description'),
+            amount:        s('amount'),
+            paymentStatus: s('paymentStatus'),
+            orderDate:     s('orderDate'),
+            orderStatus:   s('orderStatus'),
+            createdAt:     s('createdAt'),
+          };
+        }).sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+      } catch(e) {
+        console.log('[get-portal] services error:', e.message);
+      }
+    }
+
     let referralBonus = '';
     let referralResources = '';
     let metaBusinessId = '';
@@ -189,6 +223,7 @@ export default async (req) => {
     let tiktokAgencyId = '';
     let linkedinAgencyId = '';
     let wordpressSiteUrl = '';
+    let services = [];
     let bookingUrl = '';
     let supportPhone = '';
     let supportEmail = '';
@@ -218,7 +253,7 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, metaBusinessId, googleManagerId, tiktokAgencyId, linkedinAgencyId, wordpressSiteUrl, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
+    return new Response(JSON.stringify({client, offer, billing, services, referralBonus, referralResources, metaBusinessId, googleManagerId, tiktokAgencyId, linkedinAgencyId, wordpressSiteUrl, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]', e.message);
