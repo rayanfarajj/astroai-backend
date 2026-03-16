@@ -176,19 +176,33 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .pstat-late{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
 .pstat-cancelled{background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid var(--border)}
 
-/* PLATFORM TABS */
-.ptabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;}
-.ptab{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);font-size:.76rem;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .15s;font-family:var(--font);}
-.ptab.active{background:var(--teal-dim);border-color:rgba(0,217,163,.3);color:var(--teal);}
+/* PLATFORM TABS — redesigned */
+.ptabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.ptab{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);font-size:.76rem;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .18s;font-family:var(--font);}
+.ptab:hover{background:var(--surface-3);color:var(--text);}
+.ptab.active{background:color-mix(in srgb, var(--plat-color, var(--teal)) 12%, transparent);border-color:color-mix(in srgb, var(--plat-color, var(--teal)) 40%, transparent);color:var(--text);}
 .ptab-pane{display:none;}
 .ptab-pane.active{display:block;}
-.step-list{list-style:none;}
-.step-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text-dim);line-height:1.6;}
-.step-item:last-child{border:none;}
-.step-n{min-width:22px;height:22px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border-2);color:var(--text-dim);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0;margin-top:1px;}
-.step-item a{color:var(--teal);text-decoration:none;}
-.step-item a:hover{text-decoration:underline;}
-.access-note{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:7px;padding:10px 14px;font-size:.75rem;color:#fdba74;margin-top:12px;line-height:1.5;}
+.acc-panel-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;border:1px solid;margin-bottom:14px;}
+.acc-panel-icon{font-size:1.6rem;line-height:1;}
+.acc-panel-title{font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:2px;}
+.acc-panel-sub{font-size:.72rem;color:var(--text-muted);}
+.acc-subtabs{display:flex;gap:6px;margin-bottom:14px;}
+.acc-subtab{flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);font-size:.75rem;font-weight:600;cursor:pointer;color:var(--text-dim);transition:all .15s;font-family:var(--font);text-align:center;}
+.acc-subtab:hover{background:var(--surface-3);}
+.acc-subtab.active{background:var(--teal-dim);border-color:rgba(0,217,163,.3);color:var(--teal);}
+.acc-subpane{display:none;}
+.acc-subpane.active{display:block;}
+.acc-new-banner{display:flex;gap:10px;align-items:flex-start;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px 14px;font-size:.78rem;color:#fdba74;line-height:1.5;margin-bottom:12px;}
+.acc-new-banner span{font-size:1.2rem;flex-shrink:0;margin-top:1px;}
+.acc-steps{list-style:none;margin:0;padding:0;}
+.acc-step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text-dim);line-height:1.6;}
+.acc-step:last-child{border:none;}
+.acc-step-n{min-width:24px;height:24px;border-radius:50%;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0;margin-top:1px;}
+.acc-step-txt a{color:var(--teal);text-decoration:none;}
+.acc-step-txt a:hover{text-decoration:underline;}
+.acc-step-txt strong{color:var(--text);}
+.acc-note-bar{background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:10px 14px;font-size:.74rem;color:#fdba74;margin-top:14px;line-height:1.5;}
 
 /* FORMS */
 .fgrp{margin-bottom:12px;}
@@ -679,11 +693,137 @@ const STEPS  = [
   {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:'▶'},
   {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:'★'},
 ];
-const PLATS = {
-  meta:{label:'Meta / Facebook',steps:['Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> and log in.','Click grid icon → select your Business Account.','Go to Settings → Users → Partners.','Click "Add Partner" and enter our <strong id=\"meta-bid-step\">Partner Business ID</strong>.','Grant Manage Campaigns access on your Ad Account.','Click Save. We\'ll begin setup within 24 hours.'],note:'Need help? Reply to your welcome email and we\'ll walk you through it.'},
-  google:{label:'Google Ads',steps:['Sign in to <a href="https://ads.google.com" target="_blank">ads.google.com</a>.','Click ⚙️ → Setup → Account Access.','Click "+" → Invite Users.','Enter: ads@astroaibots.com','Set access level to Standard.','Click Send Invitation. We\'ll accept within 24 hours.'],note:'Make sure you\'re logged into the Google account linked to your Ads account.'},
-  tiktok:{label:'TikTok Ads',steps:['Go to <a href="https://ads.tiktok.com" target="_blank">ads.tiktok.com</a> and log in.','Click your account name → Account Settings.','Go to User Management → Users.','Click "Assign Role".','Enter ads@astroaibots.com → assign Operator role.','Click Confirm.'],note:'Ensure your TikTok Ads account is a Business account.'},
+// ── Ad Account Platforms ─────────────────────────────────────────
+// Each platform: label, icon, agencyIdField (filled at runtime), existingSteps, newSteps, note
+const PLAT_DEFS = {
+  meta: {
+    label: 'Meta / Facebook',
+    icon: '📘',
+    color: '#1877f2',
+    idLabel: 'Partner Business ID',
+    idField: 'metaBusinessId',
+    existing: [
+      'Go to <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a> and log in.',
+      'Click the grid icon (⊞) in the top left → select your <strong>Business Account</strong>.',
+      'Go to <strong>Settings → Users → Partners</strong>.',
+      'Click <strong>"Add Partner"</strong> → enter our Partner Business ID: <span class="bid-placeholder" data-field="metaBusinessId">your agency will provide this</span>',
+      'Under your Ad Account, grant <strong>Manage Campaigns</strong> access.',
+      'Click <strong>Save</strong> — we\'ll begin setup within 24 hours. 🎉',
+    ],
+    newAcct: [
+      'Go to <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a> → click <strong>"Create Account"</strong>.',
+      'Enter your business name, your name, and your work email → click <strong>Next</strong>.',
+      'Fill in your business details and click <strong>Submit</strong>.',
+      'Inside Business Manager, click <strong>Accounts → Ad Accounts → Add → Create a New Ad Account</strong>.',
+      'Name it, set your time zone and currency → click <strong>Next</strong>.',
+      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing → Payment Settings → Add Payment Method</strong> (credit card or PayPal).',
+      'Now follow the <em>I already have an account</em> steps above to grant us access.',
+    ],
+    note: 'A Business Manager account is required to run ads. Personal Facebook accounts cannot run campaigns.',
+  },
+  google: {
+    label: 'Google Ads',
+    icon: '🎯',
+    color: '#4285f4',
+    idLabel: 'Manager Account ID',
+    idField: 'googleManagerId',
+    existing: [
+      'Sign in to <a href="https://ads.google.com" target="_blank" rel="noopener">ads.google.com</a> with the Google account linked to your Ads account.',
+      'Click the <strong>⚙️ Settings</strong> icon (top right) → <strong>Setup → Access and security</strong>.',
+      'Click the <strong>Managers</strong> tab → click the <strong>+</strong> button.',
+      'Enter our Manager Account ID: <span class="bid-placeholder" data-field="googleManagerId">your agency will provide this</span>',
+      'Click <strong>Send Request</strong> — we\'ll accept and begin setup within 24 hours. 🎉',
+    ],
+    newAcct: [
+      'Go to <a href="https://ads.google.com" target="_blank" rel="noopener">ads.google.com</a> → click <strong>"Start now"</strong>.',
+      'Sign in with your Google account (or create one at google.com).',
+      'Google will try to guide you through a "Smart Campaign" — click <strong>"Switch to Expert Mode"</strong> at the bottom to skip.',
+      'Click <strong>"Create an account without a campaign"</strong>.',
+      'Confirm your billing country, time zone, and currency → click <strong>Submit</strong>.',
+      '⚠️ <strong>Add a payment method</strong>: go to <strong>Tools → Billing → Summary → Add payment method</strong>.',
+      'Now follow the <em>I already have an account</em> steps above to grant us access.',
+    ],
+    note: 'Use the same Google account you want linked to your ads. You can change billing settings at any time.',
+  },
+  tiktok: {
+    label: 'TikTok Ads',
+    icon: '🎵',
+    color: '#fe2c55',
+    idLabel: 'Agency Account ID',
+    idField: 'tiktokAgencyId',
+    existing: [
+      'Go to <a href="https://ads.tiktok.com" target="_blank" rel="noopener">ads.tiktok.com</a> and log in.',
+      'Click your <strong>account name</strong> (top right) → <strong>Account Settings</strong>.',
+      'Go to <strong>User Management → Users → Assign Role</strong>.',
+      'Enter our agency email: <span class="bid-placeholder" data-field="tiktokAgencyId">your agency will provide this</span>',
+      'Assign the <strong>Operator</strong> role → click <strong>Confirm</strong>.',
+      'We\'ll begin setup within 24 hours. 🎉',
+    ],
+    newAcct: [
+      'Go to <a href="https://ads.tiktok.com" target="_blank" rel="noopener">ads.tiktok.com</a> → click <strong>"Get started"</strong>.',
+      'Sign up with your email or log in with an existing TikTok account.',
+      'Select your <strong>country</strong>, enter your <strong>business name</strong>, and set your <strong>currency</strong>.',
+      'Complete email verification → click <strong>Register</strong>.',
+      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing → Payment → Add Payment Method</strong>.',
+      'Your account must be a <strong>Business account</strong> to run ads.',
+      'Now follow the <em>I already have an account</em> steps above to grant us access.',
+    ],
+    note: 'TikTok Ads require a Business Center account. Personal TikTok accounts cannot run ads.',
+  },
+  linkedin: {
+    label: 'LinkedIn Ads',
+    icon: '💼',
+    color: '#0a66c2',
+    idLabel: 'Agency Account ID',
+    idField: 'linkedinAgencyId',
+    existing: [
+      'Go to <a href="https://www.linkedin.com/campaignmanager" target="_blank" rel="noopener">Campaign Manager</a> and log in.',
+      'Select your <strong>Ad Account</strong> from the list.',
+      'Click <strong>Account Settings</strong> (top right gear icon).',
+      'Go to <strong>Manage Access → Users</strong> → click <strong>"Add User"</strong>.',
+      'Enter our agency email: <span class="bid-placeholder" data-field="linkedinAgencyId">your agency will provide this</span>',
+      'Set role to <strong>Campaign Manager</strong> → click <strong>Save</strong>. 🎉',
+    ],
+    newAcct: [
+      'Go to <a href="https://www.linkedin.com/campaignmanager" target="_blank" rel="noopener">linkedin.com/campaignmanager</a>.',
+      'Click <strong>"Create Account"</strong> — you\'ll need a LinkedIn personal profile first.',
+      'Enter your <strong>Account Name</strong> (your business name) and select your <strong>currency</strong>.',
+      'Associate a <strong>LinkedIn Page</strong> for your business (create one free at linkedin.com/company/setup/new/).',
+      '⚠️ <strong>Add a payment method</strong>: go to <strong>Billing Center → Add a Payment Method</strong>.',
+      'Now follow the <em>I already have an account</em> steps above to grant us access.',
+    ],
+    note: 'LinkedIn Ads work best for B2B. You need a LinkedIn Company Page before running ads.',
+  },
+  wordpress: {
+    label: 'WordPress',
+    icon: '🌐',
+    color: '#21759b',
+    idLabel: 'WordPress Site URL',
+    idField: 'wordpressSiteUrl',
+    existing: [
+      'Log in to your WordPress dashboard at <strong>yoursite.com/wp-admin</strong>.',
+      'Go to <strong>Users → Add New</strong>.',
+      'Enter our agency email: <span class="bid-placeholder" data-field="wordpressSiteUrl">your agency will provide this</span>',
+      'Set the <strong>Role</strong> to <strong>Administrator</strong>.',
+      'Click <strong>"Add New User"</strong> — we\'ll receive an email invitation. 🎉',
+    ],
+    newAcct: [
+      'Go to <a href="https://wordpress.com" target="_blank" rel="noopener">wordpress.com</a> → click <strong>"Start your website"</strong>.',
+      'Enter your email, username, and password → click <strong>Create Account</strong>.',
+      'Choose a <strong>domain name</strong> (or use a free .wordpress.com subdomain to start).',
+      'Select a <strong>plan</strong> — the Business plan is needed for plugins and custom themes.',
+      '⚠️ <strong>Add a payment method</strong> if you choose a paid plan: enter your card details at checkout.',
+      'Once your site is live, follow the <em>I already have an account</em> steps above.',
+    ],
+    note: 'For best results give us Administrator access. This lets us install plugins, manage SEO, and build landing pages.',
+  },
 };
+
+function copyBid(id) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(id).then(() => toast('✅ Copied!')).catch(() => toast('Copy: ' + id));
+  } else { toast('ID: ' + id); }
+}
 
 function copyBid(id) {
   if (navigator.clipboard) {
@@ -724,35 +864,77 @@ function buildTL(status) {
   }).join('');
 }
 
-function buildPlatforms(adPlatforms, metaBusinessId) {
-  const p=(adPlatforms||'').toLowerCase();
-  const keys=[];
-  if(p.includes('facebook')||p.includes('meta')||p.includes('instagram')||(!p.includes('google')&&!p.includes('tiktok'))) keys.push('meta');
-  if(p.includes('google')) keys.push('google');
-  if(p.includes('tiktok')) keys.push('tiktok');
-  if(!keys.length) keys.push('meta');
-  document.getElementById('ptabs').innerHTML = keys.map((k,i)=>`<button class="ptab ${i===0?'active':''}" onclick="switchPT('${k}',this)">${PLATS[k].label}</button>`).join('');
-  document.getElementById('ptab-panes').innerHTML = keys.map((k,i)=>{
-    const pl=PLATS[k];
+function buildPlatforms(adPlatforms, agencyIds) {
+  // Always show all 5 platforms
+  const allKeys = ['meta','google','tiktok','linkedin','wordpress'];
+  const wrap = document.getElementById('ptab-panes');
+  const tabBar = document.getElementById('ptabs');
+
+  // Build platform selector tabs
+  tabBar.innerHTML = allKeys.map((k,i) => {
+    const pl = PLAT_DEFS[k];
+    return `<button class="ptab ${i===0?'active':''}" onclick="switchPT('${k}',this)" style="--plat-color:${pl.color}">
+      <span>${pl.icon}</span><span>${pl.label}</span>
+    </button>`;
+  }).join('');
+
+  // Build each platform panel
+  wrap.innerHTML = allKeys.map((k,i) => {
+    const pl = PLAT_DEFS[k];
+    const agencyVal = agencyIds[pl.idField] || '';
+
+    const renderSteps = (steps) => steps.map((s,si) => {
+      // Replace bid-placeholder with actual value if available
+      let html = s;
+      if (agencyVal && s.includes('bid-placeholder')) {
+        const display = `<span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 10px;border-radius:6px;color:var(--teal);font-weight:700">${agencyVal}</span> <button onclick="copyBid('${agencyVal}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:6px;padding:2px 10px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px">📋 Copy</button>`;
+        html = s.replace(/<span class="bid-placeholder"[^>]*>[^<]*<\/span>/, display);
+      } else if (!agencyVal && s.includes('bid-placeholder')) {
+        html = s.replace(/<span class="bid-placeholder"[^>]*>[^<]*<\/span>/, '<em style="color:var(--text-muted)">Contact your agency for this ID</em>');
+      }
+      return `<li class="acc-step"><div class="acc-step-n" style="background:${pl.color}20;border-color:${pl.color}40;color:${pl.color}">${si+1}</div><div class="acc-step-txt">${html}</div></li>`;
+    }).join('');
+
     return `<div class="ptab-pane ${i===0?'active':''}" id="ptp-${k}">
-      <ul class="step-list">${pl.steps.map((s,si)=>`<li class="step-item"><div class="step-n">${si+1}</div><div>${s}</div></li>`).join('')}</ul>
-      <div class="access-note">💡 ${pl.note}</div>
+      <div class="acc-panel-hd" style="border-color:${pl.color}30;background:${pl.color}08">
+        <span class="acc-panel-icon">${pl.icon}</span>
+        <div>
+          <div class="acc-panel-title">${pl.label} Access</div>
+          <div class="acc-panel-sub">Follow the steps below to connect your account</div>
+        </div>
+      </div>
+      <div class="acc-subtabs">
+        <button class="acc-subtab active" onclick="switchSubtab('${k}','existing',this)">✅ I have an account</button>
+        <button class="acc-subtab" onclick="switchSubtab('${k}','new',this)">🆕 I need an account</button>
+      </div>
+      <div class="acc-subpane active" id="acc-${k}-existing">
+        <ul class="acc-steps">${renderSteps(pl.existing)}</ul>
+      </div>
+      <div class="acc-subpane" id="acc-${k}-new">
+        <div class="acc-new-banner">
+          <span>🚀</span>
+          <div><strong>Creating a new ${pl.label} account?</strong> Follow these steps to get set up, then come back here to grant us access.</div>
+        </div>
+        <ul class="acc-steps">${renderSteps(pl.newAcct)}</ul>
+      </div>
+      <div class="acc-note-bar">💡 ${pl.note}</div>
     </div>`;
   }).join('');
-  // Inject dynamic Meta Business ID into step 4 after render
-  if (metaBusinessId && keys.includes('meta')) {
-    const el = document.getElementById('meta-bid-step');
-    if (el) {
-      el.outerHTML = `<span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 8px;border-radius:5px;color:var(--teal)">${metaBusinessId}</span> <button onclick="copyBid('${metaBusinessId}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px">Copy</button>`;
-    }
-  }
 }
 
-function switchPT(key,btn){
+function switchPT(key, btn) {
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.ptab-pane').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ptp-'+key)?.classList.add('active');
+}
+
+function switchSubtab(platKey, tab, btn) {
+  const panel = document.getElementById('ptp-'+platKey);
+  panel.querySelectorAll('.acc-subtab').forEach(t=>t.classList.remove('active'));
+  panel.querySelectorAll('.acc-subpane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`acc-${platKey}-${tab}`)?.classList.add('active');
 }
 
 async function uploadFile(file) {
@@ -983,7 +1165,13 @@ async function init() {
     if(C.dashboardUrl) document.getElementById('plan-link').href=C.dashboardUrl;
 
     // Platforms
-    buildPlatforms(C.adPlatforms, data.metaBusinessId || '');
+    buildPlatforms(C.adPlatforms, {
+      metaBusinessId:   data.metaBusinessId   || '',
+      googleManagerId:  data.googleManagerId  || '',
+      tiktokAgencyId:   data.tiktokAgencyId   || '',
+      linkedinAgencyId: data.linkedinAgencyId || '',
+      wordpressSiteUrl: data.wordpressSiteUrl  || '',
+    });
 
     // Offer
     if(offer&&offer.title&&offer.ctaUrl){
