@@ -632,7 +632,7 @@ html, body { overscroll-behavior: none; }
       <div class="page-hd"><h1>Refer a Friend</h1><p id="ref-page-sub">Know a business that could use great marketing? Send them our way!</p></div>
       <div class="ref-hero">
         <div><div class="ref-l">Referrals Sent</div><div class="ref-n" id="ref-n">0</div></div>
-        <div style="font-size:2.5rem"></div>
+        <div style="display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,12 20,22 4,22 4,12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
       </div>
       <div class="card" id="ref-bonus-card" style="display:none">
         <div class="card-body" style="padding:16px 20px">
@@ -729,17 +729,17 @@ let _sessionRefCount = -1; // -1 means not yet set; once set, never decremented
 
 const TITLES = {'s-overview':'Dashboard','s-plan':'My Plan','s-access':'Ad Account Access','s-files':'Files & Documents','s-services':'My Services','s-billing':'Billing','s-resources':'Resources','s-refer':'Refer a Friend','s-message':'Message Us'};
 const STEPS  = [
-  {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:''},
-  {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:''},
-  {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:''},
-  {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:''},
+  {label:'Onboarding Complete',  desc:'Your info has been received and your plan is being prepared.', icon:'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>'},
+  {label:'Marketing Plan Ready', desc:'Your AI strategy, ad copy, and targeting plan are finalized.', icon:'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.5-1.5 3 0 4.5 1.5 0 3-.5 4.5-2L21 6.5c-1.5 0-3 .5-4.5 2L4.5 16.5z"/><path d="M15 11L9 17"/><path d="M15 11l-3-3"/></svg>'},
+  {label:'Campaign Live',        desc:'Your ads are running across your selected platforms.',          icon:'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>'},
+  {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21v-2a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v2"/><path d="M3 7V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><path d="M7 7c0 5 2.5 9 5 9s5-4 5-9"/><line x1="4" y1="7" x2="20" y2="7"/></svg>'},
 ];
 //  Ad Account Platforms 
 // Each platform: label, icon, agencyIdField (filled at runtime), existingSteps, newSteps, note
 const PLAT_DEFS = {
   meta: {
     label: 'Meta / Facebook',
-    icon: '',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
     color: '#1877f2',
     idLabel: 'Partner Business ID',
     idField: 'metaBusinessId',
@@ -764,7 +764,7 @@ const PLAT_DEFS = {
   },
   google: {
     label: 'Google Ads',
-    icon: '',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
     color: '#4285f4',
     idLabel: 'Manager Account ID',
     idField: 'googleManagerId',
@@ -788,7 +788,7 @@ const PLAT_DEFS = {
   },
   tiktok: {
     label: 'TikTok Ads',
-    icon: '',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>',
     color: '#fe2c55',
     idLabel: 'Agency Account ID',
     idField: 'tiktokAgencyId',
@@ -813,7 +813,7 @@ const PLAT_DEFS = {
   },
   linkedin: {
     label: 'LinkedIn Ads',
-    icon: '',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
     color: '#0a66c2',
     idLabel: 'Agency Account ID',
     idField: 'linkedinAgencyId',
@@ -837,7 +837,7 @@ const PLAT_DEFS = {
   },
   wordpress: {
     label: 'WordPress',
-    icon: '',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
     color: '#21759b',
     idLabel: 'WordPress Site URL',
     idField: 'wordpressSiteUrl',
@@ -1168,14 +1168,14 @@ function buildResources(data) {
 
     if (supportPhone) {
       html += `<a href="tel:${supportPhone}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.43 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportPhone}</div><div style="font-size:.72rem;color:var(--text-muted)">Tap to call</div></div>
       </a>`;
     }
 
     if (supportEmail) {
       html += `<a href="mailto:${supportEmail}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${supportEmail}</div><div style="font-size:.72rem;color:var(--text-muted)">Send an email</div></div>
       </a>`;
     }
@@ -1183,7 +1183,7 @@ function buildResources(data) {
     if (agencyWebsite) {
       const wsUrl = agencyWebsite.startsWith('http') ? agencyWebsite : 'https://' + agencyWebsite;
       html += `<a href="${wsUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:14px 18px;text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
-        <div style="width:34px;height:34px;border-radius:8px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0"></div>
+        <div style="width:34px;height:34px;border-radius:8px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#00d9a3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
         <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">${agencyWebsite}</div><div style="font-size:.72rem;color:var(--text-muted)">Visit website</div></div>
       </a>`;
     }
@@ -1208,7 +1208,7 @@ function buildResources(data) {
         const border = i < links.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
         html += `<a href="${link.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;${border}text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
           <span style="font-size:.82rem;font-weight:600;color:var(--text)">${link.label}</span>
-          <span style="color:var(--text-muted);font-size:.8rem"></span>
+          <span style="color:var(--text-muted)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg></span>
         </a>`;
       });
       html += '</div></div>';
