@@ -18,6 +18,41 @@
   --font:'DM Sans',sans-serif;--display:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --sidebar:244px;--radius:10px;
 }
+
+/* ── LIGHT MODE ─────────────────────────────────────────────── */
+html.light {
+  --bg:#f0f2f7;--surface:#ffffff;--surface-2:#f5f7fc;--surface-3:#eaecf4;
+  --border:rgba(0,0,0,.08);--border-2:rgba(0,0,0,.13);
+  --teal:#00a37a;--teal-dim:rgba(0,163,122,.1);--teal-glow:rgba(0,163,122,.2);
+  --red:#dc2626;--red-dim:rgba(220,38,38,.08);
+  --gold:#d97706;--gold-dim:rgba(217,119,6,.1);
+  --purple:#7c3aed;--purple-dim:rgba(124,58,237,.1);
+  --orange:#ea6c00;--orange-dim:rgba(234,108,0,.1);
+  --text:#0f1623;--text-dim:#3d4a63;--text-muted:#7a859e;
+}
+html.light body { background:var(--bg); color:var(--text); }
+html.light #app { background:var(--bg); }
+html.light .content { background:var(--bg); }
+html.light .page { background:var(--bg); }
+html.light .login-card { box-shadow:0 8px 32px rgba(0,0,0,.12); }
+html.light .topbar { background:var(--surface); border-bottom:1px solid var(--border); }
+html.light .sidebar { background:var(--surface); }
+html.light .content-inner { background:var(--bg); }
+html.light .card { box-shadow:0 1px 4px rgba(0,0,0,.06); }
+html.light .stat-card { box-shadow:0 1px 4px rgba(0,0,0,.06); }
+html.light .table-row:hover { background:var(--surface-2); }
+html.light .sheet { background:var(--surface); border-color:var(--border-2); }
+html.light .sf-input, html.light .sf-sel, html.light .sf-ta { background:var(--surface-2); border-color:var(--border-2); color:var(--text); }
+html.light .ad-card { background:var(--surface-2); }
+html.light .copy-field { background:var(--surface); }
+html.light .detail-tab { color:var(--text-dim); }
+html.light .detail-tab.active { color:var(--teal); background:var(--teal-dim); }
+html.light .angle-badge { opacity:.9; }
+html.light input, html.light textarea, html.light select { color:var(--text); }
+html.light .login-btn { color:#fff; }
+html.light .nav-item.active { color:var(--teal); }
+html.light .lead-card { background:var(--surface); }
+html.light .lead-card-list { background:var(--surface); }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13.5px}
@@ -147,8 +182,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
 .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
 .info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.info-card.wide{grid-column:1/-1}
 .info-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:5px}
-.info-val{font-size:.82rem;color:var(--text);line-height:1.4}
+.info-val{font-size:.82rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
 
 /* ANGLE BADGES + AD CARDS */
 .angle-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.62rem;font-weight:700;margin:10px 0 8px}
@@ -249,7 +285,8 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .leads-empty-sub{font-size:.8rem;line-height:1.6}
 
 /* SHEETS */
-.sheet{position:fixed;right:0;top:0;height:100vh;width:min(420px,95vw);background:var(--surface);border-left:1px solid var(--border-2);z-index:400;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-16px 0 48px rgba(0,0,0,.5)}
+.sheet{position:fixed;right:0;top:0;height:100vh;width:min(420px,95vw);background:var(--surface);border-left:1px solid var(--border-2);z-index:400;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:none}
+.sheet.open{box-shadow:-16px 0 48px rgba(0,0,0,.5)}
 .sheet.open{transform:translateX(0)}
 .sheet-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
 .sheet-title{font-family:var(--display);font-size:.95rem;font-weight:800;color:var(--text)}
@@ -431,6 +468,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <button class="sb-copy-btn" onclick="copyOnboardUrl()">📋 Copy Link</button>
     </div>
     <div class="sb-bottom">
+      <button class="sb-action" onclick="toggleTheme()" id="theme-btn" title="Toggle light/dark mode">
+        <span class="ni" id="theme-icon">🌙</span><span id="theme-label">Dark Mode</span>
+      </button>
       <button class="sb-action danger" onclick="logout()">
         <span class="ni">🚪</span><span>Sign Out</span>
       </button>
@@ -731,7 +771,52 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <label class="sf-label">Onboarding Page Title</label><input class="sf-input" id="set-title" placeholder="Get Your AI Marketing Plan">
     <label class="sf-label">Welcome Message</label><textarea class="sf-ta" id="set-welcome" placeholder="Welcome..."></textarea>
     <label class="sf-label">Terms Text</label><textarea class="sf-ta" id="set-terms" placeholder="By submitting..."></textarea>
-    <label class="sf-label">Terms URL</label><input class="sf-input" id="set-terms-url" placeholder="https://">
+    <label class="sf-label">Terms & Conditions URL
+      <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">Shown on onboarding authorization form</span>
+    </label>
+    <input class="sf-input" id="set-terms-url" placeholder="https://yoursite.com/terms">
+    <label class="sf-label" style="margin-top:10px">Privacy Policy URL
+      <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">Shown on onboarding authorization form</span>
+    </label>
+    <input class="sf-input" id="set-privacy-url" placeholder="https://yoursite.com/privacy">
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="sf-label" style="margin-bottom:6px;display:block">📣 Ad Account Access</label>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5">Shown to clients on the Ad Account Access tab so they can grant you access.</div>
+      <label class="sf-label">Meta / Facebook Partner Business ID</label>
+      <input class="sf-input" id="set-meta-business-id" placeholder="e.g. 123456789012345">
+    </div>
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="sf-label" style="margin-bottom:6px;display:block">📚 Client Resources</label>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5">These appear in the Resources tab of every client portal.</div>
+      <label class="sf-label">Scheduling / Booking URL</label>
+      <input class="sf-input" id="set-booking-url" placeholder="https://calendly.com/youragency">
+      <label class="sf-label" style="margin-top:8px">Support Phone</label>
+      <input class="sf-input" id="set-support-phone" placeholder="+1 (555) 000-0000">
+      <label class="sf-label" style="margin-top:8px">Support Email</label>
+      <input class="sf-input" id="set-support-email" placeholder="support@youragency.com">
+      <label class="sf-label" style="margin-top:8px">Agency Website</label>
+      <input class="sf-input" id="set-agency-website" placeholder="https://youragency.com">
+      <label class="sf-label" style="margin-top:8px">Custom Links
+        <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px">One per line: Label | URL</span>
+      </label>
+      <textarea class="sf-ta" id="set-custom-links" placeholder="Facebook Group | https://facebook.com/groups/...&#10;Training Videos | https://youtube.com/...&#10;Client Handbook | https://docs.google.com/..." style="height:80px"></textarea>
+    </div>
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="sf-label" style="margin-bottom:10px;display:block">🎨 Appearance</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px">
+        <div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--text)">Color Theme</div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">Switch between dark and light mode</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button id="set-dark-btn" onclick="setTheme('dark')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">🌙 Dark</button>
+          <button id="set-light-btn" onclick="setTheme('light')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">☀️ Light</button>
+          <button id="set-auto-btn" onclick="setTheme('auto')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">⚙️ Auto</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
@@ -970,7 +1055,32 @@ function dTab(btn,id){
 }
 function buildDetailInfo(c) {
   const el=document.getElementById('dt-info');
-  el.innerHTML=`<div class="info-grid">${[['Business',c.businessName],['Owner',c.clientName],['Email',c.clientEmail],['Phone',c.phone],['Industry',c.industry],['Service',c.primaryService],['Budget','$'+(c.adBudget||'?')+'/mo'],['Platforms',c.adPlatforms],['Goal',c.goal90],['Status',c.status]].map(([l,v])=>`<div class="info-card"><div class="info-lbl">${l}</div><div class="info-val">${esc(v||'—')}</div></div>`).join('')}</div>`;
+  if(!el) return;
+  const WIDE_FIELDS = new Set(['Description','What Sets Them Apart','Promotions/Offers','Ideal Customer','Interests',
+    'Qualifying Questions','Disqualifying Questions','What Worked',"What Didn't Work",
+    'Limitations/Avoid','Priorities','90-Day Goal','Qualified Lead','Bad Fit / Disqualifiers',
+    'Final Notes','Custom Q1','Custom Q2','Custom Q3','Mailing Address']);
+  const sec = (title, rows) => {
+    const filled = rows.filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=='—');
+    if(!filled.length) return '';
+    const cards = filled.map(([l,v])=>{
+      const isWide = WIDE_FIELDS.has(l) || String(v).length > 60;
+      return `<div class="info-card${isWide?' wide':''}"><div class="info-lbl">${l}</div><div class="info-val">${esc(String(v||'—'))}</div></div>`;
+    }).join('');
+    return `<div style="margin-bottom:18px"><div style="font-size:.6rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)">${title}</div><div class="info-grid">${cards}</div></div>`;
+  };
+  const addr = [c.mailingAddr1,c.mailingAddr2,c.mailingCity,c.mailingState,c.mailingZip].filter(Boolean).join(', ');
+  el.innerHTML =
+    sec('Contact & Business',[['Business',c.businessName],['Owner',c.clientName],['Email',c.clientEmail],['Phone',c.phone||c.bizPhone],['Website',c.website],['Company Size',c.companySize],['Industry',c.industry],['Primary Service',c.primaryService],['Description',c.bizDescription],['Mailing Address',addr],['Status',c.status],['Lead Source',c.leadSource]]) +
+    sec('Offer & Audience',[['Main Goal',c.mainGoal],['Avg Job Value',c.avgCustomerValue?'$'+c.avgCustomerValue:''],['What Sets Them Apart',c.standOut],['Promotions/Offers',c.promotions],['Ideal Customer',c.idealCustomer],['Age Groups',c.ageGroups],['Language',c.language],['Interests',c.interests],['Gender Preference',c.genderPref]]) +
+    sec('Budget & Platforms',[['Ad Budget',c.adBudget?'$'+c.adBudget+'/day':''],['Platforms',c.adPlatforms],['Open to Scale Budget',c.budgetIncrease],['Service Area Type',c.serviceAreaType],['Service Area Details',c.serviceDetails]]) +
+    sec('90-Day Goals',[['90-Day Goal',c.goal90||c.goal90Days],['Limitations/Avoid',c.limitations],['Priorities',c.priorities]]) +
+    sec('Lead Qualification',[['Qualified Lead',c.qualifiedLead],['Bad Fit / Disqualifiers',c.badLead],['Qualifying Questions',c.qualifyingQuestions],['Disqualifying Questions',c.disqualifyingQuestions],['Custom Q1',c.customQ1],['Custom Q2',c.customQ2],['Custom Q3',c.customQ3]]) +
+    sec('Lead Handoff',[['Lead Destination',c.leadDestination],['Lead Email',c.leadEmail],['Lead Phone',c.leadPhone],['Response Time',c.responseTime],['Dedicated Person',c.dedicatedPerson]]) +
+    sec('Past Marketing',[['Paid Ads Before',c.paidAdsBefore],['Platforms Used Before',c.platformsUsedBefore],['What Worked',c.workedWell],["What Didn't Work",c.notWorked]]) +
+    sec('Ad Account Access',[['Platforms',c.adPlatforms],['Access Method',c.accessMethod]]) +
+    sec('Authorization',[['Signer Name',c.authSignerName],['Signer Business',c.authSignerBusiness],['Signed At',c.authTimestamp?new Date(c.authTimestamp).toLocaleString():''],['Doc Reference',c.authDocRef],['IP Address',c.authIP]]) +
+    sec('Referral & Notes',[['Referred By',c.referredBy],['Referral Friend Name',c.referralFriendName||c.referralContact],['Referral Friend Email',c.referralFriendEmail],['Open to Upgrade',c.openToUpgrade],['Final Notes',c.finalNotes]]);
 }
 function buildAds(){
   const pane=document.getElementById('dt-ads');if(pane.dataset.loaded==='1')return;pane.dataset.loaded='1';
@@ -991,7 +1101,35 @@ function buildAds(){
         const vEl=document.createElement('div');vEl.className='copy-val';vEl.textContent=val||'';
         const b=document.createElement('button');b.className='copy-btn';b.textContent='Copy';b.onclick=()=>navigator.clipboard.writeText(val||'').then(()=>{b.textContent='✓';setTimeout(()=>b.textContent='Copy',2000)});
         r.appendChild(vEl);r.appendChild(b);f.appendChild(l);f.appendChild(r);card.appendChild(f);
-      });pane.appendChild(card);
+      });
+
+      // Image generation buttons row
+      const imgRow = document.createElement('div');
+      imgRow.style.cssText = 'display:flex;gap:6px;margin-top:10px;flex-wrap:wrap';
+
+      const promptBtn = document.createElement('button');
+      promptBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
+      promptBtn.textContent = '🎨 Get Prompt';
+      promptBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, promptBtn);
+
+      const openaiBtn = document.createElement('button');
+      openaiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(16,163,127,.06);color:#6b9e94;border:1px solid rgba(16,163,127,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
+      openaiBtn.textContent = '🔒 ChatGPT — Soon';
+      openaiBtn.title = 'Coming soon';
+      openaiBtn.disabled = true;
+
+      const geminiBtn = document.createElement('button');
+      geminiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(66,133,244,.06);color:#7090c0;border:1px solid rgba(66,133,244,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
+      geminiBtn.textContent = '🔒 Gemini — Soon';
+      geminiBtn.title = 'Coming soon';
+      geminiBtn.disabled = true;
+
+      imgRow.appendChild(promptBtn);
+      imgRow.appendChild(openaiBtn);
+      imgRow.appendChild(geminiBtn);
+      card.appendChild(imgRow);
+
+      pane.appendChild(card);
     });
   });
 }
@@ -1058,7 +1196,86 @@ function buildDetailOffer(c){
 function buildFiles(){
   const el=document.getElementById('dt-files');if(el.dataset.loaded==='1')return;el.dataset.loaded='1';
   if(!curClient)return;el.innerHTML='<div style="padding:10px 0;color:var(--text-muted);font-size:.8rem"><div class="spinner"></div>Loading...</div>';
-  fetch(API+'/list-files?slug='+encodeURIComponent(curClient._id||'')).then(r=>r.json()).then(data=>{el.innerHTML='';if(!data.files||!data.files.length){el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">No files uploaded yet.</p>';return;}data.files.forEach(f=>{const ext=(f.name||'').split('.').pop().toLowerCase();const icon=['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':ext==='zip'?'📦':'📎';const bytes=parseInt(f.size)||0;const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB';const row=document.createElement('div');row.className='file-row';row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info"><div class="file-name">${esc(f.name||'')}</div><div class="file-meta">${size}</div></div>${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank">↓ Download</a>`:''}`;el.appendChild(row);});}).catch(e=>{el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${esc(e.message)}</p>`;});
+  fetch(API+'/list-files?slug='+encodeURIComponent(curClient._id||'')).then(r=>r.json()).then(data=>{
+    el.innerHTML='';
+    if(!data.files||!data.files.length){
+      el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">No files yet.</p>';
+      return;
+    }
+    // Sort: protected/system files first (auth docs at top), then by date
+    const sorted = [...data.files].sort((a,b)=>{
+      if(a.systemFile && !b.systemFile) return -1;
+      if(!a.systemFile && b.systemFile) return 1;
+      return new Date(b.uploadedAt||0)-new Date(a.uploadedAt||0);
+    });
+    sorted.forEach(f=>{
+      const isProtected = f.protected || f.systemFile;
+      const isAuthDoc   = f.docType === 'authorization';
+      const ext=(f.name||'').split('.').pop().toLowerCase();
+      const icon = isAuthDoc ? '🔐' : ['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':ext==='zip'?'📦':'📎';
+      const bytes=parseInt(f.size)||0;
+      const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB';
+      const uploadedDate = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+
+      const row=document.createElement('div');
+      row.className='file-row';
+      row.style.cssText = isAuthDoc
+        ? 'border:1px solid rgba(var(--teal-rgb,0,217,163),0.3);background:rgba(var(--teal-rgb,0,217,163),0.04);border-radius:8px;margin-bottom:6px;'
+        : 'margin-bottom:4px;';
+
+      // Protected badge
+      const protectedBadge = isProtected
+        ? `<span style="font-size:.6rem;font-weight:700;color:var(--teal);background:rgba(var(--teal-rgb,0,217,163),0.12);border:1px solid rgba(var(--teal-rgb,0,217,163),0.25);border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;">🔒 Protected</span>`
+        : '';
+
+      // Actions: protected = download only, regular = download + delete
+      const actions = isProtected
+        ? (f.url ? `<a class="file-dl" href="${esc(f.url)}" target="_blank" download style="white-space:nowrap;">↓ Download</a>` : '')
+        : `${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank">↓ Download</a>`:''}<button onclick="deleteFile('${esc(f.key||'')}',this)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.75rem;padding:4px 8px;border-radius:4px;opacity:.7;transition:opacity .2s;" title="Delete file">🗑</button>`;
+
+      row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info" style="flex:1;min-width:0"><div class="file-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${esc(f.name||'')}${protectedBadge}</div><div class="file-meta">${size}${uploadedDate?' · '+uploadedDate:''}</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${actions}</div>`;
+      el.appendChild(row);
+    });
+
+    // Add upload button at bottom for non-system files
+    const uploadWrap = document.createElement('div');
+    uploadWrap.style.cssText='margin-top:14px;padding-top:12px;border-top:1px solid var(--border)';
+    uploadWrap.innerHTML=`<label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--teal);padding:7px 14px;border:1px solid rgba(var(--teal-rgb,0,217,163),.3);border-radius:7px;transition:all .2s" onmouseover="this.style.background='rgba(0,217,163,.07)'" onmouseout="this.style.background=''" >📎 Upload File<input type="file" style="display:none" onchange="handleFileUpload(event,'${esc(curClient._id||'')}')"></label>`;
+    el.appendChild(uploadWrap);
+
+  }).catch(e=>{el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${esc(e.message)}</p>`;});
+}
+
+async function deleteFile(key, btn) {
+  if(!key || !confirm('Delete this file permanently?')) return;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const res = await fetch(API + '/delete-file', { method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token}, body:JSON.stringify({key}) });
+    const data = await res.json();
+    if(data.success) {
+      const row = btn.closest('.file-row');
+      if(row) row.remove();
+      toast('🗑 File deleted');
+    } else { toast('❌ ' + (data.error||'Failed')); btn.disabled=false; btn.textContent='🗑'; }
+  } catch(e) { toast('❌ ' + e.message); btn.disabled=false; btn.textContent='🗑'; }
+}
+
+async function handleFileUpload(event, slug) {
+  const file = event.target.files?.[0];
+  if (!file || !slug) return;
+  if (file.size > 10 * 1024 * 1024) { toast('❌ File too large (max 10MB)'); return; }
+  toast('⏳ Uploading...');
+  try {
+    const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+    const resp = await fetch(API + '/upload-file', { method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token}, body:JSON.stringify({slug, fileName:file.name, fileBase64:base64, fileType:file.type, fileSize:file.size}) });
+    const data = await resp.json();
+    if(data.success) {
+      toast('✅ Uploaded!');
+      // Reload the files tab
+      const el = document.getElementById('dt-files');
+      if(el) { el.dataset.loaded='0'; buildFiles(); }
+    } else toast('❌ ' + (data.error||'Upload failed'));
+  } catch(e) { toast('❌ ' + e.message); }
 }
 
 // ── STATUS UPDATE ─────────────────────────────────────────────
@@ -1140,8 +1357,29 @@ async function submitConvert() {
   if(!fn||!biz||!em){toast('❌ First name, business name, and email required');return;}
   const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
   try {
-    const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:v('cv-industry'),primaryService:v('cv-industry'),adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads',tags:'converted-lead',leadSource:'converted'})});
-    const data=await res.json();
+    if(!agencyId) throw new Error('Not logged in — please refresh and log in again');
+    // process-plan now runs Claude synchronously (~15s) — give it 30s
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),30000);
+    let res,data;
+    try {
+      const _ind = v('cv-industry')||convertLead?.industry||convertLead?.primaryService||'General Business';
+      const _svc = v('cv-industry')||convertLead?.primaryService||convertLead?.industry||'Marketing Services';
+      res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:_ind,primaryService:_svc,adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads and grow revenue',tags:'converted-lead',leadSource:'converted'})});
+      clearTimeout(tmo);
+      const txt=await res.text();
+      try{data=JSON.parse(txt);}catch(e){throw new Error('Server error — please try again');}
+    } catch(fe){
+      clearTimeout(tmo);
+      if(fe.name==='AbortError'){
+        // Timed out but server is still generating — show success and reload
+        closeConvert();
+        toast('✅ '+biz+' converted! Plan generating — refreshing in 20 seconds...');
+        setTimeout(()=>loadClients(), 20000);
+        return;
+      }
+      throw fe;
+    }
     if(!res.ok||!data.success) throw new Error(data.error||'Failed');
     if(sendOnboard&&em){
       // Send onboarding form link via email
@@ -1158,7 +1396,9 @@ async function submitConvert() {
     closeConvert();await loadClients();
     toast(`✅ ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
 
-  } catch(e){toast('❌ '+e.message);}
+  } catch(e){
+    toast('❌ '+(e.message||'Failed to convert'));
+  }
   finally{btn.textContent='🚀 Convert to Client';btn.disabled=false;}
 }
 async function sendOnboardingEmail(clientId,email,bizName) {
@@ -1588,9 +1828,10 @@ async function saveOffer(clientId,clear){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────
-function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('settings-sheet').classList.add('open');}
+function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('set-privacy-url').value=agencyConfig.privacyUrl||'';document.getElementById('set-meta-business-id').value=agencyConfig.metaBusinessId||'';
+  document.getElementById('set-booking-url').value=agencyConfig.bookingUrl||'';document.getElementById('set-support-phone').value=agencyConfig.supportPhone||'';document.getElementById('set-support-email').value=agencyConfig.supportEmail||'';document.getElementById('set-agency-website').value=agencyConfig.agencyWebsite||'';document.getElementById('set-custom-links').value=agencyConfig.customLinks||'';document.getElementById('settings-sheet').classList.add('open');}
 function closeSettings(){document.getElementById('settings-sheet').classList.remove('open');}
-async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
 
 // ── BLAST ─────────────────────────────────────────────────────
 function openBlast(){document.getElementById('blast-sheet').classList.add('open');}
@@ -1768,28 +2009,52 @@ async function regeneratePlan(clientId, event) {
     if(btn){ btn.textContent='⏳ Generating...'; }
     toast('⚡ Generating plan... takes ~20 seconds');
 
-    const res = await fetch(`${API}/agency/process-plan`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        agencyId,
-        firstName:   (c.clientName||'Client').split(' ')[0],
-        lastName:    (c.clientName||'').split(' ').slice(1).join(' ')||'',
-        email:       c.clientEmail||'noreply@example.com',
-        businessName:c.businessName,
-        phone:       c.phone||'',
-        industry:    c.industry||'General',
-        primaryService: c.primaryService||c.industry||'Marketing',
-        adBudget:    c.adBudget||'1000',
-        adPlatforms: c.adPlatforms||'Facebook, Instagram',
-        goal90Days:  c.goal90||'Generate leads and grow revenue',
-        website:     c.website||'',
-      }),
-    });
-    const text = await res.text();
+    const _ctrl = new AbortController();
+    const _tmo  = setTimeout(()=>_ctrl.abort(), 30000);
+    let regenRes, regenData;
+    try {
+      regenRes = await fetch(`${API}/agency/process-plan`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        signal: _ctrl.signal,
+        body: JSON.stringify({
+          agencyId,
+          firstName:      (c.clientName||'Client').split(' ')[0],
+          lastName:       (c.clientName||'').split(' ').slice(1).join(' ')||'',
+          email:          c.clientEmail||'noreply@example.com',
+          businessName:   c.businessName||'Business',
+          phone:          c.phone||'',
+          industry:       c.industry||c.primaryService||'General Business',
+          primaryService: c.primaryService||c.industry||'Marketing Services',
+          adBudget:       c.adBudget||'1000',
+          adPlatforms:    c.adPlatforms||'Facebook, Instagram',
+          goal90Days:     c.goal90||c.goal90Days||'Generate leads and grow revenue',
+          website:        c.website||'',
+          serviceAreaType:  c.serviceAreaType||'',
+          serviceDetails:   c.serviceDetails||'',
+          idealCustomer:    c.idealCustomer||'',
+          standOut:         c.standOut||'',
+          avgCustomerValue: c.avgCustomerValue||'',
+          mainGoal:         c.mainGoal||'',
+        }),
+      });
+      clearTimeout(_tmo);
+    } catch(fe) {
+      clearTimeout(_tmo);
+      if(fe.name==='AbortError'){
+        // Timeout is OK — plan still generates in background
+        toast('⏳ Plan generation started — refreshing in 30 seconds...');
+        setTimeout(()=>loadClients(), 30000);
+        if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+        return;
+      }
+      throw fe;
+    }
+    const text = await regenRes.text();
     let data;
     try { data = JSON.parse(text); } catch(e) { throw new Error('Server error — try again'); }
     if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
+    const res=regenRes;
 
     toast('✅ Plan generated!');
     await loadClients();
@@ -1802,6 +2067,207 @@ async function regeneratePlan(clientId, event) {
   }
 }
 
+// ── IMAGE PROMPT GENERATOR ───────────────────────────────────
+async function generateImagePrompt(ad, angleLabel, btn) {
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(API + '/generate-prompt', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'x-internal-key':'astroai-internal-2024'},
+      body: JSON.stringify({
+        headline:    ad.headline    || '',
+        primaryText: ad.primaryText || '',
+        cta:         ad.cta         || '',
+        description: ad.description || '',
+        angleLabel:  angleLabel     || '',
+        businessName: curClient?.businessName || '',
+        industry:    curClient?.industry      || '',
+      }),
+    });
+    const data = await res.json();
+    if (!data.prompt) throw new Error(data.error || 'No prompt returned');
+
+    // Show prompt in a modal-style overlay on the card
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+    // Build overlay using DOM (not innerHTML) to avoid quote escaping issues
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto';
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
+    title.textContent = '🎨 Image Prompt — ' + angleLabel;
+
+    const promptBox = document.createElement('div');
+    promptBox.style.cssText = 'font-size:.8rem;line-height:1.75;color:var(--text);background:var(--surface-2);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:var(--mono)';
+    promptBox.textContent = data.prompt;
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:14px';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font)';
+    copyBtn.textContent = '📋 Copy Prompt';
+    copyBtn.onclick = () => navigator.clipboard.writeText(data.prompt).then(() => {
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => copyBtn.textContent = '📋 Copy Prompt', 2000);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    closeBtn.textContent = '✕ Close';
+    closeBtn.onclick = () => overlay.remove();
+
+    btnRow.appendChild(copyBtn);
+    btnRow.appendChild(closeBtn);
+    box.appendChild(title);
+    box.appendChild(promptBox);
+    box.appendChild(btnRow);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+  btn.textContent = '🎨 Get Prompt';
+  btn.disabled = false;
+}
+
+async function generateAdImage(ad, angleLabel, provider, btn) {
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  // First generate the prompt, then use it to generate the image
+  try {
+    // Step 1: get prompt
+    const promptRes = await fetch(`${API}/generate-prompt`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-internal-key':'astroai-internal-2024'},
+      body: JSON.stringify({
+        headline:    ad.headline    || '',
+        primaryText: ad.primaryText || '',
+        cta:         ad.cta         || '',
+        description: ad.description || '',
+        angleLabel,
+        businessName: curClient?.businessName || '',
+        industry:    curClient?.industry      || '',
+      }),
+    });
+    const promptData = await promptRes.json();
+    if (!promptData.prompt) throw new Error(promptData.error || 'Failed to generate prompt');
+
+    // Step 2: generate image
+    btn.textContent = '🖼 Creating image...';
+    const imgRes = await fetch(`${API}/generate-image-ad`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-internal-key':'astroai-internal-2024'},
+      body: JSON.stringify({ prompt: promptData.prompt, provider }),
+    });
+    const imgData = await imgRes.json();
+    if (!imgData.imageUrl) throw new Error(imgData.error || 'No image returned');
+
+    // Show image in overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface);border:1px solid var(--border-2);border-radius:12px;padding:20px;max-width:560px;width:100%';
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
+    title.textContent = (provider === 'openai' ? '⚡ ChatGPT (gpt-image-1)' : '✦ Gemini Imagen 3') + ' — ' + angleLabel;
+
+    const img = document.createElement('img');
+    img.src = imgData.imageUrl;
+    img.style.cssText = 'width:100%;border-radius:8px;display:block;margin-bottom:14px';
+    img.alt = 'Generated Ad';
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px';
+
+    const dlBtn = document.createElement('a');
+    dlBtn.href = imgData.imageUrl;
+    dlBtn.download = `ad-${provider}-${angleLabel.toLowerCase().replace(/\s+/g,'-')}.png`;
+    dlBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);text-align:center;text-decoration:none';
+    dlBtn.textContent = '⬇ Download';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    closeBtn.textContent = '✕ Close';
+    closeBtn.onclick = () => overlay.remove();
+
+    const promptToggle = document.createElement('button');
+    promptToggle.style.cssText = 'padding:9px 14px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
+    promptToggle.textContent = 'View Prompt';
+    const promptEl = document.createElement('div');
+    promptEl.style.cssText = 'display:none;margin-top:10px;font-size:.72rem;line-height:1.6;color:var(--text-dim);background:var(--surface-2);border-radius:7px;padding:10px;font-family:var(--mono);white-space:pre-wrap';
+    promptEl.textContent = promptData.prompt;
+    promptToggle.onclick = () => { promptEl.style.display = promptEl.style.display === 'none' ? 'block' : 'none'; };
+
+    btnRow.appendChild(dlBtn);
+    btnRow.appendChild(promptToggle);
+    btnRow.appendChild(closeBtn);
+    box.appendChild(title);
+    box.appendChild(img);
+    box.appendChild(btnRow);
+    box.appendChild(promptEl);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+  btn.textContent = origText;
+  btn.disabled = false;
+}
+
+// ── THEME ─────────────────────────────────────────────────────
+const THEME_KEY = 'astroai_theme';
+let currentTheme = 'dark';
+
+function applyTheme(theme) {
+  const html = document.documentElement;
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  html.classList.toggle('light', !isDark);
+  if (icon) { icon.textContent = isDark ? '🌙' : '☀️'; }
+  if (label) { label.textContent = isDark ? 'Dark Mode' : 'Light Mode'; }
+  // Update settings buttons
+  ['dark','light','auto'].forEach(t => {
+    const btn = document.getElementById(`set-${t}-btn`);
+    if (!btn) return;
+    const active = theme === t;
+    btn.style.background = active ? 'var(--teal)' : 'var(--surface-3)';
+    btn.style.color = active ? (isDark ? '#07090f' : '#fff') : 'var(--text-dim)';
+    btn.style.borderColor = active ? 'var(--teal)' : 'var(--border-2)';
+  });
+}
+
+function setTheme(theme) {
+  currentTheme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme(theme);
+}
+
+function toggleTheme() {
+  const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+  setTheme(next);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  currentTheme = saved;
+  applyTheme(saved);
+  // Watch for system preference changes (auto mode)
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (currentTheme === 'auto') applyTheme('auto');
+  });
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 function copyOnboardUrl(){const url=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;navigator.clipboard.writeText(url).then(()=>toast('📋 Onboarding link copied!'));}
 function copyPortal(){if(!curClient)return;navigator.clipboard.writeText(`https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${curClient._id}`).then(()=>toast('🔗 Portal link copied!'));}
@@ -1812,6 +2278,7 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 
 // ── INIT ──────────────────────────────────────────────────────
 async function init() {
+  initTheme();
   agencyId=getAgencyIdFromUrl();
   const savedToken=sessionStorage.getItem('saas_token');const savedAgency=sessionStorage.getItem('saas_agency_id');
   if(!agencyId&&savedAgency)agencyId=savedAgency;
