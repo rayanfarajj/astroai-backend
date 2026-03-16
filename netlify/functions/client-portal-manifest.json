@@ -1,0 +1,43 @@
+{
+  "name": "My Marketing Portal",
+  "short_name": "My Portal",
+  "description": "Your AI Marketing Command Center — view your plan, files, and campaign status.",
+  "start_url": "/onboard/portal?pwa=1",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0e1a",
+  "theme_color": "#00d9a3",
+  "categories": ["business", "marketing"],
+  "icons": [
+    {
+      "src": "/icons/portal-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/portal-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "My Plan",
+      "url": "/onboard/portal?pwa=1&goto=s-plan",
+      "description": "View my marketing plan"
+    },
+    {
+      "name": "Files",
+      "url": "/onboard/portal?pwa=1&goto=s-files",
+      "description": "View my files and documents"
+    },
+    {
+      "name": "Message Us",
+      "url": "/onboard/portal?pwa=1&goto=s-message",
+      "description": "Send a message to my agency"
+    }
+  ]
+}
