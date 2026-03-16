@@ -1102,7 +1102,7 @@ if (new URLSearchParams(location.search).get('reset_pwa') === '1') {
 // ── PWA: Service Worker Registration ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/portal-sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         console.log('[PWA] SW registered:', reg.scope);
         // Check for push subscription after registration
@@ -1133,12 +1133,14 @@ window.addEventListener('beforeinstallprompt', e => {
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-  if (isStandalone()) return;
-  const dismissed = localStorage.getItem('pwa-banner-dismissed');
-  if (dismissed && Date.now() - parseInt(dismissed) < 86400000) return;
-
-  const installBtn = document.getElementById('install-app-btn');
-  if (installBtn) installBtn.style.display = 'flex';
+  // Small delay so iOS has time to correctly report standalone mode
+  setTimeout(function() {
+    if (isStandalone()) return; // Already installed — hide button
+    const dismissed = localStorage.getItem('pwa-banner-dismissed');
+    if (dismissed && Date.now() - parseInt(dismissed) < 86400000) return;
+    const installBtn = document.getElementById('install-app-btn');
+    if (installBtn) installBtn.style.display = 'flex';
+  }, 100);
 
   setTimeout(() => {
     if (!isStandalone()) {
@@ -1146,6 +1148,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if (b) b.classList.add('show');
     }
   }, 3000);
+  }, 100);
 });
 
 function dismissBanner() {
@@ -1193,7 +1196,7 @@ function showNotifCardIfNeeded() {
 
   // Async: if already subscribed AND saved, hide immediately
   if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistration('/portal-sw.js').then(reg => {
+    navigator.serviceWorker.getRegistration('/').then(reg => {
       if (!reg) return;
       return reg.pushManager.getSubscription();
     }).then(sub => {
@@ -1257,11 +1260,25 @@ async function requestNotifPermission() {
       return;
     }
 
-    // Get SW registration with 8s timeout — serviceWorker.ready can hang on iOS
-    const reg = await Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('SW timeout — try closing and reopening the app')), 8000))
-    ]);
+    // Get SW registration — use getRegistration() not serviceWorker.ready (never hangs)
+    let reg = await navigator.serviceWorker.getRegistration('/');
+    if (!reg) {
+      // SW not registered yet — register it now
+      reg = await navigator.serviceWorker.register('/sw.js');
+      // Wait up to 3s for it to activate
+      await Promise.race([
+        new Promise(resolve => {
+          if (reg.active) return resolve();
+          reg.addEventListener('updatefound', () => {
+            reg.installing?.addEventListener('statechange', function() {
+              if (this.state === 'activated') resolve();
+            });
+          });
+        }),
+        new Promise(resolve => setTimeout(resolve, 3000))
+      ]);
+    }
+    if (!reg) throw new Error('Could not register service worker — try in Safari');
 
     // Subscribe to Web Push with VAPID
     const subscription = await reg.pushManager.subscribe({
