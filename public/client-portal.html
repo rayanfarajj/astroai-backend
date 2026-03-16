@@ -67,7 +67,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--text-dim);font-size:.82rem;font-weight:500;transition:all .15s;margin-bottom:1px;background:none;border:none;width:100%;text-align:left;font-family:var(--font);}
 .nav-item:hover{background:var(--surface-2);color:var(--text);}
 .nav-item.active{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);}
-.nav-icon{font-size:.9rem;width:18px;text-align:center;flex-shrink:0;}
+.nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:20px;}
 
 .sb-foot{padding:12px 16px;border-top:1px solid var(--border);}
@@ -104,7 +104,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
 .card-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .card-hd-left{display:flex;align-items:center;gap:8px;}
-.card-icon{font-size:.9rem;}
+.card-icon{font-size:1rem;display:flex;align-items:center;}
 .card-title{font-size:.82rem;font-weight:700;color:var(--text);}
 .card-body{padding:18px;}
 
@@ -459,21 +459,21 @@ html, body { overscroll-behavior: none; }
 
   <nav class="sb-nav">
     <div class="sb-section">Overview</div>
-    <button class="nav-item active" onclick="go('s-overview',this)"><span class="nav-icon"></span> Dashboard</button>
-    <button class="nav-item" onclick="go('s-plan',this)"><span class="nav-icon"></span> My Plan</button>
+    <button class="nav-item active" onclick="go('s-overview',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span> Dashboard</button>
+    <button class="nav-item" onclick="go('s-plan',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> My Plan</button>
 
     <div class="sb-section">Campaign</div>
-    <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon"></span> Ad Account Access</button>
-    <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon"></span> Files & Documents</button>
+    <button class="nav-item" onclick="go('s-access',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M4.22 4.22l2.12 2.12m11.32 11.32 2.12 2.12M2 12h3m14 0h3M4.22 19.78l2.12-2.12M18.66 5.34l-2.12 2.12"/></svg></span> Ad Account Access</button>
+    <button class="nav-item" onclick="go('s-files',this);loadFiles()"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span> Files & Documents</button>
     <button class="nav-item" id="nav-services" onclick="go('s-services',this)">
-      <span class="nav-icon"></span> My Services
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span> My Services
     </button>
-    <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon"></span> Billing</button>
+    <button class="nav-item" id="nav-billing" onclick="go('s-billing',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span> Billing</button>
 
     <div class="sb-section">Connect</div>
-    <button class="nav-item" onclick="go('s-resources',this)"><span class="nav-icon"></span> Resources</button>
-    <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon"></span> Refer a Friend</button>
-    <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon"></span> Message Us</button>
+    <button class="nav-item" onclick="go('s-resources',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Resources</button>
+    <button class="nav-item" onclick="go('s-refer',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Refer a Friend</button>
+    <button class="nav-item" onclick="go('s-message',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Message Us</button>
   </nav>
 
   <div class="sb-foot">
@@ -521,7 +521,7 @@ html, body { overscroll-behavior: none; }
         <div class="stat"><div class="stat-n" id="st-days"></div><div class="stat-l">Days Active</div></div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Progress</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></span><span class="card-title">Campaign Progress</span></div></div>
         <div class="card-body"><div class="tl" id="tl"></div></div>
       </div>
     </div>
@@ -544,7 +544,7 @@ html, body { overscroll-behavior: none; }
       <!-- Business Profile -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Business Profile</span></div>
+          <div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><path d="M8 22V12h8v10"/><path d="M3 9l9-7 9 7"/></svg></span><span class="card-title">Business Profile</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-biz-wrap"></div>
       </div>
@@ -552,7 +552,7 @@ html, body { overscroll-behavior: none; }
       <!-- Campaign Details -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Details</span></div>
+          <div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></span><span class="card-title">Campaign Details</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-campaign-wrap"></div>
       </div>
@@ -560,7 +560,7 @@ html, body { overscroll-behavior: none; }
       <!-- Status -->
       <div class="card" id="plan-status-card" style="margin-bottom:14px;display:none">
         <div class="card-hd">
-          <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Campaign Status</span></div>
+          <div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="card-title">Campaign Status</span></div>
         </div>
         <div class="card-body" style="padding:0" id="plan-status-wrap"></div>
       </div>
@@ -581,7 +581,7 @@ html, body { overscroll-behavior: none; }
     <div class="section" id="s-files">
       <div class="page-hd"><h1>Files & Documents</h1><p>Upload logos, contracts, photos, or any assets for your campaign.</p></div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Upload Files</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><span class="card-title">Upload Files</span></div></div>
         <div class="card-body">
           <div class="upload-zone" id="uz">
             <input type="file" class="upload-input" id="file-in" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.mp4,.mov">
@@ -597,7 +597,7 @@ html, body { overscroll-behavior: none; }
         </div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Uploaded Files</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="card-title">Uploaded Files</span></div></div>
         <div class="card-body">
           <div class="flist" id="ex-files"><span style="color:var(--text-muted);font-size:.8rem">Loading...</span></div>
         </div>
@@ -639,13 +639,13 @@ html, body { overscroll-behavior: none; }
         </div>
       </div>
       <div class="card" id="ref-resources-card" style="display:none">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Resources</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span><span class="card-title">Resources</span></div></div>
         <div class="card-body">
           <div id="ref-resources-text" style="font-size:.82rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap"></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Send a Referral</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span><span class="card-title">Send a Referral</span></div></div>
         <div class="card-body">
           <div class="perks">
             <span class="perk" id="perk-bonus"> Fast onboarding</span>
@@ -676,7 +676,7 @@ html, body { overscroll-behavior: none; }
     <div class="section" id="s-message">
       <div class="page-hd"><h1>Message Us</h1><p>Have a question? Send us a message and we'll follow up fast.</p></div>
       <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Send a Message</span></div></div>
+        <div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="card-title">Send a Message</span></div></div>
         <div class="card-body">
           <div id="msg-form">
             <div class="fgrp"><label class="flabel">Subject</label><input class="finput" id="ms" type="text" placeholder="Question about my campaign..."></div>
@@ -1151,7 +1151,7 @@ function buildResources(data) {
     html += `
     <div class="card" style="margin-bottom:14px">
       <div class="card-hd">
-        <div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Schedule a Call</span></div>
+        <div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="card-title">Schedule a Call</span></div>
       </div>
       <div class="card-body" style="padding:16px 18px">
         <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px;line-height:1.6">Book a time to speak with your agency team about your campaign.</p>
@@ -1162,7 +1162,7 @@ function buildResources(data) {
 
   //  Contact 
   if (supportPhone || supportEmail || agencyWebsite) {
-    html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Contact Your Agency</span></div></div><div class="card-body" style="padding:0">`;
+    html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="card-title">Contact Your Agency</span></div></div><div class="card-body" style="padding:0">`;
 
     if (supportPhone) {
       html += `<a href="tel:${supportPhone}" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
@@ -1201,7 +1201,7 @@ function buildResources(data) {
       });
 
     if (links.length) {
-      html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"></span><span class="card-title">Links & Resources</span></div></div><div class="card-body" style="padding:0">`;
+      html += `<div class="card" style="margin-bottom:14px"><div class="card-hd"><div class="card-hd-left"><span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span><span class="card-title">Links & Resources</span></div></div><div class="card-body" style="padding:0">`;
       links.forEach((link, i) => {
         const border = i < links.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
         html += `<a href="${link.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;${border}text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
