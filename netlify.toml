@@ -83,6 +83,18 @@
   timeout = 10
 
 # Friendly URLs for public pages
+# Serve SW as static file — prevents Netlify treating it as a function
+[[redirects]]
+  from = "/service-worker.js"
+  to = "/service-worker.js"
+  status = 200
+  force = true
+  [redirects.headers]
+    Content-Type = "application/javascript; charset=utf-8"
+    Service-Worker-Allowed = "/"
+    Cache-Control = "no-cache, no-store"
+    X-Content-Type-Options = "nosniff"
+
 [[redirects]]
   from = "/health"
   to = "/health.html"
@@ -171,7 +183,7 @@
     Cache-Control = "no-cache"
 
 [[headers]]
-  for = "/sw.js"
+  for = "/service-worker.js"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
     Service-Worker-Allowed = "/"
