@@ -1111,10 +1111,24 @@ window.addEventListener('load', () => {
   // /sw.js is served by a Netlify function with Content-Type: application/javascript
   // and Service-Worker-Allowed: / — required by iOS Safari
   navigator.serviceWorker.register('/sw.js', { scope: '/' })
-    .then(reg => {
+    .then(async reg => {
       _swReg = reg;
       console.log('[PWA] SW registered:', reg.scope);
       setTimeout(showNotifCardIfNeeded, 500);
+      // Re-save push subscription on every open — refreshes stale APNS tokens
+      // iOS rotates push tokens after app suspension; stale tokens = silent drop
+      if (Notification.permission === 'granted' && slug && _agencyId) {
+        try {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            fetch('/api/save-push-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ agencyId: _agencyId, clientId: slug, subscription: sub.toJSON() }),
+            }).catch(() => {});
+          }
+        } catch(e) {}
+      }
     })
     .catch(err => {
       console.warn('[PWA] SW failed:', err.message);
