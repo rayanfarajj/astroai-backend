@@ -899,7 +899,7 @@ function buildTL(status) {
   return STEPS.map((s,i)=>{
     const state = i<cur?'done':i===cur?'current':'pending';
     return `<div class="tl-row ${state}">
-      <div class="tl-dot">${i<cur?'':s.icon}</div>
+      <div class="tl-dot">${i<cur?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;13&quot; height=&quot;13&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;var(--teal,#00d9a3)&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20,6 9,17 4,12&quot;/></svg>':s.icon}</div>
       <div class="tl-info"><div class="tl-label">${s.label}</div><div class="tl-desc">${s.desc}</div></div>
     </div>`;
   }).join('');
