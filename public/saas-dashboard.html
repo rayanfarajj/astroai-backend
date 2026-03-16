@@ -19,7 +19,7 @@
   --sidebar:244px;--radius:10px;
 }
 
-/* ── LIGHT MODE ─────────────────────────────────────────────── */
+/*  LIGHT MODE  */
 html.light {
   --bg:#f0f2f7;--surface:#ffffff;--surface-2:#f5f7fc;--surface-3:#eaecf4;
   --border:rgba(0,0,0,.08);--border-2:rgba(0,0,0,.13);
@@ -158,7 +158,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .spinner{width:16px;height:16px;border:2px solid var(--border-2);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── CLIENT DETAIL PAGE ────────────────────────────────────── */
+/*  CLIENT DETAIL PAGE  */
 #page-detail{background:var(--bg)}
 .detail-wrap{padding:20px;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -220,7 +220,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .file-meta{font-size:.62rem;color:var(--text-muted);font-family:var(--mono)}
 .file-dl{font-size:.65rem;font-weight:700;color:var(--teal);text-decoration:none;padding:3px 8px;border:1px solid rgba(0,217,163,.25);border-radius:5px;white-space:nowrap}
 
-/* ── PURCHASED LEADS PAGE ──────────────────────────────────── */
+/*  PURCHASED LEADS PAGE  */
 .pl-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;transition:all .15s;animation:fadeIn .25s ease both}
 .pl-card:hover{border-color:var(--border-2);box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .pl-card-tag{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:.6rem;font-weight:700;background:var(--orange-dim);color:var(--orange);border:1px solid rgba(249,115,22,.25);margin-bottom:8px}
@@ -414,15 +414,15 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <div id="login-screen">
   <div class="login-card">
     <div class="login-brand">
-      <div class="login-icon" id="login-icon">🚀</div>
+      <div class="login-icon" id="login-icon"></div>
       <div><div class="login-agency" id="login-agency-name">Agency Dashboard</div><div class="login-sub">Marketing Command Center</div></div>
     </div>
     <label class="lin-label">Email Address</label>
     <input class="lin" id="l-email" type="email" placeholder="you@agency.com" onkeydown="if(event.key==='Enter')doLogin()">
     <label class="lin-label">Password</label>
-    <input class="lin" id="pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="lin" id="pw" type="password" placeholder="" onkeydown="if(event.key==='Enter')doLogin()">
     <div id="lerr"></div>
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In </button>
   </div>
 </div>
 
@@ -432,47 +432,47 @@ tr:hover td{background:rgba(255,255,255,.015)}
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sb-brand">
-      <div class="sb-icon" id="tb-icon">🚀</div>
+      <div class="sb-icon" id="tb-icon"></div>
       <div><div class="sb-name" id="tb-agency-name">Agency</div><div class="sb-sub">Dashboard</div></div>
     </div>
     <nav class="sb-nav">
       <div class="sb-section">Menu</div>
       <button class="nav-item active" id="nav-clients" onclick="showPage('clients',this)">
-        <span class="ni">👥</span><span>Clients</span>
+        <span class="ni"></span><span>Clients</span>
       </button>
       <button class="nav-item" id="nav-purchased" onclick="showPage('purchased',this)">
-        <span class="ni">🎯</span><span>Purchased Leads</span>
+        <span class="ni"></span><span>Purchased Leads</span>
         <span class="nav-badge orange" id="pl-badge" style="display:none">0</span>
       </button>
       <button class="nav-item" id="nav-leads" onclick="showPage('leads',this);loadLeadPool()">
-        <span class="ni">✦</span><span>Lead Pool</span>
+        <span class="ni"></span><span>Lead Pool</span>
         <span class="nav-badge" id="leads-badge" style="display:none">0</span>
       </button>
       <button class="nav-item" id="nav-embed" onclick="showPage('embed',this)">
-        <span class="ni">🔌</span><span>Embed Code</span>
+        <span class="ni"></span><span>Embed Code</span>
       </button>
       <button class="nav-item" id="nav-referrals" onclick="showPage('referrals',this)">
-        <span class="ni">◎</span><span>Referrals</span>
+        <span class="ni"></span><span>Referrals</span>
         <span class="nav-badge" id="ref-badge" style="display:none">0</span>
       </button>
       <button class="nav-item" onclick="openBlast()">
-        <span class="ni">📣</span><span>Message Client</span>
+        <span class="ni"></span><span>Message Client</span>
       </button>
       <button class="nav-item" onclick="openSettings()">
-        <span class="ni">⚙️</span><span>Settings</span>
+        <span class="ni"></span><span>Settings</span>
       </button>
     </nav>
     <div class="sb-onboard">
       <div class="sb-onboard-label">Client Onboarding Link</div>
-      <div class="sb-onboard-url" id="onboard-url" onclick="copyOnboardUrl()">—</div>
-      <button class="sb-copy-btn" onclick="copyOnboardUrl()">📋 Copy Link</button>
+      <div class="sb-onboard-url" id="onboard-url" onclick="copyOnboardUrl()"></div>
+      <button class="sb-copy-btn" onclick="copyOnboardUrl()"> Copy Link</button>
     </div>
     <div class="sb-bottom">
       <button class="sb-action" onclick="toggleTheme()" id="theme-btn" title="Toggle light/dark mode">
-        <span class="ni" id="theme-icon">🌙</span><span id="theme-label">Dark Mode</span>
+        <span class="ni" id="theme-icon"></span><span id="theme-label">Dark Mode</span>
       </button>
       <button class="sb-action danger" onclick="logout()">
-        <span class="ni">🚪</span><span>Sign Out</span>
+        <span class="ni"></span><span>Sign Out</span>
       </button>
     </div>
   </aside>
@@ -482,12 +482,12 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- TOP BAR -->
     <div class="topbar">
       <div class="topbar-left">
-        <button class="back-btn" id="back-btn" onclick="goBack()">← Back to Clients</button>
+        <button class="back-btn" id="back-btn" onclick="goBack()"> Back to Clients</button>
         <div class="topbar-title" id="page-title">Clients</div>
       </div>
       <div class="topbar-right" id="topbar-right">
         <span id="last-updated"></span>
-        <button class="tb-btn tb-btn-ghost" onclick="loadClients()">↺ Refresh</button>
+        <button class="tb-btn tb-btn-ghost" onclick="loadClients()"> Refresh</button>
         <button class="tb-btn tb-btn-teal" onclick="openAddClient()">+ Add Client</button>
       </div>
     </div>
@@ -506,16 +506,16 @@ tr:hover td{background:rgba(255,255,255,.015)}
           <input class="search-box" id="search" placeholder="Search clients..." oninput="renderTable()">
           <select class="filter-sel" id="f-status" onchange="renderTable()">
             <option value="">All Statuses</option>
-            <option value="new">🆕 New</option>
-            <option value="active">📋 Plan Ready</option>
-            <option value="launched">🚀 Live</option>
-            <option value="paused">⏸ Paused</option>
-            <option value="completed">✅ Done</option>
+            <option value="new"> New</option>
+            <option value="active"> Plan Ready</option>
+            <option value="launched"> Live</option>
+            <option value="paused"> Paused</option>
+            <option value="completed"> Done</option>
           </select>
           <select class="filter-sel" id="f-sort" onchange="renderTable()">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="name">Name A–Z</option>
+            <option value="name">Name AZ</option>
           </select>
           <span class="tbl-count" id="tbl-count"></span>
         </div>
@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- PURCHASED LEADS PAGE -->
     <div class="page" id="page-purchased">
       <div class="page-inner">
-        <div style="margin-bottom:6px;font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text)">🎯 Purchased Leads</div>
+        <div style="margin-bottom:6px;font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text)"> Purchased Leads</div>
         <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Leads you've claimed from the Lead Pool. Convert them to full clients or send them your onboarding form.</div>
         <div id="purchased-list"><div class="empty-state"><div class="spinner"></div></div></div>
       </div>
@@ -540,14 +540,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- REFERRALS PAGE -->
     <div class="page" id="page-referrals">
       <div class="page-inner">
-        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">◎ Referrals</div>
+        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px"> Referrals</div>
         <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Leads your clients have referred. Track status, reward them, and manage your referral program.</div>
 
         <!-- Referral Program Settings -->
         <div class="bill-section" style="margin-bottom:20px">
           <div class="bill-section-hdr">
-            <span>🎁 Referral Program Setup</span>
-            <button class="bill-add-btn" style="padding:5px 12px;font-size:.7rem" onclick="saveReferralSettings()">💾 Save</button>
+            <span> Referral Program Setup</span>
+            <button class="bill-add-btn" style="padding:5px 12px;font-size:.7rem" onclick="saveReferralSettings()"> Save</button>
           </div>
           <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
             <div>
@@ -572,22 +572,22 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- LEAD POOL PAGE -->
     <div class="page" id="page-leads">
       <div class="page-inner">
-        <div style="margin-bottom:6px;font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text)">✦ Lead Pool</div>
+        <div style="margin-bottom:6px;font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text)"> Lead Pool</div>
         <div class="lp-sub">Verified business leads looking for a marketing agency. Claim a lead to reveal their full contact info.</div>
         <div class="lp-controls">
-          <button class="lp-view-btn on" id="view-grid" onclick="setLeadView('grid')">⊞ Grid</button>
-          <button class="lp-view-btn" id="view-list" onclick="setLeadView('list')">☰ List</button>
+          <button class="lp-view-btn on" id="view-grid" onclick="setLeadView('grid')"> Grid</button>
+          <button class="lp-view-btn" id="view-list" onclick="setLeadView('list')"> List</button>
           <select class="lp-sort" id="lp-sort" onchange="renderLeads()">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="price-hi">Price: High → Low</option>
-            <option value="price-lo">Price: Low → High</option>
+            <option value="price-hi">Price: High  Low</option>
+            <option value="price-lo">Price: Low  High</option>
           </select>
-          <button class="lp-refresh" onclick="loadLeadPool(true)">↺ Refresh</button>
+          <button class="lp-refresh" onclick="loadLeadPool(true)"> Refresh</button>
           <span class="lp-count" id="lp-count"></span>
         </div>
         <div id="leads-container">
-          <div class="leads-empty"><div class="leads-empty-icon">✦</div><div class="leads-empty-title">Loading leads...</div></div>
+          <div class="leads-empty"><div class="leads-empty-icon"></div><div class="leads-empty-title">Loading leads...</div></div>
         </div>
       </div>
     </div>
@@ -595,13 +595,13 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- EMBED CODE PAGE -->
     <div class="page" id="page-embed">
       <div class="page-inner" style="max-width:900px">
-        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px">🔌 Embed Code</div>
-        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Customize your embed then copy the code. Each code is unique to your agency — leads appear in your dashboard automatically.</div>
+        <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px"> Embed Code</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6">Customize your embed then copy the code. Each code is unique to your agency  leads appear in your dashboard automatically.</div>
 
         <!-- CUSTOMIZER -->
         <div class="embed-card" style="margin-bottom:20px">
           <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-            <span style="font-size:1rem">🎨</span>
+            <span style="font-size:1rem"></span>
             <div style="font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text)">Customize Your Embed</div>
             <div style="font-size:.72rem;color:var(--text-muted);margin-left:4px">Changes update the code and preview instantly</div>
           </div>
@@ -620,10 +620,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <div>
               <label class="embed-preview-label" style="display:block;margin-bottom:6px">Iframe Height</label>
               <select id="ec-height" oninput="updateEmbedCodes()" style="width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:.78rem;outline:none">
-                <option value="700px">700px — Compact</option>
-                <option value="800px" selected>800px — Standard</option>
-                <option value="900px">900px — Tall</option>
-                <option value="100vh">100vh — Full Screen</option>
+                <option value="700px">700px  Compact</option>
+                <option value="800px" selected>800px  Standard</option>
+                <option value="900px">900px  Tall</option>
+                <option value="100vh">100vh  Full Screen</option>
               </select>
             </div>
             <div>
@@ -658,53 +658,53 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <div class="embed-card">
           <div class="embed-card-header">
             <div>
-              <div class="embed-card-title">🖼️ Iframe Embed</div>
-              <div class="embed-card-sub">Paste inside any page on your website — the form loads live inside your site</div>
+              <div class="embed-card-title"> Iframe Embed</div>
+              <div class="embed-card-sub">Paste inside any page on your website  the form loads live inside your site</div>
             </div>
-            <button class="embed-copy-btn" id="copy-iframe-btn" onclick="copyEmbed('iframe')">📋 Copy Code</button>
+            <button class="embed-copy-btn" id="copy-iframe-btn" onclick="copyEmbed('iframe')"> Copy Code</button>
           </div>
           <!-- LIVE PREVIEW -->
           <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
-            <div class="embed-preview-label" style="margin-bottom:10px">LIVE PREVIEW — your actual onboarding form</div>
+            <div class="embed-preview-label" style="margin-bottom:10px">LIVE PREVIEW  your actual onboarding form</div>
             <div style="border:1px solid var(--border-2);border-radius:10px;overflow:hidden;background:var(--surface-2)">
               <div style="background:var(--surface-3);padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
                 <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;opacity:.6"></div>
                 <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;opacity:.6"></div>
                 <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;opacity:.6"></div>
-                <div style="flex:1;background:var(--surface-2);border-radius:4px;padding:3px 10px;font-size:.62rem;font-family:var(--mono);color:var(--text-muted);margin-left:4px" id="iframe-url-bar">—</div>
+                <div style="flex:1;background:var(--surface-2);border-radius:4px;padding:3px 10px;font-size:.62rem;font-family:var(--mono);color:var(--text-muted);margin-left:4px" id="iframe-url-bar"></div>
               </div>
               <iframe id="embed-live-preview" src="about:blank" style="width:100%;height:500px;border:none;display:block" title="Live Preview"></iframe>
             </div>
           </div>
           <pre class="embed-code" id="code-iframe"></pre>
-          <div class="embed-note">📐 Place inside any full-width container. The form is fully mobile responsive.</div>
+          <div class="embed-note"> Place inside any full-width container. The form is fully mobile responsive.</div>
         </div>
 
         <!-- POPUP BUTTON -->
         <div class="embed-card">
           <div class="embed-card-header">
             <div>
-              <div class="embed-card-title">🪄 Popup Button</div>
+              <div class="embed-card-title"> Popup Button</div>
               <div class="embed-card-sub">A button on your site that opens the form in a fullscreen popup</div>
             </div>
-            <button class="embed-copy-btn" id="copy-popup-btn" onclick="copyEmbed('popup')">📋 Copy Code</button>
+            <button class="embed-copy-btn" id="copy-popup-btn" onclick="copyEmbed('popup')"> Copy Code</button>
           </div>
           <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
             <div class="embed-preview-label" style="margin-bottom:12px">LIVE BUTTON PREVIEW</div>
-            <button id="popup-preview-btn" style="cursor:default;font-family:var(--display);font-size:.9rem;font-weight:700">🚀 Get Your Free Marketing Plan</button>
+            <button id="popup-preview-btn" style="cursor:default;font-family:var(--display);font-size:.9rem;font-weight:700"> Get Your Free Marketing Plan</button>
           </div>
           <pre class="embed-code" id="code-popup"></pre>
-          <div class="embed-note">✨ Paste before your closing &lt;/body&gt; tag. Works on WordPress, Squarespace, Wix, Webflow — anywhere.</div>
+          <div class="embed-note"> Paste before your closing &lt;/body&gt; tag. Works on WordPress, Squarespace, Wix, Webflow  anywhere.</div>
         </div>
 
         <!-- DIRECT LINK -->
         <div class="embed-card">
           <div class="embed-card-header">
             <div>
-              <div class="embed-card-title">🔗 Direct Link</div>
-              <div class="embed-card-sub">Share anywhere — email, Instagram bio, Google Business, text message</div>
+              <div class="embed-card-title"> Direct Link</div>
+              <div class="embed-card-sub">Share anywhere  email, Instagram bio, Google Business, text message</div>
             </div>
-            <button class="embed-copy-btn" id="copy-link-btn" onclick="copyEmbed('link')">📋 Copy Link</button>
+            <button class="embed-copy-btn" id="copy-link-btn" onclick="copyEmbed('link')"> Copy Link</button>
           </div>
           <div style="padding:16px 20px">
             <div class="embed-preview-label" style="margin-bottom:8px">YOUR UNIQUE ONBOARDING LINK</div>
@@ -721,8 +721,8 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <!-- CONVERT LEAD SHEET -->
 <div class="sheet" id="convert-sheet">
   <div class="sheet-header">
-    <div><div class="sheet-title">🔄 Convert to Client</div><div class="sheet-sub" id="convert-lead-name">—</div></div>
-    <button class="sheet-close" onclick="closeConvert()">✕</button>
+    <div><div class="sheet-title"> Convert to Client</div><div class="sheet-sub" id="convert-lead-name"></div></div>
+    <button class="sheet-close" onclick="closeConvert()"></button>
   </div>
   <div class="sheet-body">
     <div class="sf-info-box">This will add the lead as a full client and generate their AI marketing plan. Their contact info is already filled in from the lead.</div>
@@ -740,7 +740,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <div class="sf-divider"></div>
 
     <!-- Onboarding form option -->
-    <div style="font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:8px">📋 Onboarding Form</div>
+    <div style="font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:8px"> Onboarding Form</div>
     <div class="sf-toggle" id="send-onboard-toggle" onclick="toggleSendOnboard()">
       <div class="sf-toggle-check" id="send-onboard-check"></div>
       <div>
@@ -755,15 +755,15 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeConvert()">Cancel</button>
-    <button class="btn-primary" id="cv-btn" onclick="submitConvert()">🚀 Convert to Client</button>
+    <button class="btn-primary" id="cv-btn" onclick="submitConvert()"> Convert to Client</button>
   </div>
 </div>
 
 <!-- SETTINGS SHEET -->
 <div class="sheet" id="settings-sheet">
   <div class="sheet-header">
-    <div><div class="sheet-title">⚙️ Agency Settings</div><div class="sheet-sub">Customize your white-label experience</div></div>
-    <button class="sheet-close" onclick="closeSettings()">✕</button>
+    <div><div class="sheet-title"> Agency Settings</div><div class="sheet-sub">Customize your white-label experience</div></div>
+    <button class="sheet-close" onclick="closeSettings()"></button>
   </div>
   <div class="sheet-body">
     <label class="sf-label">Agency / Brand Name</label><input class="sf-input" id="set-name" placeholder="Your Agency Name">
@@ -780,41 +780,41 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </label>
     <input class="sf-input" id="set-privacy-url" placeholder="https://yoursite.com/privacy">
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
-      <label class="sf-label" style="margin-bottom:4px;display:block">📣 Ad Account Access IDs</label>
+      <label class="sf-label" style="margin-bottom:4px;display:block"> Ad Account Access IDs</label>
       <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5">These IDs appear on each client's Ad Account Access tab so they can grant your agency access. Only fill in the platforms you offer.</div>
       <div style="display:grid;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:.9rem;width:20px;text-align:center">📘</span>
+          <span style="font-size:.9rem;width:20px;text-align:center"></span>
           <div style="flex:1">
-            <label class="sf-label" style="margin-bottom:3px">Meta / Facebook — Partner Business ID</label>
+            <label class="sf-label" style="margin-bottom:3px">Meta / Facebook  Partner Business ID</label>
             <input class="sf-input" id="set-meta-business-id" placeholder="e.g. 123456789012345" style="margin:0">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:.9rem;width:20px;text-align:center">🎯</span>
+          <span style="font-size:.9rem;width:20px;text-align:center"></span>
           <div style="flex:1">
-            <label class="sf-label" style="margin-bottom:3px">Google Ads — Manager Account ID (MCC)</label>
+            <label class="sf-label" style="margin-bottom:3px">Google Ads  Manager Account ID (MCC)</label>
             <input class="sf-input" id="set-google-manager-id" placeholder="e.g. 123-456-7890" style="margin:0">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:.9rem;width:20px;text-align:center">🎵</span>
+          <span style="font-size:.9rem;width:20px;text-align:center"></span>
           <div style="flex:1">
-            <label class="sf-label" style="margin-bottom:3px">TikTok Ads — Agency Email</label>
+            <label class="sf-label" style="margin-bottom:3px">TikTok Ads  Agency Email</label>
             <input class="sf-input" id="set-tiktok-agency-id" placeholder="e.g. ads@youragency.com" style="margin:0">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:.9rem;width:20px;text-align:center">💼</span>
+          <span style="font-size:.9rem;width:20px;text-align:center"></span>
           <div style="flex:1">
-            <label class="sf-label" style="margin-bottom:3px">LinkedIn Ads — Agency Email</label>
+            <label class="sf-label" style="margin-bottom:3px">LinkedIn Ads  Agency Email</label>
             <input class="sf-input" id="set-linkedin-agency-id" placeholder="e.g. ads@youragency.com" style="margin:0">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:.9rem;width:20px;text-align:center">🌐</span>
+          <span style="font-size:.9rem;width:20px;text-align:center"></span>
           <div style="flex:1">
-            <label class="sf-label" style="margin-bottom:3px">WordPress — Agency Admin Email</label>
+            <label class="sf-label" style="margin-bottom:3px">WordPress  Agency Admin Email</label>
             <input class="sf-input" id="set-wordpress-site-url" placeholder="e.g. admin@youragency.com" style="margin:0">
           </div>
         </div>
@@ -822,7 +822,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
 
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
-      <label class="sf-label" style="margin-bottom:6px;display:block">📚 Client Resources</label>
+      <label class="sf-label" style="margin-bottom:6px;display:block"> Client Resources</label>
       <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5">These appear in the Resources tab of every client portal.</div>
       <label class="sf-label">Scheduling / Booking URL</label>
       <input class="sf-input" id="set-booking-url" placeholder="https://calendly.com/youragency">
@@ -839,31 +839,31 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
 
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
-      <label class="sf-label" style="margin-bottom:10px;display:block">🎨 Appearance</label>
+      <label class="sf-label" style="margin-bottom:10px;display:block"> Appearance</label>
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px">
         <div>
           <div style="font-size:.8rem;font-weight:600;color:var(--text)">Color Theme</div>
           <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">Switch between dark and light mode</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button id="set-dark-btn" onclick="setTheme('dark')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">🌙 Dark</button>
-          <button id="set-light-btn" onclick="setTheme('light')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">☀️ Light</button>
-          <button id="set-auto-btn" onclick="setTheme('auto')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s">⚙️ Auto</button>
+          <button id="set-dark-btn" onclick="setTheme('dark')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s"> Dark</button>
+          <button id="set-light-btn" onclick="setTheme('light')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s"> Light</button>
+          <button id="set-auto-btn" onclick="setTheme('auto')" style="padding:6px 12px;font-size:.72rem;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid var(--border-2);transition:all .15s"> Auto</button>
         </div>
       </div>
     </div>
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
-    <button class="btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+    <button class="btn-primary" onclick="saveSettings()"> Save Settings</button>
   </div>
 </div>
 
 <!-- BLAST SHEET -->
 <div class="sheet" id="blast-sheet">
   <div class="sheet-header">
-    <div><div class="sheet-title">📣 Message Client</div><div class="sheet-sub">Send a direct email to a client</div></div>
-    <button class="sheet-close" onclick="closeBlast()">✕</button>
+    <div><div class="sheet-title"> Message Client</div><div class="sheet-sub">Send a direct email to a client</div></div>
+    <button class="sheet-close" onclick="closeBlast()"></button>
   </div>
   <div class="sheet-body">
     <label class="sf-label">Client</label><select class="sf-sel" id="bl-client"></select>
@@ -872,7 +872,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeBlast()">Cancel</button>
-    <button class="btn-primary" onclick="sendBlast()">📤 Send Message</button>
+    <button class="btn-primary" onclick="sendBlast()"> Send Message</button>
   </div>
 </div>
 
@@ -880,7 +880,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <div class="sheet" id="add-sheet">
   <div class="sheet-header">
     <div><div class="sheet-title">+ Add Client</div><div class="sheet-sub">Manually add and generate their plan</div></div>
-    <button class="sheet-close" onclick="closeAdd()">✕</button>
+    <button class="sheet-close" onclick="closeAdd()"></button>
   </div>
   <div class="sheet-body">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -896,7 +896,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </div>
   <div class="sheet-footer">
     <button class="btn-secondary" onclick="closeAdd()">Cancel</button>
-    <button class="btn-primary" onclick="submitAdd()">🚀 Add & Generate Plan</button>
+    <button class="btn-primary" onclick="submitAdd()"> Add & Generate Plan</button>
   </div>
 </div>
 
@@ -908,13 +908,13 @@ let token='', agencyId='', agencyConfig={}, clients=[], curClient=null;
 let allLeads=[], purchasedLeads=[], leadView='grid', _leadPoolLoaded=false;
 let sendOnboard=false, convertLead=null;
 
-// ── PAGE NAV ──────────────────────────────────────────────────
+//  PAGE NAV 
 function showPage(page, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   if(btn) btn.classList.add('active');
-  const titles={clients:'Clients',detail:'Client Detail',purchased:'Purchased Leads',leads:'✦ Lead Pool',embed:'🔌 Embed Code',referrals:'◎ Referrals'};
+  const titles={clients:'Clients',detail:'Client Detail',purchased:'Purchased Leads',leads:' Lead Pool',embed:' Embed Code',referrals:' Referrals'};
   document.getElementById('page-title').textContent=titles[page]||page;
   document.getElementById('back-btn').style.display=page==='detail'?'flex':'none';
   document.getElementById('topbar-right').style.display=page==='clients'?'flex':'none';
@@ -927,11 +927,11 @@ function goBack() {
   document.getElementById('nav-clients').classList.add('active');
 }
 
-// ── AUTH ──────────────────────────────────────────────────────
+//  AUTH 
 function getAgencyIdFromUrl(){const p=new URLSearchParams(window.location.search);return p.get('a')||sessionStorage.getItem('saas_agency_id')||'';}
 async function doLogin() {
   const pw=document.getElementById('pw').value.trim();if(!pw)return;
-  const btn=document.getElementById('login-btn');btn.textContent='⏳...';btn.disabled=true;
+  const btn=document.getElementById('login-btn');btn.textContent='...';btn.disabled=true;
   try {
     const res=await fetch(API+'/agency/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:(document.getElementById('l-email')?.value||'').trim(),agencyId,password:pw})});
     const data=await res.json();
@@ -941,8 +941,8 @@ async function doLogin() {
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
     applyBranding(agencyConfig);loadClients();
-  } catch(e){const el=document.getElementById('lerr');el.textContent='❌ '+e.message;el.style.display='block';}
-  finally{btn.textContent='Sign In →';btn.disabled=false;}
+  } catch(e){const el=document.getElementById('lerr');el.textContent=' '+e.message;el.style.display='block';}
+  finally{btn.textContent='Sign In ';btn.disabled=false;}
 }
 function logout(){sessionStorage.removeItem('saas_token');sessionStorage.removeItem('saas_agency_id');location.reload();}
 function applyBranding(cfg) {
@@ -954,13 +954,13 @@ function applyBranding(cfg) {
   document.getElementById('tb-agency-name').textContent=cfg.brandName||cfg.name||'Agency';
   document.getElementById('login-icon').style.background=color;
   document.getElementById('login-agency-name').textContent=cfg.brandName||cfg.name||'Agency';
-  document.title=(cfg.brandName||cfg.name||'Agency')+' — Dashboard';
+  document.title=(cfg.brandName||cfg.name||'Agency')+'  Dashboard';
   const onbUrl=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;
   document.getElementById('onboard-url').textContent=onbUrl;
 }
 function hexToRgba(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
 
-// ── CLIENTS ───────────────────────────────────────────────────
+//  CLIENTS 
 async function loadClients() {
   setTable('<div class="empty-state"><div class="spinner"></div><p style="margin-top:8px">Loading...</p></div>');
   try {
@@ -974,10 +974,10 @@ async function loadClients() {
     const badge=document.getElementById('pl-badge');
     if(purchasedLeads.length){badge.style.display='flex';badge.textContent=purchasedLeads.length;}
     else badge.style.display='none';
-    document.getElementById('bl-client').innerHTML=clients.map(c=>`<option value="${c._id}">${esc(c.businessName)} — ${esc(c.clientName)}</option>`).join('');
+    document.getElementById('bl-client').innerHTML=clients.map(c=>`<option value="${c._id}">${esc(c.businessName)}  ${esc(c.clientName)}</option>`).join('');
     updateStats();renderTable();
     document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();
-  } catch(e){setTable(`<div class="empty-state"><p>⚠️</p><p>${e.message}</p></div>`);}
+  } catch(e){setTable(`<div class="empty-state"><p></p><p>${e.message}</p></div>`);}
 }
 function updateStats() {
   const now=new Date();
@@ -1001,29 +1001,29 @@ function renderTable() {
   if(so==='oldest') list.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   else if(so==='name') list.sort((a,b)=>(a.businessName||'').localeCompare(b.businessName||''));
   document.getElementById('tbl-count').textContent=list.length+' client'+(list.length!==1?'s':'');
-  if(!list.length){setTable('<div class="empty-state"><p>🔍</p><p>No clients found.</p></div>');return;}
+  if(!list.length){setTable('<div class="empty-state"><p></p><p>No clients found.</p></div>');return;}
   const SC={new:'s-new',active:'s-active',launched:'s-launched',paused:'s-paused',completed:'s-completed'};
   setTable(`<table><thead><tr><th>Business / Owner</th><th>Industry</th><th>Status</th><th>Added</th><th>Actions</th></tr></thead><tbody>${list.map(c=>`<tr>
-    <td><div class="c-name">${esc(c.businessName||'—')}</div><div class="c-sub">${esc(c.clientName||'')}${c.clientEmail?' · '+esc(c.clientEmail):''}</div></td>
-    <td><span style="font-size:.75rem">${esc(c.industry||'—')}</span></td>
+    <td><div class="c-name">${esc(c.businessName||'')}</div><div class="c-sub">${esc(c.clientName||'')}${c.clientEmail?'  '+esc(c.clientEmail):''}</div></td>
+    <td><span style="font-size:.75rem">${esc(c.industry||'')}</span></td>
     <td><select class="spill ${SC[c.status]||'s-new'}" onchange="updateStatus('${c._id}',this)">
-      <option value="new" ${c.status==='new'?'selected':''}>🆕 New</option>
-      <option value="active" ${c.status==='active'?'selected':''}>📋 Plan Ready</option>
-      <option value="launched" ${c.status==='launched'?'selected':''}>🚀 Live</option>
-      <option value="paused" ${c.status==='paused'?'selected':''}>⏸ Paused</option>
-      <option value="completed" ${c.status==='completed'?'selected':''}>✅ Done</option>
+      <option value="new" ${c.status==='new'?'selected':''}> New</option>
+      <option value="active" ${c.status==='active'?'selected':''}> Plan Ready</option>
+      <option value="launched" ${c.status==='launched'?'selected':''}> Live</option>
+      <option value="paused" ${c.status==='paused'?'selected':''}> Paused</option>
+      <option value="completed" ${c.status==='completed'?'selected':''}> Done</option>
     </select></td>
-    <td style="font-family:var(--mono);font-size:.7rem;color:var(--text-muted)">${c.createdAt?new Date(c.createdAt).toLocaleDateString():'—'}</td>
+    <td style="font-family:var(--mono);font-size:.7rem;color:var(--text-muted)">${c.createdAt?new Date(c.createdAt).toLocaleDateString():''}</td>
     <td><div class="acts">
-      ${c.dashboardUrl?`<a class="act act-view" href="${esc(c.dashboardUrl)}" target="_blank">↗ Plan</a>`:`<button class="act" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(245,158,11,.2);cursor:pointer" onclick="regeneratePlan('${esc(c._id||c.id||'')}',event)">⚡ Generate</button>`}
-      <button class="act act-det" onclick="openDetail('${c._id}')">📄 Details</button>
-      <button class="act act-del" onclick="deleteClient('${c._id}','${c.businessName?.replace(/'/g,"\\'")||''}')">🗑</button>
+      ${c.dashboardUrl?`<a class="act act-view" href="${esc(c.dashboardUrl)}" target="_blank"> Plan</a>`:`<button class="act" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(245,158,11,.2);cursor:pointer" onclick="regeneratePlan('${esc(c._id||c.id||'')}',event)"> Generate</button>`}
+      <button class="act act-det" onclick="openDetail('${c._id}')"> Details</button>
+      <button class="act act-del" onclick="deleteClient('${c._id}','${c.businessName?.replace(/'/g,"\\'")||''}')"></button>
     </div></td>
   </tr>`).join('')}</tbody></table>`);
 }
 function setTable(html){document.getElementById('tbl-wrap').innerHTML=html;}
 
-// ── CLIENT DETAIL ─────────────────────────────────────────────
+//  CLIENT DETAIL 
 function openDetail(clientId) {
   curClient=clients.find(c=>c._id===clientId);if(!curClient)return;
   let _dj=curClient.dashboardJSON;
@@ -1034,38 +1034,39 @@ function openDetail(clientId) {
   showPage('detail', null);
 }
 function buildDetailPage(c, j) {
-  const SC={new:'🆕 New',active:'📋 Plan Ready',launched:'🚀 Live',paused:'⏸ Paused',completed:'✅ Done'};
+  const SC={new:' New',active:' Plan Ready',launched:' Live',paused:' Paused',completed:' Done'};
   const wrap=document.getElementById('detail-wrap');
   wrap.innerHTML=`
     <div class="detail-hero">
       <div class="detail-hero-left">
-        <div class="detail-biz">${esc(c.businessName||'—')}</div>
+        <div class="detail-biz">${esc(c.businessName||'')}</div>
         <div class="detail-meta">
-          <span>👤 ${esc(c.clientName||'—')}</span>
-          <span>✉️ ${esc(c.clientEmail||'—')}</span>
-          <span>📞 ${esc(c.phone||'—')}</span>
-          <span>🏷️ ${SC[c.status]||'🆕 New'}</span>
-          ${c.createdAt?`<span>📅 Added ${new Date(c.createdAt).toLocaleDateString()}</span>`:''}
+          <span> ${esc(c.clientName||'')}</span>
+          <span> ${esc(c.clientEmail||'')}</span>
+          <span> ${esc(c.phone||'')}</span>
+          <span> ${SC[c.status]||' New'}</span>
+          ${c.createdAt?`<span> Added ${new Date(c.createdAt).toLocaleDateString()}</span>`:''}
         </div>
       </div>
       <div class="detail-hero-right">
-        ${c.dashboardUrl?`<a href="${esc(c.dashboardUrl)}" target="_blank" class="dh-btn dh-btn-teal">↗ View Plan</a>`:`<button class="dh-btn dh-btn-teal" onclick="regeneratePlan('${esc(c._id||c.id||'')}',null)">⚡ Generate Plan</button>`}
-        <button class="dh-btn dh-btn-ghost" onclick="window.open('https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${c._id}','_blank')">👤 Portal</button>
-        <button class="dh-btn dh-btn-ghost" onclick="copyPortal()">🔗 Copy Portal</button>
-        <button class="dh-btn dh-btn-ghost" onclick="deleteClient('${c._id}','${esc(c.businessName||'')}')">🗑 Delete</button>
+        ${c.dashboardUrl?`<a href="${esc(c.dashboardUrl)}" target="_blank" class="dh-btn dh-btn-teal"> View Plan</a>`:`<button class="dh-btn dh-btn-teal" onclick="regeneratePlan('${esc(c._id||c.id||'')}',null)"> Generate Plan</button>`}
+        <button class="dh-btn dh-btn-ghost" onclick="window.open('https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${c._id}','_blank')"> Portal</button>
+        <button class="dh-btn dh-btn-ghost" onclick="copyPortal()"> Copy Portal</button>
+        <button class="dh-btn dh-btn-ghost" onclick="deleteClient('${c._id}','${esc(c.businessName||'')}')"> Delete</button>
       </div>
     </div>
     <div class="detail-tabs">
-      <button class="detail-tab on" onclick="dTab(this,'dt-info')">📊 Overview</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-ads');buildAds()">🎨 Ad Copy</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-targeting')">🎯 Targeting</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-roadmap')">📅 Roadmap</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-script')">🗣️ Script</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-notes')">📝 Notes</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-billing')">💳 Billing</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-access')">🔑 Platform Access</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-offer')">🎁 Special Offer</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-files');buildFiles()">📁 Files</button>
+      <button class="detail-tab on" onclick="dTab(this,'dt-info')"> Overview</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-ads');buildAds()"> Ad Copy</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-targeting')"> Targeting</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-roadmap')"> Roadmap</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-script')"> Script</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-notes')"> Notes</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-billing')"> Billing</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-access')"> Platform Access</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-offer')"> Special Offer</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-files');buildFiles()"> Files</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-services');buildDetailServices()"> Services</button>
     </div>
     <div>
       <div class="detail-pane on" id="dt-info"></div>
@@ -1078,6 +1079,7 @@ function buildDetailPage(c, j) {
       <div class="detail-pane" id="dt-access"></div>
       <div class="detail-pane" id="dt-offer"></div>
       <div class="detail-pane" id="dt-files"></div>
+      <div class="detail-pane" id="dt-services"></div>
     </div>`;
   buildDetailInfo(c);buildDetailTargeting(j);buildDetailRoadmap(j);buildDetailScript(j);buildDetailNotes(c);buildDetailAccess(c);buildDetailOffer(c);buildDetailBilling(c);
   document.getElementById('dt-files').dataset.loaded='0';
@@ -1096,11 +1098,11 @@ function buildDetailInfo(c) {
     'Limitations/Avoid','Priorities','90-Day Goal','Qualified Lead','Bad Fit / Disqualifiers',
     'Final Notes','Custom Q1','Custom Q2','Custom Q3','Mailing Address']);
   const sec = (title, rows) => {
-    const filled = rows.filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=='—');
+    const filled = rows.filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=='');
     if(!filled.length) return '';
     const cards = filled.map(([l,v])=>{
       const isWide = WIDE_FIELDS.has(l) || String(v).length > 60;
-      return `<div class="info-card${isWide?' wide':''}"><div class="info-lbl">${l}</div><div class="info-val">${esc(String(v||'—'))}</div></div>`;
+      return `<div class="info-card${isWide?' wide':''}"><div class="info-lbl">${l}</div><div class="info-val">${esc(String(v||''))}</div></div>`;
     }).join('');
     return `<div style="margin-bottom:18px"><div style="font-size:.6rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)">${title}</div><div class="info-grid">${cards}</div></div>`;
   };
@@ -1134,7 +1136,7 @@ function buildAds(){
         const l=document.createElement('div');l.className='copy-lbl';l.textContent=lbl;
         const r=document.createElement('div');r.className='copy-row';
         const vEl=document.createElement('div');vEl.className='copy-val';vEl.textContent=val||'';
-        const b=document.createElement('button');b.className='copy-btn';b.textContent='Copy';b.onclick=()=>navigator.clipboard.writeText(val||'').then(()=>{b.textContent='✓';setTimeout(()=>b.textContent='Copy',2000)});
+        const b=document.createElement('button');b.className='copy-btn';b.textContent='Copy';b.onclick=()=>navigator.clipboard.writeText(val||'').then(()=>{b.textContent='';setTimeout(()=>b.textContent='Copy',2000)});
         r.appendChild(vEl);r.appendChild(b);f.appendChild(l);f.appendChild(r);card.appendChild(f);
       });
 
@@ -1144,18 +1146,18 @@ function buildAds(){
 
       const promptBtn = document.createElement('button');
       promptBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,217,163,.2);border-radius:6px;cursor:pointer;font-family:var(--font);white-space:nowrap';
-      promptBtn.textContent = '🎨 Get Prompt';
+      promptBtn.textContent = ' Get Prompt';
       promptBtn.onclick = () => generateImagePrompt(ad, angle.angleLabel, promptBtn);
 
       const openaiBtn = document.createElement('button');
       openaiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(16,163,127,.06);color:#6b9e94;border:1px solid rgba(16,163,127,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
-      openaiBtn.textContent = '🔒 ChatGPT — Soon';
+      openaiBtn.textContent = ' ChatGPT  Soon';
       openaiBtn.title = 'Coming soon';
       openaiBtn.disabled = true;
 
       const geminiBtn = document.createElement('button');
       geminiBtn.style.cssText = 'flex:1;padding:7px;font-size:.68rem;font-weight:700;background:rgba(66,133,244,.06);color:#7090c0;border:1px solid rgba(66,133,244,.1);border-radius:6px;cursor:not-allowed;font-family:var(--font);white-space:nowrap;opacity:.7';
-      geminiBtn.textContent = '🔒 Gemini — Soon';
+      geminiBtn.textContent = ' Gemini  Soon';
       geminiBtn.title = 'Coming soon';
       geminiBtn.disabled = true;
 
@@ -1193,13 +1195,13 @@ function buildDetailScript(j){
   const qs=(j&&typeof j==='object'?j:{}).qualificationScript||{};
   if(qs.opening){const card=document.createElement('div');card.className='ad-card';card.appendChild(mkCopyField('Opening',qs.opening));el.appendChild(card);}
   if((qs.questions||[]).length){const hdr=document.createElement('div');hdr.style.cssText='font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:14px 0 6px';hdr.textContent='Qualifying Questions';el.appendChild(hdr);qs.questions.forEach((q,i)=>{const card=document.createElement('div');card.className='ad-card';card.style.marginBottom='7px';const num=document.createElement('div');num.style.cssText='font-size:.6rem;color:var(--teal);font-weight:700;margin-bottom:4px';num.textContent='Q'+(i+1);card.appendChild(num);card.appendChild(mkCopyField('',q.q||''));const why=document.createElement('div');why.style.cssText='font-size:.7rem;color:var(--text-muted);margin-top:4px';why.textContent='Why: '+(q.why||'');card.appendChild(why);el.appendChild(card);});}
-  if((qs.objections||[]).length){const hdr=document.createElement('div');hdr.style.cssText='font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:14px 0 6px';hdr.textContent='Objection Handling';el.appendChild(hdr);qs.objections.forEach(o=>{const card=document.createElement('div');card.className='ad-card';card.style.marginBottom='7px';const obj=document.createElement('div');obj.style.cssText='font-size:.73rem;color:var(--red);margin-bottom:6px';obj.textContent='❌ "'+(o.obj||'')+'"';card.appendChild(obj);card.appendChild(mkCopyField('Response',o.response||''));el.appendChild(card);});}
+  if((qs.objections||[]).length){const hdr=document.createElement('div');hdr.style.cssText='font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:14px 0 6px';hdr.textContent='Objection Handling';el.appendChild(hdr);qs.objections.forEach(o=>{const card=document.createElement('div');card.className='ad-card';card.style.marginBottom='7px';const obj=document.createElement('div');obj.style.cssText='font-size:.73rem;color:var(--red);margin-bottom:6px';obj.textContent=' "'+(o.obj||'')+'"';card.appendChild(obj);card.appendChild(mkCopyField('Response',o.response||''));el.appendChild(card);});}
   if(!el.children.length)el.innerHTML='<p style="color:var(--text-muted);font-size:.82rem;margin-top:4px">No script data yet.</p>';
 }
 function buildDetailNotes(c){
   const el=document.getElementById('dt-notes');el.innerHTML='';
   const clientId=c._id||c.id;
-  el.innerHTML='<p style="font-size:.78rem;color:var(--text-muted);margin-bottom:14px">Internal notes — not visible to the client.</p>';
+  el.innerHTML='<p style="font-size:.78rem;color:var(--text-muted);margin-bottom:14px">Internal notes  not visible to the client.</p>';
   const addWrap=document.createElement('div');addWrap.style.marginBottom='16px';
   const ta=document.createElement('textarea');ta.className='notes-ta';ta.id='notes-ta';ta.placeholder='Write a note...';
   const addBtn=document.createElement('button');addBtn.className='save-btn';addBtn.textContent='+ Add Note';addBtn.onclick=()=>addNote(clientId,c);
@@ -1207,10 +1209,10 @@ function buildDetailNotes(c){
   const list=document.createElement('div');list.id='notes-list';el.appendChild(list);renderNotesList(c);
 }
 function buildDetailAccess(c){
-  const instr=`📘 META (FACEBOOK / INSTAGRAM)\n${'─'.repeat(36)}\n1. Go to business.facebook.com\n2. Click Business → Settings ⚙️\n3. Users → Partners → Add Partner\n4. Enter our Partner Business ID\n5. Grant "Manage Campaigns" access\n6. Click Save\n\n🔵 GOOGLE ADS\n${'─'.repeat(36)}\n1. Sign in to ads.google.com\n2. Tools ⚙️ → Account Access\n3. Click "+" → Invite Users\n4. Enter: ads@astroaibots.com\n5. Set access to "Standard"\n6. Click Send Invitation\n\nCampaign launch begins within 48hrs of access.`;
+  const instr=` META (FACEBOOK / INSTAGRAM)\n${''.repeat(36)}\n1. Go to business.facebook.com\n2. Click Business  Settings \n3. Users  Partners  Add Partner\n4. Enter our Partner Business ID\n5. Grant "Manage Campaigns" access\n6. Click Save\n\n GOOGLE ADS\n${''.repeat(36)}\n1. Sign in to ads.google.com\n2. Tools   Account Access\n3. Click "+"  Invite Users\n4. Enter: ads@astroaibots.com\n5. Set access to "Standard"\n6. Click Send Invitation\n\nCampaign launch begins within 48hrs of access.`;
   const el=document.getElementById('dt-access');el.innerHTML='';
   const btns=document.createElement('div');btns.style.cssText='display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px';
-  const cp=document.createElement('button');cp.className='save-btn';cp.style.marginTop='0';cp.textContent='📋 Copy Instructions';cp.onclick=()=>navigator.clipboard.writeText(instr).then(()=>toast('📋 Copied!'));btns.appendChild(cp);
+  const cp=document.createElement('button');cp.className='save-btn';cp.style.marginTop='0';cp.textContent=' Copy Instructions';cp.onclick=()=>navigator.clipboard.writeText(instr).then(()=>toast(' Copied!'));btns.appendChild(cp);
   el.appendChild(btns);const pre=document.createElement('div');pre.className='plat-pre';pre.textContent=instr;el.appendChild(pre);
 }
 function buildDetailOffer(c){
@@ -1218,14 +1220,14 @@ function buildDetailOffer(c){
   let existing={};if(c.offer){try{existing=typeof c.offer==='string'?JSON.parse(c.offer):c.offer;}catch(e){existing={};}}
   const hasOffer=existing&&existing.title;
   const note=document.createElement('p');note.style.cssText='font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6';
-  note.textContent=hasOffer?'✅ Active offer set. Edit below or clear it.':"Set a special offer banner on this client's portal.";el.appendChild(note);
-  if(hasOffer){const curr=document.createElement('div');curr.style.cssText='background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:.8rem';curr.innerHTML=`<div style="font-weight:700;color:var(--teal);margin-bottom:4px">Current: ${esc(existing.title)}</div><div style="color:var(--text-dim)">${esc(existing.description||'')} · <a href="${esc(existing.ctaUrl||'#')}" target="_blank" style="color:var(--teal)">${esc(existing.ctaText||'Claim')}</a></div>`;el.appendChild(curr);}
+  note.textContent=hasOffer?' Active offer set. Edit below or clear it.':"Set a special offer banner on this client's portal.";el.appendChild(note);
+  if(hasOffer){const curr=document.createElement('div');curr.style.cssText='background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:.8rem';curr.innerHTML=`<div style="font-weight:700;color:var(--teal);margin-bottom:4px">Current: ${esc(existing.title)}</div><div style="color:var(--text-dim)">${esc(existing.description||'')}  <a href="${esc(existing.ctaUrl||'#')}" target="_blank" style="color:var(--teal)">${esc(existing.ctaText||'Claim')}</a></div>`;el.appendChild(curr);}
   [['Offer Title *','offer-title','text','20% Off'],['Description','offer-desc','text','Exclusive...']].forEach(([lbl,id,type,ph])=>{const wrap=document.createElement('div');wrap.style.marginBottom='10px';const fieldKey=id==='offer-title'?'title':id==='offer-desc'?'description':id.replace('offer-','');wrap.innerHTML=`<label class="of-lbl">${lbl}</label><input class="of-in" id="${id}" type="${type}" placeholder="${ph}" value="${esc(existing[fieldKey]||'')}">`;el.appendChild(wrap);});
   const twoCol=document.createElement('div');twoCol.className='of-2col';twoCol.innerHTML=`<div><label class="of-lbl">CTA Text</label><input class="of-in" id="offer-cta-text" placeholder="Claim Offer" value="${esc(existing.ctaText||'')}"></div><div><label class="of-lbl">Expiry Date</label><input class="of-in" id="offer-expires" type="date" value="${esc(existing.expiresAt||'')}"></div>`;el.appendChild(twoCol);
   const urlWrap=document.createElement('div');urlWrap.style.marginBottom='14px';urlWrap.innerHTML=`<label class="of-lbl">Claim Link *</label><input class="of-in" id="offer-url" type="url" placeholder="https://..." value="${esc(existing.ctaUrl||'')}">`;el.appendChild(urlWrap);
   const acts=document.createElement('div');acts.style.cssText='display:flex;gap:7px;flex-wrap:wrap';
-  const save=document.createElement('button');save.className='of-btn ofb-save';save.textContent='💾 Save Offer';save.onclick=()=>saveOffer(c._id||c.id,false);acts.appendChild(save);
-  if(hasOffer){const clr=document.createElement('button');clr.className='of-btn ofb-clear';clr.textContent='🗑 Clear Offer';clr.onclick=()=>saveOffer(c._id||c.id,true);acts.appendChild(clr);}
+  const save=document.createElement('button');save.className='of-btn ofb-save';save.textContent=' Save Offer';save.onclick=()=>saveOffer(c._id||c.id,false);acts.appendChild(save);
+  if(hasOffer){const clr=document.createElement('button');clr.className='of-btn ofb-clear';clr.textContent=' Clear Offer';clr.onclick=()=>saveOffer(c._id||c.id,true);acts.appendChild(clr);}
   el.appendChild(acts);
 }
 function buildFiles(){
@@ -1247,7 +1249,7 @@ function buildFiles(){
       const isProtected = f.protected || f.systemFile;
       const isAuthDoc   = f.docType === 'authorization';
       const ext=(f.name||'').split('.').pop().toLowerCase();
-      const icon = isAuthDoc ? '🔐' : ['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼️':ext==='pdf'?'📄':['doc','docx'].includes(ext)?'📝':ext==='zip'?'📦':'📎';
+      const icon = isAuthDoc ? '' : ['jpg','jpeg','png','gif','webp'].includes(ext)?'':ext==='pdf'?'':['doc','docx'].includes(ext)?'':ext==='zip'?'':'';
       const bytes=parseInt(f.size)||0;
       const size=bytes<1024?bytes+' B':bytes<1048576?(bytes/1024).toFixed(1)+' KB':(bytes/1048576).toFixed(1)+' MB';
       const uploadedDate = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
@@ -1260,22 +1262,22 @@ function buildFiles(){
 
       // Protected badge
       const protectedBadge = isProtected
-        ? `<span style="font-size:.6rem;font-weight:700;color:var(--teal);background:rgba(var(--teal-rgb,0,217,163),0.12);border:1px solid rgba(var(--teal-rgb,0,217,163),0.25);border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;">🔒 Protected</span>`
+        ? `<span style="font-size:.6rem;font-weight:700;color:var(--teal);background:rgba(var(--teal-rgb,0,217,163),0.12);border:1px solid rgba(var(--teal-rgb,0,217,163),0.25);border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;"> Protected</span>`
         : '';
 
       // Actions: protected = download only, regular = download + delete
       const actions = isProtected
-        ? (f.url ? `<a class="file-dl" href="${esc(f.url)}" target="_blank" download style="white-space:nowrap;">↓ Download</a>` : '')
-        : `${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank">↓ Download</a>`:''}<button onclick="deleteFile('${esc(f.key||'')}',this)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.75rem;padding:4px 8px;border-radius:4px;opacity:.7;transition:opacity .2s;" title="Delete file">🗑</button>`;
+        ? (f.url ? `<a class="file-dl" href="${esc(f.url)}" target="_blank" download style="white-space:nowrap;"> Download</a>` : '')
+        : `${f.url?`<a class="file-dl" href="${esc(f.url)}" target="_blank"> Download</a>`:''}<button onclick="deleteFile('${esc(f.key||'')}',this)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.75rem;padding:4px 8px;border-radius:4px;opacity:.7;transition:opacity .2s;" title="Delete file"></button>`;
 
-      row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info" style="flex:1;min-width:0"><div class="file-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${esc(f.name||'')}${protectedBadge}</div><div class="file-meta">${size}${uploadedDate?' · '+uploadedDate:''}</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${actions}</div>`;
+      row.innerHTML=`<div class="file-icon">${icon}</div><div class="file-info" style="flex:1;min-width:0"><div class="file-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${esc(f.name||'')}${protectedBadge}</div><div class="file-meta">${size}${uploadedDate?'  '+uploadedDate:''}</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${actions}</div>`;
       el.appendChild(row);
     });
 
     // Add upload button at bottom for non-system files
     const uploadWrap = document.createElement('div');
     uploadWrap.style.cssText='margin-top:14px;padding-top:12px;border-top:1px solid var(--border)';
-    uploadWrap.innerHTML=`<label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--teal);padding:7px 14px;border:1px solid rgba(var(--teal-rgb,0,217,163),.3);border-radius:7px;transition:all .2s" onmouseover="this.style.background='rgba(0,217,163,.07)'" onmouseout="this.style.background=''" >📎 Upload File<input type="file" style="display:none" onchange="handleFileUpload(event,'${esc(curClient._id||'')}')"></label>`;
+    uploadWrap.innerHTML=`<label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--teal);padding:7px 14px;border:1px solid rgba(var(--teal-rgb,0,217,163),.3);border-radius:7px;transition:all .2s" onmouseover="this.style.background='rgba(0,217,163,.07)'" onmouseout="this.style.background=''" > Upload File<input type="file" style="display:none" onchange="handleFileUpload(event,'${esc(curClient._id||'')}')"></label>`;
     el.appendChild(uploadWrap);
 
   }).catch(e=>{el.innerHTML=`<p style="color:var(--red);font-size:.8rem">Error: ${esc(e.message)}</p>`;});
@@ -1290,79 +1292,79 @@ async function deleteFile(key, btn) {
     if(data.success) {
       const row = btn.closest('.file-row');
       if(row) row.remove();
-      toast('🗑 File deleted');
-    } else { toast('❌ ' + (data.error||'Failed')); btn.disabled=false; btn.textContent='🗑'; }
-  } catch(e) { toast('❌ ' + e.message); btn.disabled=false; btn.textContent='🗑'; }
+      toast(' File deleted');
+    } else { toast(' ' + (data.error||'Failed')); btn.disabled=false; btn.textContent=''; }
+  } catch(e) { toast(' ' + e.message); btn.disabled=false; btn.textContent=''; }
 }
 
 async function handleFileUpload(event, slug) {
   const file = event.target.files?.[0];
   if (!file || !slug) return;
-  if (file.size > 10 * 1024 * 1024) { toast('❌ File too large (max 10MB)'); return; }
-  toast('⏳ Uploading...');
+  if (file.size > 10 * 1024 * 1024) { toast(' File too large (max 10MB)'); return; }
+  toast(' Uploading...');
   try {
     const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
     const resp = await fetch(API + '/upload-file', { method:'POST', headers:{'Content-Type':'application/json','x-agency-token':token}, body:JSON.stringify({slug, fileName:file.name, fileBase64:base64, fileType:file.type, fileSize:file.size}) });
     const data = await resp.json();
     if(data.success) {
-      toast('✅ Uploaded!');
+      toast(' Uploaded!');
       // Reload the files tab
       const el = document.getElementById('dt-files');
       if(el) { el.dataset.loaded='0'; buildFiles(); }
-    } else toast('❌ ' + (data.error||'Upload failed'));
-  } catch(e) { toast('❌ ' + e.message); }
+    } else toast(' ' + (data.error||'Upload failed'));
+  } catch(e) { toast(' ' + e.message); }
 }
 
-// ── STATUS UPDATE ─────────────────────────────────────────────
+//  STATUS UPDATE 
 async function updateStatus(clientId,sel){
   const status=sel.value;const SC={new:'s-new',active:'s-active',launched:'s-launched',paused:'s-paused',completed:'s-completed'};sel.className='spill '+(SC[status]||'s-new');
   const notify=confirm(`Change to "${sel.options[sel.selectedIndex].text}"?\nOK = update + notify client\nCancel = update only`);sel.disabled=true;
-  try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status,notify})});const data=await res.json();if(data.success){const c=clients.find(x=>x._id===clientId);if(c)c.status=status;toast('✅ Updated');}else toast('❌ '+(data.error||'Failed'));}
-  catch(e){toast('❌ '+e.message);}finally{sel.disabled=false;}
+  try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status,notify})});const data=await res.json();if(data.success){const c=clients.find(x=>x._id===clientId);if(c)c.status=status;toast(' Updated');}else toast(' '+(data.error||'Failed'));}
+  catch(e){toast(' '+e.message);}finally{sel.disabled=false;}
 }
 async function deleteClient(clientId,name){
   if(!confirm(`Delete "${name}"? This is permanent.`))return;
-  try{const res=await fetch(API+'/agency/delete-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId})});const data=await res.json();if(data.success){clients=clients.filter(c=>c._id!==clientId);purchasedLeads=purchasedLeads.filter(c=>c._id!==clientId);renderTable();updateStats();if(document.getElementById('page-detail').classList.contains('active'))goBack();toast('🗑 Deleted');}else toast('❌ '+(data.error||'Failed'));}
-  catch(e){toast('❌ '+e.message);}
+  try{const res=await fetch(API+'/agency/delete-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId})});const data=await res.json();if(data.success){clients=clients.filter(c=>c._id!==clientId);purchasedLeads=purchasedLeads.filter(c=>c._id!==clientId);renderTable();updateStats();if(document.getElementById('page-detail').classList.contains('active'))goBack();toast(' Deleted');}else toast(' '+(data.error||'Failed'));}
+  catch(e){toast(' '+e.message);}
 }
 
-// ── PURCHASED LEADS ───────────────────────────────────────────
+//  PURCHASED LEADS 
 function renderPurchasedLeads(){
   const el=document.getElementById('purchased-list');
   if(!purchasedLeads.length){
-    el.innerHTML=`<div class="leads-empty"><div class="leads-empty-icon">🎯</div><div class="leads-empty-title">No purchased leads yet</div><div class="leads-empty-sub">When you claim leads from the Lead Pool,<br>they'll appear here for you to manage.</div></div>`;
+    el.innerHTML=`<div class="leads-empty"><div class="leads-empty-icon"></div><div class="leads-empty-title">No purchased leads yet</div><div class="leads-empty-sub">When you claim leads from the Lead Pool,<br>they'll appear here for you to manage.</div></div>`;
     return;
   }
   el.innerHTML=purchasedLeads.map((c,i)=>`
     <div class="pl-card" style="animation-delay:${i*.05}s">
       <div>
-        <div class="pl-card-tag">🎯 Purchased Lead</div>
-        <div class="pl-card-biz">${esc(c.businessName||'—')}</div>
+        <div class="pl-card-tag"> Purchased Lead</div>
+        <div class="pl-card-biz">${esc(c.businessName||'')}</div>
         <div class="pl-card-sub">
-          <span>👤 ${esc(c.clientName||'—')}</span>
-          ${c.industry?`<span>🏷️ ${esc(c.industry)}</span>`:''}
-          ${c.serviceDetails?`<span>📍 ${esc(c.serviceDetails)}</span>`:''}
+          <span> ${esc(c.clientName||'')}</span>
+          ${c.industry?`<span> ${esc(c.industry)}</span>`:''}
+          ${c.serviceDetails?`<span> ${esc(c.serviceDetails)}</span>`:''}
         </div>
         <div class="pl-card-contact">
-          <div class="pl-card-contact-row">📞 <span class="pl-card-contact-val">${esc(c.phone||'Not provided')}</span></div>
-          <div class="pl-card-contact-row">✉️ <span class="pl-card-contact-val">${esc(c.clientEmail||'Not provided')}</span></div>
-          ${c.primaryService?`<div class="pl-card-contact-row">🔧 <span class="pl-card-contact-val">${esc(c.primaryService)}</span></div>`:''}
+          <div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(c.phone||'Not provided')}</span></div>
+          <div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(c.clientEmail||'Not provided')}</span></div>
+          ${c.primaryService?`<div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(c.primaryService)}</span></div>`:''}
         </div>
-        <div class="pl-claimed-date">Added ${c.createdAt?new Date(c.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}</div>
+        <div class="pl-claimed-date">Added ${c.createdAt?new Date(c.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div>
       </div>
       <div class="pl-actions">
-        <button class="pl-btn pl-btn-teal" onclick="openConvert('${c._id}')">🚀 Convert to Client</button>
-        <button class="pl-btn pl-btn-ghost" onclick="sendOnboardingEmail('${c._id}','${esc(c.clientEmail||'')}','${esc(c.businessName||'')}')">📋 Send Onboarding Form</button>
-        <button class="pl-btn pl-btn-ghost" onclick="openDetail('${c._id}')">📄 View Details</button>
-        <button class="pl-btn pl-btn-del" onclick="deleteClient('${c._id}','${esc(c.businessName||'')}')">🗑</button>
+        <button class="pl-btn pl-btn-teal" onclick="openConvert('${c._id}')"> Convert to Client</button>
+        <button class="pl-btn pl-btn-ghost" onclick="sendOnboardingEmail('${c._id}','${esc(c.clientEmail||'')}','${esc(c.businessName||'')}')"> Send Onboarding Form</button>
+        <button class="pl-btn pl-btn-ghost" onclick="openDetail('${c._id}')"> View Details</button>
+        <button class="pl-btn pl-btn-del" onclick="deleteClient('${c._id}','${esc(c.businessName||'')}')"></button>
       </div>
     </div>`).join('');
 }
 
-// ── CONVERT LEAD ──────────────────────────────────────────────
+//  CONVERT LEAD 
 function openConvert(clientId) {
   convertLead=purchasedLeads.find(c=>c._id===clientId);if(!convertLead)return;
-  document.getElementById('convert-lead-name').textContent=convertLead.businessName||'—';
+  document.getElementById('convert-lead-name').textContent=convertLead.businessName||'';
   // Pre-fill with known data
   const nameParts=(convertLead.clientName||'').split(' ');
   document.getElementById('cv-fn').value=nameParts[0]||'';
@@ -1389,11 +1391,11 @@ function toggleSendOnboard(){
 }
 async function submitConvert() {
   const fn=v('cv-fn'),biz=v('cv-biz'),em=v('cv-email');
-  if(!fn||!biz||!em){toast('❌ First name, business name, and email required');return;}
-  const btn=document.getElementById('cv-btn');btn.textContent='⏳ Converting...';btn.disabled=true;
+  if(!fn||!biz||!em){toast(' First name, business name, and email required');return;}
+  const btn=document.getElementById('cv-btn');btn.textContent=' Converting...';btn.disabled=true;
   try {
-    if(!agencyId) throw new Error('Not logged in — please refresh and log in again');
-    // process-plan now runs Claude synchronously (~15s) — give it 30s
+    if(!agencyId) throw new Error('Not logged in  please refresh and log in again');
+    // process-plan now runs Claude synchronously (~15s)  give it 30s
     const ctrl=new AbortController();
     const tmo=setTimeout(()=>ctrl.abort(),30000);
     let res,data;
@@ -1403,13 +1405,13 @@ async function submitConvert() {
       res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({agencyId,firstName:fn,lastName:v('cv-ln'),email:em,phone:v('cv-phone'),businessName:biz,industry:_ind,primaryService:_svc,adBudget:v('cv-budget')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('cv-goal')||'Generate leads and grow revenue',tags:'converted-lead',leadSource:'converted'})});
       clearTimeout(tmo);
       const txt=await res.text();
-      try{data=JSON.parse(txt);}catch(e){throw new Error('Server error — please try again');}
+      try{data=JSON.parse(txt);}catch(e){throw new Error('Server error  please try again');}
     } catch(fe){
       clearTimeout(tmo);
       if(fe.name==='AbortError'){
-        // Timed out but server is still generating — show success and reload
+        // Timed out but server is still generating  show success and reload
         closeConvert();
-        toast('✅ '+biz+' converted! Plan generating — refreshing in 20 seconds...');
+        toast(' '+biz+' converted! Plan generating  refreshing in 20 seconds...');
         setTimeout(()=>loadClients(), 20000);
         return;
       }
@@ -1418,7 +1420,7 @@ async function submitConvert() {
     if(!res.ok||!data.success) throw new Error(data.error||'Failed');
     if(sendOnboard&&em){
       // Send onboarding form link via email
-      await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId:data.clientId,status:'new',notify:true,customSubject:`Your Marketing Plan Onboarding Form — ${biz}`,customMessage:`Hi ${fn},\n\nThank you for your interest! To create your personalized AI marketing plan, please fill out this quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes 2-3 minutes and will help us build the perfect plan for your business.\n\nLooking forward to working with you!`})});
+      await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId:data.clientId,status:'new',notify:true,customSubject:`Your Marketing Plan Onboarding Form  ${biz}`,customMessage:`Hi ${fn},\n\nThank you for your interest! To create your personalized AI marketing plan, please fill out this quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes 2-3 minutes and will help us build the perfect plan for your business.\n\nLooking forward to working with you!`})});
     }
     // Update original lead record to mark as converted (removes from Purchased Leads tab)
     if(convertLead && convertLead._id) {
@@ -1429,34 +1431,34 @@ async function submitConvert() {
       }).catch(()=>{});
     }
     closeConvert();await loadClients();
-    toast(`✅ ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
+    toast(` ${biz} converted to client!${sendOnboard?' Onboarding form sent.':''}`);
 
   } catch(e){
-    toast('❌ '+(e.message||'Failed to convert'));
+    toast(' '+(e.message||'Failed to convert'));
   }
-  finally{btn.textContent='🚀 Convert to Client';btn.disabled=false;}
+  finally{btn.textContent=' Convert to Client';btn.disabled=false;}
 }
 async function sendOnboardingEmail(clientId,email,bizName) {
-  if(!email){toast('❌ No email on file for this lead');return;}
+  if(!email){toast(' No email on file for this lead');return;}
   if(!confirm(`Send onboarding form link to ${email}?`))return;
   try {
     const c=purchasedLeads.find(x=>x._id===clientId);
-    const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status:c?.status||'new',notify:true,customSubject:`Your Marketing Plan Onboarding — ${bizName}`,customMessage:`Hi,\n\nThank you for your interest in our marketing services!\n\nTo get started, please fill out your quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes a few minutes and we'll have your personalized AI marketing plan ready shortly.\n\nLooking forward to working with you!`})});
+    const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status:c?.status||'new',notify:true,customSubject:`Your Marketing Plan Onboarding  ${bizName}`,customMessage:`Hi,\n\nThank you for your interest in our marketing services!\n\nTo get started, please fill out your quick onboarding form:\n\nhttps://marketingplan.astroaibots.com/onboard/${agencyId}\n\nIt only takes a few minutes and we'll have your personalized AI marketing plan ready shortly.\n\nLooking forward to working with you!`})});
     const data=await res.json();
-    if(data.success)toast('📋 Onboarding form link sent to '+email);
-    else toast('❌ '+(data.error||'Failed'));
-  }catch(e){toast('❌ '+e.message);}
+    if(data.success)toast(' Onboarding form link sent to '+email);
+    else toast(' '+(data.error||'Failed'));
+  }catch(e){toast(' '+e.message);}
 }
 
-// ── ADD CLIENT ────────────────────────────────────────────────
+//  ADD CLIENT 
 function openAddClient(){document.getElementById('add-sheet').classList.add('open');}
 function closeAdd(){document.getElementById('add-sheet').classList.remove('open');}
 async function submitAdd(){
-  const fn=v('a-fn'),biz=v('a-biz'),em=v('a-em');if(!fn||!biz||!em){toast('❌ First name, business, email required');return;}toast('⏳ Adding...');
-  try{const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('a-ln'),email:em,phone:v('a-ph'),businessName:biz,industry:v('a-ind'),primaryService:v('a-ind'),adBudget:v('a-bud')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('a-goal')||'Generate leads'})});const data=await res.json();if(data.success){closeAdd();loadClients();toast('✅ Client added & plan generating!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}
+  const fn=v('a-fn'),biz=v('a-biz'),em=v('a-em');if(!fn||!biz||!em){toast(' First name, business, email required');return;}toast(' Adding...');
+  try{const res=await fetch(API+'/agency/process-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agencyId,firstName:fn,lastName:v('a-ln'),email:em,phone:v('a-ph'),businessName:biz,industry:v('a-ind'),primaryService:v('a-ind'),adBudget:v('a-bud')||'1000',adPlatforms:'Facebook, Instagram',goal90Days:v('a-goal')||'Generate leads'})});const data=await res.json();if(data.success){closeAdd();loadClients();toast(' Client added & plan generating!');}else toast(' '+(data.error||'Failed'));}catch(e){toast(' '+e.message);}
 }
 
-// ── LEAD POOL ─────────────────────────────────────────────────
+//  LEAD POOL 
 function setLeadView(view){leadView=view;document.getElementById('view-grid').classList.toggle('on',view==='grid');document.getElementById('view-list').classList.toggle('on',view==='list');renderLeads();}
 async function loadLeadPool(force){
   if(_leadPoolLoaded&&!force)return;_leadPoolLoaded=true;
@@ -1467,7 +1469,7 @@ async function loadLeadPool(force){
     allLeads=data.leads||[];
     const badge=document.getElementById('leads-badge');if(allLeads.length){badge.style.display='flex';badge.textContent=allLeads.length;}else badge.style.display='none';
     renderLeads();
-  }catch(e){document.getElementById('leads-container').innerHTML=`<div class="leads-empty"><div class="leads-empty-icon">⚠️</div><div class="leads-empty-title">Error</div><div class="leads-empty-sub">${esc(e.message)}</div></div>`;}
+  }catch(e){document.getElementById('leads-container').innerHTML=`<div class="leads-empty"><div class="leads-empty-icon"></div><div class="leads-empty-title">Error</div><div class="leads-empty-sub">${esc(e.message)}</div></div>`;}
 }
 function renderLeads(){
   const container=document.getElementById('leads-container');
@@ -1478,49 +1480,49 @@ function renderLeads(){
   else if(sort==='price-hi')leads.sort((a,b)=>(b.price||0)-(a.price||0));
   else if(sort==='price-lo')leads.sort((a,b)=>(a.price||0)-(b.price||0));
   document.getElementById('lp-count').textContent=leads.length+' lead'+(leads.length!==1?'s':'')+' available';
-  if(!leads.length){container.innerHTML='<div class="leads-empty"><div class="leads-empty-icon">✦</div><div class="leads-empty-title">No leads available right now</div><div class="leads-empty-sub">Check back soon — new leads are added regularly.</div></div>';return;}
+  if(!leads.length){container.innerHTML='<div class="leads-empty"><div class="leads-empty-icon"></div><div class="leads-empty-title">No leads available right now</div><div class="leads-empty-sub">Check back soon  new leads are added regularly.</div></div>';return;}
   if(leadView==='grid'){
     container.innerHTML=`<div class="leads-grid">${leads.map((l,i)=>`
       <div class="lead-card" id="lpc-${esc(l.id)}" style="animation-delay:${i*.05}s">
-        <div class="lc-tag">✦ ${esc(l.service||'Marketing Services')}</div>
+        <div class="lc-tag"> ${esc(l.service||'Marketing Services')}</div>
         <div class="lc-biz">${esc(l.businessName)}</div>
-        <div class="lc-loc">📍 ${esc(l.location||'Location not specified')}</div>
+        <div class="lc-loc"> ${esc(l.location||'Location not specified')}</div>
         <div class="lc-blur">
-          <div class="lc-blur-row"><span>👤</span><span class="lc-blur-val">Contact Name Hidden</span></div>
-          <div class="lc-blur-row"><span>📞</span><span class="lc-blur-val">••• ••• ••••</span></div>
-          <div class="lc-blur-row"><span>✉️</span><span class="lc-blur-val">••••@••••.com</span></div>
+          <div class="lc-blur-row"><span></span><span class="lc-blur-val">Contact Name Hidden</span></div>
+          <div class="lc-blur-row"><span></span><span class="lc-blur-val">  </span></div>
+          <div class="lc-blur-row"><span></span><span class="lc-blur-val">@.com</span></div>
         </div>
         <div class="lc-price">
-          <div>${l.price>0?`<div class="lc-price-val">$${l.price}</div><div class="lc-price-label">per lead</div>`:`<div class="lc-price-free">🎁 Free lead</div>`}</div>
+          <div>${l.price>0?`<div class="lc-price-val">$${l.price}</div><div class="lc-price-label">per lead</div>`:`<div class="lc-price-free"> Free lead</div>`}</div>
           <div class="lc-date">${l.createdAt?new Date(l.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</div>
         </div>
-        <button class="claim-btn" id="lpc-btn-${esc(l.id)}" onclick="claimLead('${esc(l.id)}','${esc(l.businessName)}')">🎯 Claim & Reveal Contact</button>
+        <button class="claim-btn" id="lpc-btn-${esc(l.id)}" onclick="claimLead('${esc(l.id)}','${esc(l.businessName)}')"> Claim & Reveal Contact</button>
       </div>`).join('')}</div>`;
   } else {
     container.innerHTML=`<div class="leads-list-view">${leads.map((l,i)=>`
       <div class="lead-card-list" id="lpc-${esc(l.id)}" style="animation-delay:${i*.04}s">
         <span class="lcl-tag">${esc(l.service||'Services')}</span>
-        <div><div class="lcl-biz">${esc(l.businessName)}</div><div class="lcl-meta">📍 ${esc(l.location||'—')} · 🔒 Contact hidden · ${l.createdAt?new Date(l.createdAt).toLocaleDateString():''}</div></div>
+        <div><div class="lcl-biz">${esc(l.businessName)}</div><div class="lcl-meta"> ${esc(l.location||'')}   Contact hidden  ${l.createdAt?new Date(l.createdAt).toLocaleDateString():''}</div></div>
         <div class="lcl-price">${l.price>0?'$'+l.price:'Free'}</div>
-        <button class="claim-btn-sm" id="lpc-btn-${esc(l.id)}" onclick="claimLead('${esc(l.id)}','${esc(l.businessName)}')">🎯 Claim</button>
+        <button class="claim-btn-sm" id="lpc-btn-${esc(l.id)}" onclick="claimLead('${esc(l.id)}','${esc(l.businessName)}')"> Claim</button>
       </div>`).join('')}</div>`;
   }
 }
 async function claimLead(leadId,bizName){
-  if(!confirm(`Claim "${bizName}"?\n\n• Reveals full contact info\n• Moves to Purchased Leads tab\n• Removed from pool for everyone`))return;
-  const btn=document.getElementById('lpc-btn-'+leadId);if(btn){btn.textContent='⏳ Claiming...';btn.disabled=true;}
+  if(!confirm(`Claim "${bizName}"?\n\n Reveals full contact info\n Moves to Purchased Leads tab\n Removed from pool for everyone`))return;
+  const btn=document.getElementById('lpc-btn-'+leadId);if(btn){btn.textContent=' Claiming...';btn.disabled=true;}
   try{
     const res=await fetch('https://marketingplan.astroaibots.com/api/admin/leads',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({action:'claim',leadId})});
     const data=await res.json();if(!data.success)throw new Error(data.error||'Failed');
     const card=document.getElementById('lpc-'+leadId);if(card){card.style.opacity='0';card.style.transform='scale(.95)';card.style.transition='all .3s';setTimeout(()=>card.remove(),300);}
     allLeads=allLeads.filter(l=>l.id!==leadId);
     const badge=document.getElementById('leads-badge');if(allLeads.length)badge.textContent=allLeads.length;else badge.style.display='none';
-    toast(`✅ ${bizName} claimed! Go to Purchased Leads tab.`);
+    toast(` ${bizName} claimed! Go to Purchased Leads tab.`);
     await loadClients();
-  }catch(e){toast('❌ '+e.message);if(btn){btn.textContent='🎯 Claim & Reveal Contact';btn.disabled=false;}}
+  }catch(e){toast(' '+e.message);if(btn){btn.textContent=' Claim & Reveal Contact';btn.disabled=false;}}
 }
 
-// ── EMBED CODE ────────────────────────────────────────────────
+//  EMBED CODE 
 function buildEmbedCodes() {
   const onbUrl = `https://marketingplan.astroaibots.com/onboard/${agencyId}`;
   const color  = agencyConfig.brandColor || '#00d9a3';
@@ -1531,7 +1533,7 @@ function buildEmbedCodes() {
   if (colorInput && !colorInput._init) {
     colorInput.value = color;
     hexInput.value   = color;
-    btnText.value    = '🚀 Get Your Free Marketing Plan';
+    btnText.value    = ' Get Your Free Marketing Plan';
     colorInput._init = true;
   }
   // Set live iframe src
@@ -1556,7 +1558,7 @@ function updateEmbedCodes() {
   const onbUrl    = `https://marketingplan.astroaibots.com/onboard/${agencyId}`;
   const color     = document.getElementById('ec-color')?.value || agencyConfig.brandColor || '#00d9a3';
   const textColor = document.getElementById('ec-text-color')?.value || '#07090f';
-  const btnText   = document.getElementById('ec-btn-text')?.value || '🚀 Get Your Free Marketing Plan';
+  const btnText   = document.getElementById('ec-btn-text')?.value || ' Get Your Free Marketing Plan';
   const height    = document.getElementById('ec-height')?.value || '800px';
   const radius    = document.getElementById('ec-radius')?.value || '8px';
   const iRadius   = document.getElementById('ec-iframe-radius')?.value || '12px';
@@ -1575,7 +1577,7 @@ function updateEmbedCodes() {
 
   // Iframe code
   const iframeCode =
-`<!-- ${brandName} — AI Marketing Plan Form -->
+`<!-- ${brandName}  AI Marketing Plan Form -->
 <iframe
   src="${onbUrl}"
   width="100%"
@@ -1588,7 +1590,7 @@ function updateEmbedCodes() {
 
   // Popup code
   const popupCode =
-`<!-- ${brandName} — Marketing Plan Popup Button -->
+`<!-- ${brandName}  Marketing Plan Popup Button -->
 <button id="astro-popup-btn" onclick="document.getElementById('astro-popup').style.display='flex'" style="padding:13px 26px;background:${color};color:${textColor};border:none;border-radius:${radius};font-size:1rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.15)">
   ${btnText}
 </button>
@@ -1596,7 +1598,7 @@ function updateEmbedCodes() {
 <!-- Popup Overlay (paste once per page) -->
 <div id="astro-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(6px)" onclick="if(event.target===this)this.style.display='none'">
   <div style="position:relative;width:min(680px,95vw);height:min(850px,90vh);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 32px 64px rgba(0,0,0,0.4)">
-    <button onclick="document.getElementById('astro-popup').style.display='none'" style="position:absolute;top:12px;right:14px;z-index:10;background:rgba(0,0,0,0.15);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:#333;line-height:1">✕</button>
+    <button onclick="document.getElementById('astro-popup').style.display='none'" style="position:absolute;top:12px;right:14px;z-index:10;background:rgba(0,0,0,0.15);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:#333;line-height:1"></button>
     <iframe src="${onbUrl}" width="100%" height="100%" frameborder="0" style="border:none" title="Get Your Free AI Marketing Plan"></iframe>
   </div>
 </div>`;
@@ -1616,23 +1618,23 @@ function copyEmbed(type) {
     link:   document.getElementById('code-link')?.textContent,
   };
   const btnIds  = {iframe:'copy-iframe-btn', popup:'copy-popup-btn', link:'copy-link-btn'};
-  const labels  = {iframe:'📋 Copy Code', popup:'📋 Copy Code', link:'📋 Copy Link'};
+  const labels  = {iframe:' Copy Code', popup:' Copy Code', link:' Copy Link'};
   navigator.clipboard.writeText(texts[type]||'').then(()=>{
     const btn = document.getElementById(btnIds[type]);
-    if (btn) { btn.textContent='✅ Copied!'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=labels[type]; btn.classList.remove('copied'); },2500); }
-    toast('✅ Copied to clipboard!');
+    if (btn) { btn.textContent=' Copied!'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent=labels[type]; btn.classList.remove('copied'); },2500); }
+    toast(' Copied to clipboard!');
   });
 }
 
 
 function parseNotes(raw){if(!raw)return[];try{const p=JSON.parse(raw);if(Array.isArray(p))return p;return[{id:Date.now(),text:raw,createdAt:new Date().toISOString()}];}catch(e){return raw.trim()?[{id:Date.now(),text:raw,createdAt:new Date().toISOString()}]:[]; }}
-function renderNotesList(c){const list=document.getElementById('notes-list');if(!list)return;list.innerHTML='';const notes=parseNotes(c.notes);if(!notes.length){list.innerHTML='<p style="font-size:.78rem;color:var(--text-muted);font-style:italic">No notes yet.</p>';return;}[...notes].reverse().forEach(note=>{const item=document.createElement('div');item.className='note-item';const text=document.createElement('div');text.className='note-item-text';text.textContent=note.text;const meta=document.createElement('div');meta.className='note-item-meta';meta.textContent=note.createdAt?new Date(note.createdAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'';const acts=document.createElement('div');acts.className='note-item-actions';const editBtn=document.createElement('button');editBtn.className='note-edit-btn';editBtn.textContent='✏️ Edit';editBtn.onclick=()=>{const ta=document.getElementById('notes-ta');ta.value=note.text;ta.focus();const addBtn=ta.nextElementSibling;addBtn.textContent='💾 Update';addBtn.onclick=()=>updateNote(c._id||c.id,note.id,c);};const delBtn=document.createElement('button');delBtn.className='note-del-btn';delBtn.textContent='🗑';delBtn.onclick=()=>deleteNote(c._id||c.id,note.id,c);acts.appendChild(editBtn);acts.appendChild(delBtn);item.appendChild(text);item.appendChild(meta);item.appendChild(acts);list.appendChild(item);});}
-async function addNote(clientId,c){const text=(document.getElementById('notes-ta')?.value||'').trim();if(!text){toast('❌ Note empty');return;}const notes=parseNotes(c.notes);notes.push({id:Date.now(),text,createdAt:new Date().toISOString()});await persistNotes(clientId,JSON.stringify(notes),c);document.getElementById('notes-ta').value='';const addBtn=document.getElementById('notes-ta')?.nextElementSibling;if(addBtn){addBtn.textContent='+ Add Note';addBtn.onclick=()=>addNote(clientId,c);}}
+function renderNotesList(c){const list=document.getElementById('notes-list');if(!list)return;list.innerHTML='';const notes=parseNotes(c.notes);if(!notes.length){list.innerHTML='<p style="font-size:.78rem;color:var(--text-muted);font-style:italic">No notes yet.</p>';return;}[...notes].reverse().forEach(note=>{const item=document.createElement('div');item.className='note-item';const text=document.createElement('div');text.className='note-item-text';text.textContent=note.text;const meta=document.createElement('div');meta.className='note-item-meta';meta.textContent=note.createdAt?new Date(note.createdAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'';const acts=document.createElement('div');acts.className='note-item-actions';const editBtn=document.createElement('button');editBtn.className='note-edit-btn';editBtn.textContent=' Edit';editBtn.onclick=()=>{const ta=document.getElementById('notes-ta');ta.value=note.text;ta.focus();const addBtn=ta.nextElementSibling;addBtn.textContent=' Update';addBtn.onclick=()=>updateNote(c._id||c.id,note.id,c);};const delBtn=document.createElement('button');delBtn.className='note-del-btn';delBtn.textContent='';delBtn.onclick=()=>deleteNote(c._id||c.id,note.id,c);acts.appendChild(editBtn);acts.appendChild(delBtn);item.appendChild(text);item.appendChild(meta);item.appendChild(acts);list.appendChild(item);});}
+async function addNote(clientId,c){const text=(document.getElementById('notes-ta')?.value||'').trim();if(!text){toast(' Note empty');return;}const notes=parseNotes(c.notes);notes.push({id:Date.now(),text,createdAt:new Date().toISOString()});await persistNotes(clientId,JSON.stringify(notes),c);document.getElementById('notes-ta').value='';const addBtn=document.getElementById('notes-ta')?.nextElementSibling;if(addBtn){addBtn.textContent='+ Add Note';addBtn.onclick=()=>addNote(clientId,c);}}
 async function updateNote(clientId,noteId,c){const text=(document.getElementById('notes-ta')?.value||'').trim();if(!text)return;const notes=parseNotes(c.notes).map(n=>n.id===noteId?{...n,text,updatedAt:new Date().toISOString()}:n);await persistNotes(clientId,JSON.stringify(notes),c);document.getElementById('notes-ta').value='';const addBtn=document.getElementById('notes-ta')?.nextElementSibling;if(addBtn){addBtn.textContent='+ Add Note';addBtn.onclick=()=>addNote(clientId,c);}}
 async function deleteNote(clientId,noteId,c){if(!confirm('Delete this note?'))return;const notes=parseNotes(c.notes).filter(n=>n.id!==noteId);await persistNotes(clientId,JSON.stringify(notes),c);}
-async function persistNotes(clientId,notesJSON,c){try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,notes:notesJSON,notify:false,status:c.status||'new'})});const data=await res.json();if(data.success){c.notes=notesJSON;const idx=clients.findIndex(x=>(x._id||x.id)===clientId);if(idx>=0)clients[idx].notes=notesJSON;renderNotesList(c);toast('💾 Saved');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function persistNotes(clientId,notesJSON,c){try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,notes:notesJSON,notify:false,status:c.status||'new'})});const data=await res.json();if(data.success){c.notes=notesJSON;const idx=clients.findIndex(x=>(x._id||x.id)===clientId);if(idx>=0)clients[idx].notes=notesJSON;renderNotesList(c);toast(' Saved');}else toast(' '+(data.error||'Failed'));}catch(e){toast(' '+e.message);}}
 
-// ── BILLING ───────────────────────────────────────────────────
+//  BILLING 
 let _billingClientId = null;
 
 async function buildDetailBilling(c) {
@@ -1655,7 +1657,7 @@ function renderBillingUI(cfg, payments) {
   if (!el) return;
   const c = cfg || {};
   const sel = (opts, cur) => opts.map(([v,l])=>`<option value="${v}" ${cur===v?'selected':''}>${l}</option>`).join('');
-  const currOpts = sel([['USD','USD $'],['CAD','CAD $'],['EUR','EUR €'],['GBP','GBP £'],['AUD','AUD $']], c.currency||'USD');
+  const currOpts = sel([['USD','USD $'],['CAD','CAD $'],['EUR','EUR '],['GBP','GBP '],['AUD','AUD $']], c.currency||'USD');
   const planOpts = sel([['Retainer','Retainer'],['Monthly Subscription','Monthly Subscription'],['Project-Based','Project-Based'],['Performance-Based','Performance-Based'],['Hourly','Hourly'],['Custom','Custom']], c.planType||'');
   const termOpts = sel([['month-to-month','Month-to-Month'],['monthly','Monthly (30 days)'],['quarterly','Quarterly (3 months)'],['biannual','Semi-Annual (6 months)'],['annual','Annual (12 months)'],['custom','Custom']], c.contractTerm||'monthly');
   const cycleOpts = sel([['monthly','Monthly'],['weekly','Weekly'],['biweekly','Bi-Weekly'],['quarterly','Quarterly'],['biannual','Semi-Annual'],['annual','Annual'],['one-time','One-Time']], c.billingCycle||'monthly');
@@ -1665,7 +1667,7 @@ function renderBillingUI(cfg, payments) {
   el.innerHTML = `
     <div class="bill-section">
       <div class="bill-section-hdr">
-        <span>📋 Contract & Plan Setup</span>
+        <span> Contract & Plan Setup</span>
         <div class="bill-visibility" onclick="document.getElementById('bill-vis-check').classList.toggle('on')">
           <div class="bill-vis-check${showPortal?' on':''}" id="bill-vis-check"></div>
           <span style="font-size:.7rem;color:var(--text-dim)">Show on client portal</span>
@@ -1686,7 +1688,7 @@ function renderBillingUI(cfg, payments) {
     </div>
 
     <div class="bill-section">
-      <div class="bill-section-hdr">🎁 Sign-Up Bonus / Incentive</div>
+      <div class="bill-section-hdr"> Sign-Up Bonus / Incentive</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:16px 14px">
         <div><label class="bill-lbl">Bonus Type</label><select class="bill-inp" id="b-bonus" onchange="toggleBonusDetail()">${bonusOpts}</select></div>
         <div id="bonus-detail-wrap">
@@ -1696,7 +1698,7 @@ function renderBillingUI(cfg, payments) {
         <div id="bonus-dur-wrap">
           <label class="bill-lbl">Duration</label>
           <select class="bill-inp" id="b-bonus-dur">
-            <option value="">— Select —</option>
+            <option value=""> Select </option>
             ${['7 Days','14 Days','30 Days','1 Month','2 Months','3 Months','6 Months'].map(d=>`<option value="${d}" ${c.bonusDuration===d?'selected':''}>${d}</option>`).join('')}
           </select>
         </div>
@@ -1704,7 +1706,7 @@ function renderBillingUI(cfg, payments) {
     </div>
 
     <div class="bill-section">
-      <div class="bill-section-hdr">🔗 Payment Link & Notes</div>
+      <div class="bill-section-hdr"> Payment Link & Notes</div>
       <div style="padding:14px;display:grid;gap:10px">
         <div>
           <label class="bill-lbl">Payment Link</label>
@@ -1717,13 +1719,13 @@ function renderBillingUI(cfg, payments) {
         </div>
       </div>
       <div class="bill-save-bar">
-        <button class="bill-add-btn" style="padding:9px 22px;font-size:.78rem" onclick="saveBillingConfig()">💾 Save Contract</button>
+        <button class="bill-add-btn" style="padding:9px 22px;font-size:.78rem" onclick="saveBillingConfig()"> Save Contract</button>
       </div>
     </div>
 
     <div class="bill-section" style="margin-top:4px">
       <div class="bill-section-hdr">
-        <span>💳 Payment Tracker</span>
+        <span> Payment Tracker</span>
         <button class="bill-add-btn" style="padding:4px 10px;font-size:.65rem" onclick="toggleAddPaymentRow()">+ Add</button>
       </div>
       <div id="bill-add-payment-row" style="display:none;padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;align-items:center">
@@ -1736,7 +1738,7 @@ function renderBillingUI(cfg, payments) {
           <option value="late">Late</option>
         </select>
         <button class="bill-add-btn" style="padding:7px 14px" onclick="addManualPayment()">Add</button>
-        <button onclick="toggleAddPaymentRow()" style="padding:7px 10px;background:var(--surface-3);color:var(--text-muted);border:1px solid var(--border-2);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:.72rem">✕</button>
+        <button onclick="toggleAddPaymentRow()" style="padding:7px 10px;background:var(--surface-3);color:var(--text-muted);border:1px solid var(--border-2);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:.72rem"></button>
       </div>
       <div id="bill-payments-list">${renderPaymentRows(payments)}</div>
     </div>`;
@@ -1747,24 +1749,24 @@ function renderBillingUI(cfg, payments) {
 function renderPaymentRows(payments) {
   if (!payments||!payments.length) return '<div style="padding:20px;text-align:center;font-size:.78rem;color:var(--text-muted)">No payment records yet. Save the contract above to auto-generate the first one, or add manually.</div>';
   const today = new Date().toISOString().slice(0,10);
-  const statusMap = {pending:{label:'⏳ Pending',cls:'pay-pending'},paid:{label:'✅ Paid',cls:'pay-paid'},late:{label:'🔴 Late',cls:'pay-late'},cancelled:{label:'❌ Cancelled',cls:'pay-cancelled'},waived:{label:'🟤 Waived',cls:'pay-waived'}};
+  const statusMap = {pending:{label:' Pending',cls:'pay-pending'},paid:{label:' Paid',cls:'pay-paid'},late:{label:' Late',cls:'pay-late'},cancelled:{label:' Cancelled',cls:'pay-cancelled'},waived:{label:' Waived',cls:'pay-waived'}};
   return payments.map(p => {
     const isOverdue = p.status==='pending' && p.dueDate && p.dueDate < today;
     const s = statusMap[isOverdue?'late':p.status]||statusMap.pending;
-    const sym = {USD:'$',CAD:'$',EUR:'€',GBP:'£',AUD:'$'}[p.currency||'USD']||'$';
+    const sym = {USD:'$',CAD:'$',EUR:'',GBP:'',AUD:'$'}[p.currency||'USD']||'$';
     const amt = sym+parseFloat(p.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const dueStr = p.dueDate?new Date(p.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const dueStr = p.dueDate?new Date(p.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
     const paidStr = p.paidAt?'Paid '+new Date(p.paidAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
     return `<div class="pay-row" id="pr-${esc(p.id)}">
       <div class="pay-row-left">
         <div class="pay-label">${esc(p.label||'Payment')}</div>
-        <div class="pay-meta">Due: ${dueStr}${paidStr?' · '+paidStr:''}</div>
+        <div class="pay-meta">Due: ${dueStr}${paidStr?'  '+paidStr:''}</div>
       </div>
       <div class="pay-row-right">
         <div class="pay-amt">${amt}</div>
         <span class="pay-status ${s.cls}">${s.label}</span>
         <div class="pay-actions">
-          ${p.status!=='paid'?`<button class="pay-btn pay-btn-green" onclick="markPayment('${esc(p.id)}','paid')">✅ Paid</button>`:''}
+          ${p.status!=='paid'?`<button class="pay-btn pay-btn-green" onclick="markPayment('${esc(p.id)}','paid')"> Paid</button>`:''}
           <select class="pay-btn pay-btn-sel" onchange="if(this.value){markPayment('${esc(p.id)}',this.value);this.value='';}">
             <option value="">Change...</option>
             <option value="pending">Pending</option>
@@ -1773,7 +1775,7 @@ function renderPaymentRows(payments) {
             <option value="cancelled">Cancelled</option>
             <option value="waived">Waived</option>
           </select>
-          <button class="pay-btn pay-btn-del" onclick="deletePayment('${esc(p.id)}')">🗑</button>
+          <button class="pay-btn pay-btn-del" onclick="deletePayment('${esc(p.id)}')"></button>
         </div>
       </div>
     </div>`;
@@ -1794,6 +1796,159 @@ function toggleAddPaymentRow() {
   row.style.display = row.style.display==='flex'?'none':'flex';
   if (row.style.display==='flex') document.getElementById('np-label')?.focus();
 }
+
+
+//  Additional Services tab 
+async function buildDetailServices() {
+  const el = document.getElementById('dt-services');
+  if (!el || !curClient) return;
+  const clientId = curClient._id || curClient.id;
+
+  el.innerHTML = `
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="font-size:.82rem;font-weight:700;color:var(--text)">Additional Services</div>
+      <button onclick="openAddServiceForm()" style="padding:6px 14px;background:var(--teal);color:#0a0e1a;border:none;border-radius:7px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:var(--font)">+ Add Service</button>
+    </div>
+    <div id="svc-form-wrap" style="display:none;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--surface-2)">
+      <div style="font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:10px" id="svc-form-title">Add Service</div>
+      <input id="svc-id" type="hidden">
+      <div style="display:grid;gap:8px">
+        <input id="svc-headline" class="sf-input" placeholder="Service headline (e.g. Facebook Ads Management)" style="margin:0">
+        <textarea id="svc-desc" class="sf-ta" placeholder="Description" style="margin:0;height:60px"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <input id="svc-amount" class="sf-input" placeholder="Amount (e.g. $500/mo)" style="margin:0">
+          <input id="svc-date" class="sf-input" type="date" style="margin:0">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <select id="svc-pay-status" class="sf-input" style="margin:0">
+            <option value="pending">Payment: Pending</option>
+            <option value="paid">Payment: Paid</option>
+            <option value="partial">Payment: Partial</option>
+            <option value="overdue">Payment: Overdue</option>
+            <option value="refunded">Payment: Refunded</option>
+          </select>
+          <select id="svc-order-status" class="sf-input" style="margin:0">
+            <option value="pending">Status: Pending</option>
+            <option value="active">Status: Active</option>
+            <option value="in_progress">Status: In Progress</option>
+            <option value="completed">Status: Completed</option>
+            <option value="cancelled">Status: Cancelled</option>
+            <option value="on_hold">Status: On Hold</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button onclick="saveService()" style="flex:1;padding:8px;background:var(--teal);color:#0a0e1a;border:none;border-radius:7px;font-size:.76rem;font-weight:800;cursor:pointer;font-family:var(--font)">Save Service</button>
+          <button onclick="closeAddServiceForm()" style="padding:8px 16px;background:var(--surface-3);color:var(--text-dim);border:1px solid var(--border);border-radius:7px;font-size:.76rem;cursor:pointer;font-family:var(--font)">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="svc-list" style="padding:8px 0"><div style="text-align:center;padding:30px;color:var(--text-muted);font-size:.8rem">Loading services...</div></div>`;
+
+  loadServices(clientId);
+}
+
+function openAddServiceForm(serviceData) {
+  document.getElementById('svc-form-wrap').style.display = 'block';
+  document.getElementById('svc-form-title').textContent = serviceData ? 'Edit Service' : 'Add Service';
+  document.getElementById('svc-id').value        = serviceData?.id || '';
+  document.getElementById('svc-headline').value  = serviceData?.headline || '';
+  document.getElementById('svc-desc').value      = serviceData?.description || '';
+  document.getElementById('svc-amount').value    = serviceData?.amount || '';
+  document.getElementById('svc-date').value      = serviceData?.orderDate || new Date().toISOString().slice(0,10);
+  document.getElementById('svc-pay-status').value   = serviceData?.paymentStatus || 'pending';
+  document.getElementById('svc-order-status').value = serviceData?.orderStatus || 'pending';
+}
+
+function closeAddServiceForm() {
+  document.getElementById('svc-form-wrap').style.display = 'none';
+}
+
+const SVC_PAY_LABELS = {pending:'Pending',paid:'Paid',partial:'Partial',overdue:'Overdue',refunded:'Refunded'};
+const SVC_PAY_COLORS = {pending:'rgba(249,115,22,.15)',paid:'rgba(0,217,163,.15)',partial:'rgba(59,130,246,.15)',overdue:'rgba(239,68,68,.15)',refunded:'rgba(156,163,175,.15)'};
+const SVC_PAY_TEXT   = {pending:'#fdba74',paid:'#00d9a3',partial:'#93c5fd',overdue:'#fca5a5',refunded:'#9ca3af'};
+const SVC_ORD_LABELS = {pending:'Pending',active:'Active',in_progress:'In Progress',completed:'Completed',cancelled:'Cancelled',on_hold:'On Hold'};
+const SVC_ORD_COLORS = {pending:'rgba(249,115,22,.15)',active:'rgba(0,217,163,.15)',in_progress:'rgba(59,130,246,.15)',completed:'rgba(0,217,163,.1)',cancelled:'rgba(239,68,68,.15)',on_hold:'rgba(156,163,175,.15)'};
+const SVC_ORD_TEXT   = {pending:'#fdba74',active:'#00d9a3',in_progress:'#93c5fd',completed:'#00d9a3',cancelled:'#fca5a5',on_hold:'#9ca3af'};
+
+function badge(labels, colors, texts, val) {
+  return `<span style="padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;background:${colors[val]||colors.pending};color:${texts[val]||texts.pending}">${labels[val]||val}</span>`;
+}
+
+async function loadServices(clientId) {
+  const el = document.getElementById('svc-list');
+  if (!el) return;
+  try {
+    const res = await fetch(`${API}/agency/services?clientId=${clientId}`, { headers: {'x-agency-token': token} });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    if (!data.services.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:.8rem">No services added yet. Click <strong>+ Add Service</strong> to get started.</div>';
+      return;
+    }
+    el.innerHTML = data.services.map(s => `
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">
+          <div style="font-size:.84rem;font-weight:700;color:var(--text)">${s.headline||'Untitled Service'}</div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button onclick='openAddServiceForm(${JSON.stringify(s)})' style="padding:3px 10px;font-size:.7rem;background:var(--surface-3);border:1px solid var(--border);border-radius:5px;color:var(--text-dim);cursor:pointer;font-family:var(--font)">Edit</button>
+            <button onclick="deleteService('${s.id}')" style="padding:3px 10px;font-size:.7rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:5px;color:#fca5a5;cursor:pointer;font-family:var(--font)">Del</button>
+          </div>
+        </div>
+        ${s.description ? `<div style="font-size:.76rem;color:var(--text-muted);margin-bottom:8px;line-height:1.5">${s.description}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          ${s.amount ? `<span style="font-size:.75rem;font-weight:700;color:var(--teal)">${s.amount}</span>` : ''}
+          ${s.orderDate ? `<span style="font-size:.72rem;color:var(--text-muted)">${new Date(s.orderDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>` : ''}
+          ${badge(SVC_PAY_LABELS,SVC_PAY_COLORS,SVC_PAY_TEXT,s.paymentStatus)}
+          ${badge(SVC_ORD_LABELS,SVC_ORD_COLORS,SVC_ORD_TEXT,s.orderStatus)}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    if (el) el.innerHTML = `<div style="padding:20px;color:var(--text-muted);font-size:.8rem">Could not load services: ${e.message}</div>`;
+  }
+}
+
+async function saveService() {
+  if (!curClient) return;
+  const clientId = curClient._id || curClient.id;
+  const payload = {
+    action:        'save',
+    serviceId:     document.getElementById('svc-id').value || undefined,
+    headline:      document.getElementById('svc-headline').value.trim(),
+    description:   document.getElementById('svc-desc').value.trim(),
+    amount:        document.getElementById('svc-amount').value.trim(),
+    orderDate:     document.getElementById('svc-date').value,
+    paymentStatus: document.getElementById('svc-pay-status').value,
+    orderStatus:   document.getElementById('svc-order-status').value,
+  };
+  if (!payload.headline) { toast('Please enter a service headline'); return; }
+  try {
+    const res = await fetch(`${API}/agency/services?clientId=${clientId}`, {
+      method: 'POST', headers: {'Content-Type':'application/json','x-agency-token':token},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    closeAddServiceForm();
+    toast('Service saved');
+    loadServices(clientId);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function deleteService(serviceId) {
+  if (!curClient || !confirm('Delete this service?')) return;
+  const clientId = curClient._id || curClient.id;
+  try {
+    const res = await fetch(`${API}/agency/services?clientId=${clientId}`, {
+      method: 'POST', headers: {'Content-Type':'application/json','x-agency-token':token},
+      body: JSON.stringify({action:'delete', serviceId})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error||'Failed');
+    toast('Service deleted');
+    loadServices(clientId);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
 
 async function saveBillingConfig() {
   const body = {
@@ -1817,9 +1972,9 @@ async function saveBillingConfig() {
   try {
     const res = await fetch(`${API}/agency/billing?action=save-config&clientId=${_billingClientId}`,{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify(body)});
     const data = await res.json();
-    if (data.success) { toast('💳 Contract saved!'); await buildDetailBilling(curClient); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+    if (data.success) { toast(' Contract saved!'); await buildDetailBilling(curClient); }
+    else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
 async function markPayment(paymentId, status) {
@@ -1827,20 +1982,20 @@ async function markPayment(paymentId, status) {
   try {
     const res = await fetch(`${API}/agency/billing?action=${action}&clientId=${_billingClientId}`,{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({paymentId,status})});
     const data = await res.json();
-    if (data.success) { toast(status==='paid'?'✅ Marked as paid! Next cycle added.':'✅ Updated'); await buildDetailBilling(curClient); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+    if (data.success) { toast(status==='paid'?' Marked as paid! Next cycle added.':' Updated'); await buildDetailBilling(curClient); }
+    else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
 async function addManualPayment() {
   const label=document.getElementById('np-label')?.value.trim();const amount=document.getElementById('np-amount')?.value;const dueDate=document.getElementById('np-due')?.value;const status=document.getElementById('np-status')?.value||'pending';
-  if(!label||!amount||!dueDate){toast('❌ Label, amount, and due date required');return;}
+  if(!label||!amount||!dueDate){toast(' Label, amount, and due date required');return;}
   try {
     const res=await fetch(`${API}/agency/billing?action=add-payment&clientId=${_billingClientId}`,{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({label,amount:parseFloat(amount),dueDate,status})});
     const data=await res.json();
-    if(data.success){toast('✅ Payment added');await buildDetailBilling(curClient);}
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e){toast('❌ '+e.message);}
+    if(data.success){toast(' Payment added');await buildDetailBilling(curClient);}
+    else toast(' '+(data.error||'Failed'));
+  } catch(e){toast(' '+e.message);}
 }
 
 async function deletePayment(paymentId) {
@@ -1848,21 +2003,21 @@ async function deletePayment(paymentId) {
   try{
     const res=await fetch(`${API}/agency/billing?action=delete-payment&clientId=${_billingClientId}`,{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({paymentId})});
     const data=await res.json();
-    if(data.success){toast('🗑 Deleted');await buildDetailBilling(curClient);}
-    else toast('❌ '+(data.error||'Failed'));
-  }catch(e){toast('❌ '+e.message);}
+    if(data.success){toast(' Deleted');await buildDetailBilling(curClient);}
+    else toast(' '+(data.error||'Failed'));
+  }catch(e){toast(' '+e.message);}
 }
 
 
-// ── OFFER ─────────────────────────────────────────────────────
+//  OFFER 
 async function saveOffer(clientId,clear){
   let ctaUrl=(document.getElementById('offer-url')?.value||'').trim();if(ctaUrl&&!ctaUrl.startsWith('http'))ctaUrl='https://'+ctaUrl;
-  const title=(document.getElementById('offer-title')?.value||'').trim();if(!clear&&(!title||!ctaUrl)){toast('❌ Title and URL required');return;}
+  const title=(document.getElementById('offer-title')?.value||'').trim();if(!clear&&(!title||!ctaUrl)){toast(' Title and URL required');return;}
   const offerData=clear?null:{title,ctaUrl,description:(document.getElementById('offer-desc')?.value||'').trim(),ctaText:(document.getElementById('offer-cta-text')?.value||'Claim Offer').trim(),expiresAt:document.getElementById('offer-expires')?.value||''};
-  try{const c=clients.find(x=>x._id===clientId);const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,offer:offerData,notify:false,status:c?.status||'new'})});const data=await res.json();if(data.success){if(c)c.offer=offerData?JSON.stringify(offerData):'';buildDetailOffer(c||{_id:clientId});toast(clear?'🗑 Offer cleared':'✅ Offer saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}
+  try{const c=clients.find(x=>x._id===clientId);const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,offer:offerData,notify:false,status:c?.status||'new'})});const data=await res.json();if(data.success){if(c)c.offer=offerData?JSON.stringify(offerData):'';buildDetailOffer(c||{_id:clientId});toast(clear?' Offer cleared':' Offer saved!');}else toast(' '+(data.error||'Failed'));}catch(e){toast(' '+e.message);}
 }
 
-// ── SETTINGS ──────────────────────────────────────────────────
+//  SETTINGS 
 function openSettings(){document.getElementById('set-name').value=agencyConfig.brandName||agencyConfig.name||'';document.getElementById('set-color').value=agencyConfig.brandColor||'#00d9a3';document.getElementById('set-title').value=agencyConfig.onboardingTitle||'';document.getElementById('set-welcome').value=agencyConfig.welcomeMsg||'';document.getElementById('set-terms').value=agencyConfig.termsText||'';document.getElementById('set-terms-url').value=agencyConfig.termsUrl||'';document.getElementById('set-privacy-url').value=agencyConfig.privacyUrl||'';document.getElementById('set-meta-business-id').value=agencyConfig.metaBusinessId||'';
   document.getElementById('set-google-manager-id').value=agencyConfig.googleManagerId||'';
   document.getElementById('set-tiktok-agency-id').value=agencyConfig.tiktokAgencyId||'';
@@ -1870,15 +2025,15 @@ function openSettings(){document.getElementById('set-name').value=agencyConfig.b
   document.getElementById('set-wordpress-site-url').value=agencyConfig.wordpressSiteUrl||'';
   document.getElementById('set-booking-url').value=agencyConfig.bookingUrl||'';document.getElementById('set-support-phone').value=agencyConfig.supportPhone||'';document.getElementById('set-support-email').value=agencyConfig.supportEmail||'';document.getElementById('set-agency-website').value=agencyConfig.agencyWebsite||'';document.getElementById('set-custom-links').value=agencyConfig.customLinks||'';document.getElementById('settings-sheet').classList.add('open');}
 function closeSettings(){document.getElementById('settings-sheet').classList.remove('open');}
-async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),googleManagerId:v('set-google-manager-id'),tiktokAgencyId:v('set-tiktok-agency-id'),linkedinAgencyId:v('set-linkedin-agency-id'),wordpressSiteUrl:v('set-wordpress-site-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),googleManagerId:v('set-google-manager-id'),tiktokAgencyId:v('set-tiktok-agency-id'),linkedinAgencyId:v('set-linkedin-agency-id'),wordpressSiteUrl:v('set-wordpress-site-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')};applyBranding(agencyConfig);closeSettings();toast('✅ Saved!');}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function saveSettings(){try{const res=await fetch(API+'/agency/settings',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),googleManagerId:v('set-google-manager-id'),tiktokAgencyId:v('set-tiktok-agency-id'),linkedinAgencyId:v('set-linkedin-agency-id'),wordpressSiteUrl:v('set-wordpress-site-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')})});const data=await res.json();if(data.success){agencyConfig={...agencyConfig,brandName:v('set-name'),brandColor:v('set-color'),onboardingTitle:v('set-title'),welcomeMsg:v('set-welcome'),termsText:v('set-terms'),termsUrl:v('set-terms-url'),privacyUrl:v('set-privacy-url'),metaBusinessId:v('set-meta-business-id'),googleManagerId:v('set-google-manager-id'),tiktokAgencyId:v('set-tiktok-agency-id'),linkedinAgencyId:v('set-linkedin-agency-id'),wordpressSiteUrl:v('set-wordpress-site-url'),bookingUrl:v('set-booking-url'),supportPhone:v('set-support-phone'),supportEmail:v('set-support-email'),agencyWebsite:v('set-agency-website'),customLinks:v('set-custom-links')};applyBranding(agencyConfig);closeSettings();toast(' Saved!');}else toast(' '+(data.error||'Failed'));}catch(e){toast(' '+e.message);}}
 
-// ── BLAST ─────────────────────────────────────────────────────
+//  BLAST 
 function openBlast(){document.getElementById('blast-sheet').classList.add('open');}
 function closeBlast(){document.getElementById('blast-sheet').classList.remove('open');}
-async function sendBlast(){const clientId=v('bl-client'),msg=v('bl-msg'),subj=v('bl-subj');if(!msg){toast('❌ Message required');return;}const c=clients.find(x=>x._id===clientId);if(!c)return;try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status:c.status||'new',notify:true,customMessage:msg,customSubject:subj})});const data=await res.json();if(data.success){closeBlast();toast('✅ Sent to '+c.clientName);}else toast('❌ '+(data.error||'Failed'));}catch(e){toast('❌ '+e.message);}}
+async function sendBlast(){const clientId=v('bl-client'),msg=v('bl-msg'),subj=v('bl-subj');if(!msg){toast(' Message required');return;}const c=clients.find(x=>x._id===clientId);if(!c)return;try{const res=await fetch(API+'/agency/update-client',{method:'POST',headers:{'Content-Type':'application/json','x-agency-token':token},body:JSON.stringify({agencyId,clientId,status:c.status||'new',notify:true,customMessage:msg,customSubject:subj})});const data=await res.json();if(data.success){closeBlast();toast(' Sent to '+c.clientName);}else toast(' '+(data.error||'Failed'));}catch(e){toast(' '+e.message);}}
 
 
-// ── REFERRALS ─────────────────────────────────────────────────
+//  REFERRALS 
 let _referrals = [];
 
 async function loadReferrals() {
@@ -1902,7 +2057,7 @@ async function loadReferrals() {
       document.getElementById('ref-resources-input').value = sData.agency.referralResources || '';
     }
   } catch(e) {
-    document.getElementById('referrals-list').innerHTML = `<div class="empty-state">⚠️ ${esc(e.message)}</div>`;
+    document.getElementById('referrals-list').innerHTML = `<div class="empty-state"> ${esc(e.message)}</div>`;
   }
 }
 
@@ -1910,7 +2065,7 @@ function renderReferrals() {
   const el = document.getElementById('referrals-list');
   if (!_referrals.length) {
     el.innerHTML = `<div class="empty-state" style="padding:48px 20px">
-      <p style="font-size:2rem;margin-bottom:10px">◎</p>
+      <p style="font-size:2rem;margin-bottom:10px"></p>
       <p style="font-weight:600;color:var(--text-dim);margin-bottom:6px">No referrals yet</p>
       <p style="font-size:.78rem">When your clients submit referrals, they'll appear here.</p>
     </div>`;
@@ -1918,51 +2073,51 @@ function renderReferrals() {
   }
 
   const statusMap = {
-    pending:   { label:'⏳ Pending',   cls:'pay-pending' },
-    contacted: { label:'📞 Contacted', cls:'pay-paused'  },
-    converted: { label:'✅ Converted', cls:'pay-paid'    },
-    rewarded:  { label:'🎁 Rewarded',  cls:'pay-paid'    },
-    declined:  { label:'✕ Declined',   cls:'pay-cancelled'},
+    pending:   { label:' Pending',   cls:'pay-pending' },
+    contacted: { label:' Contacted', cls:'pay-paused'  },
+    converted: { label:' Converted', cls:'pay-paid'    },
+    rewarded:  { label:' Rewarded',  cls:'pay-paid'    },
+    declined:  { label:' Declined',   cls:'pay-cancelled'},
   };
 
   el.innerHTML = _referrals.map((r,i) => {
     const s = statusMap[r.status] || statusMap.pending;
-    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     return `<div class="pl-card" style="animation-delay:${i*.04}s">
       <div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span class="pl-card-tag" style="background:rgba(139,92,246,.1);color:var(--purple);border-color:rgba(139,92,246,.25)">◎ Referral</span>
+          <span class="pl-card-tag" style="background:rgba(139,92,246,.1);color:var(--purple);border-color:rgba(139,92,246,.25)"> Referral</span>
           <span class="pay-status ${s.cls}" style="font-size:.62rem">${s.label}</span>
           <span style="font-size:.65rem;color:var(--text-muted);font-family:var(--mono);margin-left:auto">${date}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
             <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px">Referred By</div>
-            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.referrerClientName||r.referrerName||'—')}</div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.referrerClientName||r.referrerName||'')}</div>
             <div style="font-size:.72rem;color:var(--text-dim)">${esc(r.referrerBusinessName||r.referrerBusiness||'')}</div>
           </div>
           <div>
             <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px">Referred Business</div>
-            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.refereeName||'—')}</div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--text)">${esc(r.refereeName||'')}</div>
             <div style="font-size:.72rem;color:var(--text-dim)">${esc(r.refereeBusinessName||'')}</div>
           </div>
         </div>
         <div class="pl-card-contact" style="margin-top:10px">
-          <div class="pl-card-contact-row">📞 <span class="pl-card-contact-val">${esc(r.refereePhone||'—')}</span></div>
-          <div class="pl-card-contact-row">✉️ <span class="pl-card-contact-val">${esc(r.refereeEmail||'—')}</span></div>
-          ${r.refereeNote?`<div class="pl-card-contact-row">💬 <span class="pl-card-contact-val">${esc(r.refereeNote)}</span></div>`:''}
+          <div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(r.refereePhone||'')}</span></div>
+          <div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(r.refereeEmail||'')}</span></div>
+          ${r.refereeNote?`<div class="pl-card-contact-row"> <span class="pl-card-contact-val">${esc(r.refereeNote)}</span></div>`:''}
         </div>
       </div>
       <div class="pl-actions">
-        ${r.status!=='converted'?`<button class="pl-btn pl-btn-teal" onclick="convertReferral('${esc(r.id||r.referralId||'')}','${esc(r.refereeName||r.refereeBusinessName||'')}')">🚀 Convert to Client</button>`:'<span style="font-size:.72rem;color:var(--teal);font-weight:600">✅ Converted</span>'}
-        <button class="pl-btn pl-btn-ghost" onclick="sendReferralOnboard('${esc(r.refereeEmail||'')}','${esc(r.refereeName||'')}')">📋 Send Onboarding</button>
+        ${r.status!=='converted'?`<button class="pl-btn pl-btn-teal" onclick="convertReferral('${esc(r.id||r.referralId||'')}','${esc(r.refereeName||r.refereeBusinessName||'')}')"> Convert to Client</button>`:'<span style="font-size:.72rem;color:var(--teal);font-weight:600"> Converted</span>'}
+        <button class="pl-btn pl-btn-ghost" onclick="sendReferralOnboard('${esc(r.refereeEmail||'')}','${esc(r.refereeName||'')}')"> Send Onboarding</button>
         <select class="pay-btn pay-btn-sel" style="padding:7px 10px;font-size:.72rem;width:130px" onchange="updateReferralStatus('${esc(r.id||r.referralId||'')}',this.value);this.value=''">
           <option value="">Update status...</option>
-          <option value="pending">⏳ Pending</option>
-          <option value="contacted">📞 Contacted</option>
-          <option value="converted">✅ Converted</option>
-          <option value="rewarded">🎁 Rewarded</option>
-          <option value="declined">✕ Declined</option>
+          <option value="pending"> Pending</option>
+          <option value="contacted"> Contacted</option>
+          <option value="converted"> Converted</option>
+          <option value="rewarded"> Rewarded</option>
+          <option value="declined"> Declined</option>
         </select>
       </div>
     </div>`;
@@ -1977,9 +2132,9 @@ async function updateReferralStatus(referralId, status) {
       body: JSON.stringify({ referralId, status }),
     });
     const data = await res.json();
-    if (data.success) { toast('✅ Status updated'); await loadReferrals(); }
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+    if (data.success) { toast(' Status updated'); await loadReferrals(); }
+    else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
 async function saveReferralSettings() {
@@ -1994,12 +2149,12 @@ async function saveReferralSettings() {
     if (data.success) {
       agencyConfig.referralBonus = bonus;
       agencyConfig.referralResources = resources;
-      toast('✅ Referral program saved! Clients will see the new bonus on their portal.');
-    } else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+      toast(' Referral program saved! Clients will see the new bonus on their portal.');
+    } else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
-// ── REFERRAL CONVERT ──────────────────────────────────────────
+//  REFERRAL CONVERT 
 async function convertReferral(referralId, name) {
   if (!confirm(`Convert "${name}" to a client?\n\nThis will add them to your Clients tab. You can then generate their marketing plan.`)) return;
   try {
@@ -2009,15 +2164,15 @@ async function convertReferral(referralId, name) {
     });
     const data = await res.json();
     if (data.success) {
-      toast('✅ Converted to client! Check your Clients tab.');
+      toast(' Converted to client! Check your Clients tab.');
       await loadClients();
       await loadReferrals();
-    } else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+    } else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
 async function sendReferralOnboard(email, name) {
-  if (!email) { toast('❌ No email on file for this referral'); return; }
+  if (!email) { toast(' No email on file for this referral'); return; }
   if (!confirm(`Send onboarding form link to ${email}?`)) return;
   try {
     const res = await fetch(`${API}/send-message`, {
@@ -2029,24 +2184,24 @@ async function sendReferralOnboard(email, name) {
       }),
     });
     const data = await res.json();
-    if (data.success || data.sent) toast('📋 Onboarding form sent to '+email);
-    else toast('❌ '+(data.error||'Failed'));
-  } catch(e) { toast('❌ '+e.message); }
+    if (data.success || data.sent) toast(' Onboarding form sent to '+email);
+    else toast(' '+(data.error||'Failed'));
+  } catch(e) { toast(' '+e.message); }
 }
 
-// ── REGENERATE PLAN ───────────────────────────────────────────
+//  REGENERATE PLAN 
 async function regeneratePlan(clientId, event) {
   if(event) event.stopPropagation();
   const c = clients.find(x=>(x._id||x.id)===clientId);
-  if(!c){ toast('❌ Client not found'); return; }
+  if(!c){ toast(' Client not found'); return; }
   if(!confirm(`Generate AI marketing plan for ${c.businessName}?\n\nClaude will build their ad copy, targeting, and roadmap. Takes ~20 seconds.`)) return;
 
   const btn = event?.target;
-  if(btn){ btn.textContent='⏳ Starting...'; btn.disabled=true; }
+  if(btn){ btn.textContent=' Starting...'; btn.disabled=true; }
 
   try {
-    if(btn){ btn.textContent='⏳ Generating...'; }
-    toast('⚡ Generating plan... takes ~20 seconds');
+    if(btn){ btn.textContent=' Generating...'; }
+    toast(' Generating plan... takes ~20 seconds');
 
     const _ctrl = new AbortController();
     const _tmo  = setTimeout(()=>_ctrl.abort(), 30000);
@@ -2081,34 +2236,34 @@ async function regeneratePlan(clientId, event) {
     } catch(fe) {
       clearTimeout(_tmo);
       if(fe.name==='AbortError'){
-        // Timeout is OK — plan still generates in background
-        toast('⏳ Plan generation started — refreshing in 30 seconds...');
+        // Timeout is OK  plan still generates in background
+        toast(' Plan generation started  refreshing in 30 seconds...');
         setTimeout(()=>loadClients(), 30000);
-        if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+        if(btn){btn.textContent=' Generate';btn.disabled=false;}
         return;
       }
       throw fe;
     }
     const text = await regenRes.text();
     let data;
-    try { data = JSON.parse(text); } catch(e) { throw new Error('Server error — try again'); }
-    if(!data.success){ toast('❌ '+(data.error||'Failed')); if(btn){btn.textContent='⚡ Generate';btn.disabled=false;} return; }
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Server error  try again'); }
+    if(!data.success){ toast(' '+(data.error||'Failed')); if(btn){btn.textContent=' Generate';btn.disabled=false;} return; }
     const res=regenRes;
 
-    toast('✅ Plan generated!');
+    toast(' Plan generated!');
     await loadClients();
     const updated = clients.find(x=>(x._id||x.id)===clientId);
     if(curClient && (curClient._id||curClient.id)===clientId && updated) showDetail(updated);
-    if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+    if(btn){btn.textContent=' Generate';btn.disabled=false;}
   } catch(e) {
-    toast('❌ '+e.message);
-    if(btn){btn.textContent='⚡ Generate';btn.disabled=false;}
+    toast(' '+e.message);
+    if(btn){btn.textContent=' Generate';btn.disabled=false;}
   }
 }
 
-// ── IMAGE PROMPT GENERATOR ───────────────────────────────────
+//  IMAGE PROMPT GENERATOR 
 async function generateImagePrompt(ad, angleLabel, btn) {
-  btn.textContent = '⏳ Generating...';
+  btn.textContent = ' Generating...';
   btn.disabled = true;
   try {
     const res = await fetch(API + '/generate-prompt', {
@@ -2136,7 +2291,7 @@ async function generateImagePrompt(ad, angleLabel, btn) {
 
     const title = document.createElement('div');
     title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
-    title.textContent = '🎨 Image Prompt — ' + angleLabel;
+    title.textContent = ' Image Prompt  ' + angleLabel;
 
     const promptBox = document.createElement('div');
     promptBox.style.cssText = 'font-size:.8rem;line-height:1.75;color:var(--text);background:var(--surface-2);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:var(--mono)';
@@ -2147,15 +2302,15 @@ async function generateImagePrompt(ad, angleLabel, btn) {
 
     const copyBtn = document.createElement('button');
     copyBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font)';
-    copyBtn.textContent = '📋 Copy Prompt';
+    copyBtn.textContent = ' Copy Prompt';
     copyBtn.onclick = () => navigator.clipboard.writeText(data.prompt).then(() => {
-      copyBtn.textContent = '✓ Copied!';
-      setTimeout(() => copyBtn.textContent = '📋 Copy Prompt', 2000);
+      copyBtn.textContent = ' Copied!';
+      setTimeout(() => copyBtn.textContent = ' Copy Prompt', 2000);
     });
 
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
-    closeBtn.textContent = '✕ Close';
+    closeBtn.textContent = ' Close';
     closeBtn.onclick = () => overlay.remove();
 
     btnRow.appendChild(copyBtn);
@@ -2167,16 +2322,16 @@ async function generateImagePrompt(ad, angleLabel, btn) {
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
   } catch(e) {
-    toast('❌ ' + e.message);
+    toast(' ' + e.message);
   }
-  btn.textContent = '🎨 Get Prompt';
+  btn.textContent = ' Get Prompt';
   btn.disabled = false;
 }
 
 async function generateAdImage(ad, angleLabel, provider, btn) {
   const origText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ Generating...';
+  btn.textContent = ' Generating...';
 
   // First generate the prompt, then use it to generate the image
   try {
@@ -2198,7 +2353,7 @@ async function generateAdImage(ad, angleLabel, provider, btn) {
     if (!promptData.prompt) throw new Error(promptData.error || 'Failed to generate prompt');
 
     // Step 2: generate image
-    btn.textContent = '🖼 Creating image...';
+    btn.textContent = ' Creating image...';
     const imgRes = await fetch(`${API}/generate-image-ad`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','x-internal-key':'astroai-internal-2024'},
@@ -2216,7 +2371,7 @@ async function generateAdImage(ad, angleLabel, provider, btn) {
 
     const title = document.createElement('div');
     title.style.cssText = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:12px';
-    title.textContent = (provider === 'openai' ? '⚡ ChatGPT (gpt-image-1)' : '✦ Gemini Imagen 3') + ' — ' + angleLabel;
+    title.textContent = (provider === 'openai' ? ' ChatGPT (gpt-image-1)' : ' Gemini Imagen 3') + '  ' + angleLabel;
 
     const img = document.createElement('img');
     img.src = imgData.imageUrl;
@@ -2230,11 +2385,11 @@ async function generateAdImage(ad, angleLabel, provider, btn) {
     dlBtn.href = imgData.imageUrl;
     dlBtn.download = `ad-${provider}-${angleLabel.toLowerCase().replace(/\s+/g,'-')}.png`;
     dlBtn.style.cssText = 'flex:1;padding:9px;font-size:.78rem;font-weight:700;background:var(--teal);color:#07090f;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);text-align:center;text-decoration:none';
-    dlBtn.textContent = '⬇ Download';
+    dlBtn.textContent = ' Download';
 
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = 'padding:9px 16px;font-size:.78rem;font-weight:700;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);border-radius:7px;cursor:pointer;font-family:var(--font)';
-    closeBtn.textContent = '✕ Close';
+    closeBtn.textContent = ' Close';
     closeBtn.onclick = () => overlay.remove();
 
     const promptToggle = document.createElement('button');
@@ -2257,13 +2412,13 @@ async function generateAdImage(ad, angleLabel, provider, btn) {
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
 
   } catch(e) {
-    toast('❌ ' + e.message);
+    toast(' ' + e.message);
   }
   btn.textContent = origText;
   btn.disabled = false;
 }
 
-// ── THEME ─────────────────────────────────────────────────────
+//  THEME 
 const THEME_KEY = 'astroai_theme';
 let currentTheme = 'dark';
 
@@ -2273,7 +2428,7 @@ function applyTheme(theme) {
   const label = document.getElementById('theme-label');
   const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   html.classList.toggle('light', !isDark);
-  if (icon) { icon.textContent = isDark ? '🌙' : '☀️'; }
+  if (icon) { icon.textContent = isDark ? '' : ''; }
   if (label) { label.textContent = isDark ? 'Dark Mode' : 'Light Mode'; }
   // Update settings buttons
   ['dark','light','auto'].forEach(t => {
@@ -2307,15 +2462,15 @@ function initTheme() {
   });
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
-function copyOnboardUrl(){const url=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;navigator.clipboard.writeText(url).then(()=>toast('📋 Onboarding link copied!'));}
-function copyPortal(){if(!curClient)return;navigator.clipboard.writeText(`https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${curClient._id}`).then(()=>toast('🔗 Portal link copied!'));}
-function mkCopyField(label,val){const field=document.createElement('div');field.className='copy-field';field.style.marginBottom='10px';if(label){const lbl=document.createElement('div');lbl.style.cssText='font-size:.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px';lbl.textContent=label;field.appendChild(lbl);}const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;align-items:flex-start';const valEl=document.createElement('div');valEl.style.cssText='flex:1;font-size:.8rem;color:var(--text);line-height:1.55';valEl.textContent=val;const btn=document.createElement('button');btn.style.cssText='padding:3px 8px;font-size:.62rem;font-weight:700;border:1px solid var(--border-2);background:var(--surface-3);color:var(--text-dim);border-radius:5px;cursor:pointer;white-space:nowrap;font-family:var(--font);flex-shrink:0';btn.textContent='Copy';btn.onclick=()=>navigator.clipboard.writeText(val).then(()=>{btn.textContent='✓';btn.style.color='var(--teal)';setTimeout(()=>{btn.textContent='Copy';btn.style.color='';},2000);});row.appendChild(valEl);row.appendChild(btn);field.appendChild(row);return field;}
+//  HELPERS 
+function copyOnboardUrl(){const url=`https://marketingplan.astroaibots.com/onboard/${agencyId}`;navigator.clipboard.writeText(url).then(()=>toast(' Onboarding link copied!'));}
+function copyPortal(){if(!curClient)return;navigator.clipboard.writeText(`https://marketingplan.astroaibots.com/onboard/portal?a=${agencyId}&s=${curClient._id}`).then(()=>toast(' Portal link copied!'));}
+function mkCopyField(label,val){const field=document.createElement('div');field.className='copy-field';field.style.marginBottom='10px';if(label){const lbl=document.createElement('div');lbl.style.cssText='font-size:.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px';lbl.textContent=label;field.appendChild(lbl);}const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;align-items:flex-start';const valEl=document.createElement('div');valEl.style.cssText='flex:1;font-size:.8rem;color:var(--text);line-height:1.55';valEl.textContent=val;const btn=document.createElement('button');btn.style.cssText='padding:3px 8px;font-size:.62rem;font-weight:700;border:1px solid var(--border-2);background:var(--surface-3);color:var(--text-dim);border-radius:5px;cursor:pointer;white-space:nowrap;font-family:var(--font);flex-shrink:0';btn.textContent='Copy';btn.onclick=()=>navigator.clipboard.writeText(val).then(()=>{btn.textContent='';btn.style.color='var(--teal)';setTimeout(()=>{btn.textContent='Copy';btn.style.color='';},2000);});row.appendChild(valEl);row.appendChild(btn);field.appendChild(row);return field;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function v(id){return(document.getElementById(id)?.value||'').trim()}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500)}
 
-// ── INIT ──────────────────────────────────────────────────────
+//  INIT 
 async function init() {
   initTheme();
   agencyId=getAgencyIdFromUrl();
