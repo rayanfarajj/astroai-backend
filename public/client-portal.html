@@ -525,13 +525,41 @@ html, body { overscroll-behavior: none; }
 
     <!-- PLAN -->
     <div class="section" id="s-plan">
-      <div class="page-hd"><h1>My Marketing Plan</h1><p>Your campaign details and strategy overview.</p></div>
-      <div class="card">
-        <div class="card-hd"><div class="card-hd-left"><span class="card-icon">◈</span><span class="card-title">Campaign Details</span></div></div>
-        <div class="card-body">
-          <table class="info-table" id="info-tbl"></table>
-          <a id="plan-link" href="#" target="_blank" class="btn-navy">📈 View Full Marketing Plan →</a>
+      <div class="page-hd"><h1>My Marketing Plan</h1><p>Your campaign strategy and business profile.</p></div>
+
+      <!-- View Plan CTA -->
+      <div id="plan-cta-wrap" style="display:none;margin-bottom:16px">
+        <a id="plan-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;background:linear-gradient(135deg,rgba(0,217,163,.12),rgba(0,217,163,.06));border:1px solid rgba(0,217,163,.3);border-radius:12px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='linear-gradient(135deg,rgba(0,217,163,.18),rgba(0,217,163,.1))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(0,217,163,.12),rgba(0,217,163,.06))'">
+          <div>
+            <div style="font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:2px">📈 View Full Marketing Plan</div>
+            <div style="font-size:.73rem;color:var(--text-muted)">Your AI-generated strategy, ad angles, roadmap & more</div>
+          </div>
+          <span style="color:var(--teal);font-size:1.2rem">→</span>
+        </a>
+      </div>
+
+      <!-- Business Profile -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hd">
+          <div class="card-hd-left"><span class="card-icon">🏢</span><span class="card-title">Business Profile</span></div>
         </div>
+        <div class="card-body" style="padding:0" id="plan-biz-wrap"></div>
+      </div>
+
+      <!-- Campaign Details -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-hd">
+          <div class="card-hd-left"><span class="card-icon">🎯</span><span class="card-title">Campaign Details</span></div>
+        </div>
+        <div class="card-body" style="padding:0" id="plan-campaign-wrap"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="card" id="plan-status-card" style="margin-bottom:14px;display:none">
+        <div class="card-hd">
+          <div class="card-hd-left"><span class="card-icon">📊</span><span class="card-title">Campaign Status</span></div>
+        </div>
+        <div class="card-body" style="padding:0" id="plan-status-wrap"></div>
       </div>
     </div>
 
@@ -1125,6 +1153,15 @@ function buildResources(data) {
   wrap.innerHTML = html;
 }
 
+// Render label/value rows into a card container
+function planRows(containerId, rows) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  const visible = rows.filter(([,v]) => v);
+  if (!visible.length) { const card = wrap.closest('.card'); if(card) card.style.display='none'; return; }
+  wrap.innerHTML = visible.map(([label, value], i) => `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 18px;${i < visible.length-1 ? 'border-bottom:1px solid var(--border)' : ''}"><div style="font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;min-width:110px;padding-top:2px;flex-shrink:0">${label}</div><div style="font-size:.82rem;color:var(--text);line-height:1.5;font-weight:500">${value}</div></div>`).join('');
+}
+
 async function init() {
   if(!slug){document.getElementById('loading').classList.add('out');document.getElementById('h-biz').textContent='Portal not found';return;}
   try{
@@ -1158,11 +1195,39 @@ async function init() {
     document.getElementById('tl').innerHTML=buildTL(C.status);
 
     // Plan info
-    document.getElementById('info-tbl').innerHTML=[
-      ['Business',C.businessName],['Industry',C.industry],
-      ['Ad Platforms',C.adPlatforms],['Monthly Budget',C.adBudget],['90-Day Goal',C.goal90],
-    ].filter(([,v])=>v).map(([l,v])=>`<tr><td>${l}</td><td>${v}</td></tr>`).join('');
-    if(C.dashboardUrl) document.getElementById('plan-link').href=C.dashboardUrl;
+    // ── Render My Plan tab ────────────────────────────────────────────────
+    // Plan CTA button
+    if (C.dashboardUrl) {
+      document.getElementById('plan-link').href = C.dashboardUrl;
+      document.getElementById('plan-cta-wrap').style.display = 'block';
+    }
+
+    // Business Profile card
+    planRows('plan-biz-wrap', [
+      ['Business', C.businessName],
+      ['Contact', C.clientName],
+      ['Email', C.clientEmail ? `<a href="mailto:${C.clientEmail}" style="color:var(--teal);text-decoration:none">${C.clientEmail}</a>` : ''],
+      ['Phone', C.phone ? `<a href="tel:${C.phone}" style="color:var(--teal);text-decoration:none">${C.phone}</a>` : ''],
+      ['Industry', C.industry],
+      ['Member Since', C.createdAt ? new Date(C.createdAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : ''],
+    ]);
+
+    // Campaign Details card
+    planRows('plan-campaign-wrap', [
+      ['Ad Platforms', C.adPlatforms],
+      ['Monthly Budget', C.adBudget],
+      ['90-Day Goal', C.goal90],
+      ['Notes', C.notes],
+    ]);
+
+    // Status card
+    if (C.statusLabel || C.statusUpdated) {
+      document.getElementById('plan-status-card').style.display = 'block';
+      planRows('plan-status-wrap', [
+        ['Status', C.statusLabel],
+        ['Last Updated', C.statusUpdated ? new Date(C.statusUpdated).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : ''],
+      ]);
+    }
 
     // Platforms
     buildPlatforms(C.adPlatforms, {
