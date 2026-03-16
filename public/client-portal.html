@@ -1099,18 +1099,15 @@ if (new URLSearchParams(location.search).get('reset_pwa') === '1') {
   console.log('[PWA] Reset all PWA flags');
 }
 
-// ── PWA: Service Worker Registration ────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => {
-        console.log('[PWA] SW registered:', reg.scope);
-        // Check for push subscription after registration
-        checkNotifBar(reg);
-      })
-      .catch(err => console.log('[PWA] SW failed:', err));
-  });
-}
+// ── PWA: Service Worker — silent registration, never blocks portal load ─────
+window.addEventListener('load', () => {
+  setTimeout(showNotifCardIfNeeded, 500);
+  if (!('serviceWorker' in navigator)) return;
+  // Register silently — any error is swallowed so portal always loads
+  navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+    .then(reg => console.log('[PWA] SW registered, scope:', reg.scope))
+    .catch(err => console.log('[PWA] SW not available (offline or unsupported):', err.message));
+});
 
 // ── PWA: iOS Install Banner ──────────────────────────────────────────────────
 function isIOS() {
@@ -1259,25 +1256,10 @@ async function requestNotifPermission() {
       return;
     }
 
-    // Get SW registration — use getRegistration() not serviceWorker.ready (never hangs)
-    let reg = await navigator.serviceWorker.getRegistration('/');
-    if (!reg) {
-      // SW not registered yet — register it now
-      reg = await navigator.serviceWorker.register('/sw.js');
-      // Wait up to 3s for it to activate
-      await Promise.race([
-        new Promise(resolve => {
-          if (reg.active) return resolve();
-          reg.addEventListener('updatefound', () => {
-            reg.installing?.addEventListener('statechange', function() {
-              if (this.state === 'activated') resolve();
-            });
-          });
-        }),
-        new Promise(resolve => setTimeout(resolve, 3000))
-      ]);
-    }
-    if (!reg) throw new Error('Could not register service worker — try in Safari');
+    // Get any active SW registration — don't try to register a new one
+    const regs = await navigator.serviceWorker.getRegistrations();
+    const reg = regs[0];
+    if (!reg) throw new Error('No service worker found. Please close and reopen the app from your home screen icon, then try again.');
 
     // Subscribe to Web Push with VAPID
     const subscription = await reg.pushManager.subscribe({
