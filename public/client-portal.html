@@ -1189,12 +1189,52 @@ async function showInstallInstructions() {
     if (outcome === 'accepted') toast('✅ App installed! Find it on your home screen.');
     return;
   }
-  // iOS Safari: show instructions
+  // iOS Safari: show visual modal instead of alert()
   dismissBanner();
   const isIpad = /ipad/i.test(navigator.userAgent);
-  const shareIcon = isIpad ? '⬆' : '□↑';
-  const msg = `To install your portal app:\n\n1. Tap the Share icon (${shareIcon}) in Safari's toolbar\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" — done!\n\nThe app icon will appear on your home screen.`;
-  alert(msg);
+  let modal = document.getElementById('ios-install-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ios-install-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:0 12px 12px;backdrop-filter:blur(4px)';
+    modal.innerHTML = `
+      <div style="background:#1a2235;border-radius:16px;padding:24px 20px;width:100%;max-width:440px;border:1px solid rgba(0,217,163,.2)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="font-size:1rem;font-weight:800;color:#e2e8f0">Install Your Portal App</div>
+          <button onclick="document.getElementById('ios-install-modal').remove()" style="background:none;border:none;color:#8892a4;font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${isIpad ? '⬆️' : '⬜️'}</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 1 — Tap Share</div>
+              <div style="font-size:.78rem;color:#8892a4">Tap the <strong style="color:#e2e8f0">${isIpad ? '↑ Share' : '□↑ Share'}</strong> button in ${isIpad ? "Safari's top bar" : "Safari's bottom toolbar"}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">➕</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 2 — Add to Home Screen</div>
+              <div style="font-size:.78rem;color:#8892a4">Scroll down in the menu and tap <strong style="color:#e2e8f0">"Add to Home Screen"</strong></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;background:#111827;border-radius:10px;padding:12px 14px">
+            <div style="background:#00d9a3;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">✅</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;color:#e2e8f0;margin-bottom:2px">Step 3 — Tap Add</div>
+              <div style="font-size:.78rem;color:#8892a4">Tap <strong style="color:#e2e8f0">"Add"</strong> in the top right — your portal icon appears on your home screen!</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(0,217,163,.08);border:1px solid rgba(0,217,163,.2);border-radius:8px;padding:10px 12px">
+          <span style="font-size:1rem">💡</span>
+          <span style="font-size:.75rem;color:#8892a4;line-height:1.5">Once installed, open from your home screen to enable notifications and get updates when your plan is ready.</span>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    // Tap outside to dismiss
+    modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  }
 }
 
 // ── PWA: Push Notification Bar ───────────────────────────────────────────────
