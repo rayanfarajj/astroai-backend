@@ -680,9 +680,7 @@ const STEPS  = [
   {label:'Campaign Complete',    desc:'Campaign wrapped up. Ready to scale? Let\'s talk!',            icon:'★'},
 ];
 const PLATS = {
-  meta:{label:'Meta / Facebook',steps:['Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> and log in.','Click grid icon → select your Business Account.','Go to Settings → Users → Partners.',(metaBusinessId
-    ? `Click "Add Partner" and enter our Partner Business ID: <span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 8px;border-radius:5px;color:var(--teal);font-size:.9em">${metaBusinessId}</span> <button onclick="copyBid('${metaBusinessId}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px">Copy</button>`
-    : 'Click "Add Partner" and enter the Partner Business ID your agency provided.'),'Grant Manage Campaigns access on your Ad Account.','Click Save. We\'ll begin setup within 24 hours.'],note:'Need help? Reply to your welcome email and we\'ll walk you through it.'},
+  meta:{label:'Meta / Facebook',steps:['Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> and log in.','Click grid icon → select your Business Account.','Go to Settings → Users → Partners.','Click "Add Partner" and enter our <strong id=\"meta-bid-step\">Partner Business ID</strong>.','Grant Manage Campaigns access on your Ad Account.','Click Save. We\'ll begin setup within 24 hours.'],note:'Need help? Reply to your welcome email and we\'ll walk you through it.'},
   google:{label:'Google Ads',steps:['Sign in to <a href="https://ads.google.com" target="_blank">ads.google.com</a>.','Click ⚙️ → Setup → Account Access.','Click "+" → Invite Users.','Enter: ads@astroaibots.com','Set access level to Standard.','Click Send Invitation. We\'ll accept within 24 hours.'],note:'Make sure you\'re logged into the Google account linked to your Ads account.'},
   tiktok:{label:'TikTok Ads',steps:['Go to <a href="https://ads.tiktok.com" target="_blank">ads.tiktok.com</a> and log in.','Click your account name → Account Settings.','Go to User Management → Users.','Click "Assign Role".','Enter ads@astroaibots.com → assign Operator role.','Click Confirm.'],note:'Ensure your TikTok Ads account is a Business account.'},
 };
@@ -741,6 +739,13 @@ function buildPlatforms(adPlatforms, metaBusinessId) {
       <div class="access-note">💡 ${pl.note}</div>
     </div>`;
   }).join('');
+  // Inject dynamic Meta Business ID into step 4 after render
+  if (metaBusinessId && keys.includes('meta')) {
+    const el = document.getElementById('meta-bid-step');
+    if (el) {
+      el.outerHTML = `<span style="font-family:monospace;background:var(--surface-3);border:1px solid var(--border-2);padding:2px 8px;border-radius:5px;color:var(--teal)">${metaBusinessId}</span> <button onclick="copyBid('${metaBusinessId}')" style="background:var(--teal-dim);border:1px solid rgba(0,217,163,.3);color:var(--teal);border-radius:5px;padding:2px 8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px">Copy</button>`;
+    }
+  }
 }
 
 function switchPT(key,btn){
