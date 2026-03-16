@@ -250,13 +250,62 @@ textarea.finput{resize:vertical;line-height:1.6;}
   .main{margin-left:0;}
   .hamburger{display:flex;}
   .topbar{padding:0 16px;}
-  .content{padding:16px;}
+  .content{padding:16px; padding-bottom:80px;}
   .frow{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:480px){
   .stats{grid-template-columns:1fr;}
   .offer{flex-direction:column;align-items:flex-start;}
+}
+
+/* ── Bottom Tab Bar (mobile only) ── */
+.bottom-tabs {
+  display: none;
+}
+@media(max-width:768px){
+  .bottom-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #111827;
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding: 8px 0;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 300;
+    justify-content: space-around;
+    align-items: flex-end;
+  }
+  .tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 10px;
+    min-width: 56px;
+    font-family: var(--font);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: transform .15s;
+  }
+  .tab-label {
+    font-size: .57rem;
+    font-weight: 600;
+    color: #4a5568;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    transition: color .15s;
+  }
+  .tab-btn.active .tab-icon { transform: scale(1.15); }
+  .tab-btn.active .tab-label { color: #00d9a3; }
+  /* Hide hamburger on mobile — use bottom tabs instead */
+  .hamburger { display: none !important; }
 }
 
 /* ── PWA / iPhone safe area ── */
@@ -274,8 +323,20 @@ textarea.finput{resize:vertical;line-height:1.6;}
 }
 /* Standalone: add top padding for status bar */
 @media all and (display-mode: standalone) {
-  .topbar { padding-top: 4px; }
-  .sidebar { box-shadow: 2px 0 20px rgba(0,0,0,.5); }
+  /* Push topbar below iPhone status bar in standalone/PWA mode */
+  .topbar {
+    height: calc(52px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .main { padding-top: 0; }
+  .sidebar {
+    padding-top: env(safe-area-inset-top);
+    box-shadow: 2px 0 20px rgba(0,0,0,.5);
+  }
+  /* Bottom safe area for home bar */
+  .sb-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 }
 /* No rubber-band scroll */
 html, body { overscroll-behavior: none; }
@@ -557,6 +618,30 @@ html, body { overscroll-behavior: none; }
 
 <div class="toast" id="toast"></div>
 
+<!-- Bottom Tab Bar (mobile / PWA) -->
+<nav class="bottom-tabs" id="bottom-tabs">
+  <button class="tab-btn active" id="tab-overview" onclick="tabGo('s-overview',this)">
+    <span class="tab-icon">▣</span>
+    <span class="tab-label">Home</span>
+  </button>
+  <button class="tab-btn" id="tab-plan" onclick="tabGo('s-plan',this)">
+    <span class="tab-icon">◈</span>
+    <span class="tab-label">My Plan</span>
+  </button>
+  <button class="tab-btn" id="tab-files" onclick="tabGo('s-files',this);loadFiles()">
+    <span class="tab-icon">◫</span>
+    <span class="tab-label">Files</span>
+  </button>
+  <button class="tab-btn" id="tab-message" onclick="tabGo('s-message',this)">
+    <span class="tab-icon">◷</span>
+    <span class="tab-label">Message</span>
+  </button>
+  <button class="tab-btn" id="tab-more" onclick="openSB()">
+    <span class="tab-icon">☰</span>
+    <span class="tab-label">More</span>
+  </button>
+</nav>
+
 <script>
 const API  = 'https://marketingplan.astroaibots.com/api';
 const _urlp = new URLSearchParams(location.search);
@@ -590,6 +675,11 @@ function go(id, btn) {
   if(btn) btn.classList.add('active');
   document.getElementById('tb-title').textContent = TITLES[id]||'';
   closeSB();
+}
+function tabGo(id, btn) {
+  go(id, null);
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 }
 function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('on');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on');}
@@ -902,6 +992,88 @@ function renderBilling(b) {
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 init();
+
+// ── Real-time status polling — updates UI without reopening app ──────────────
+let _lastStatus = null;
+let _lastDashUrl = null;
+
+async function pollStatus() {
+  if (!slug) return;
+  try {
+    const res = await fetch(`${API}/get-portal?slug=${encodeURIComponent(slug)}${_agencyId?'&a='+encodeURIComponent(_agencyId):''}`, {
+      cache: 'no-store'
+    });
+    const data = await res.json();
+    if (!data.client) return;
+    const fresh = data.client;
+
+    // Status changed — update UI live
+    if (_lastStatus !== null && fresh.status !== _lastStatus) {
+      console.log('[portal] Status changed:', _lastStatus, '→', fresh.status);
+
+      // Update status badge and timeline
+      const statusEl = document.getElementById('h-status');
+      const sbStatusEl = document.getElementById('sb-status');
+      if (statusEl) statusEl.textContent = fresh.statusLabel || fresh.status;
+      if (sbStatusEl) sbStatusEl.textContent = fresh.statusLabel || fresh.status;
+      document.getElementById('tl').innerHTML = buildTL(fresh.status);
+      if (fresh.statusUpdated) {
+        const updEl = document.getElementById('h-updated');
+        if (updEl) updEl.textContent = 'Updated ' + new Date(fresh.statusUpdated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      }
+
+      // Push notification if app has permission
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const labels = {
+          active: 'Your campaign is now active!',
+          launched: '🚀 Your ads are live!',
+          completed: '✅ Campaign completed!',
+          paused: 'Your campaign has been paused.',
+          new: 'Your onboarding is being reviewed.',
+        };
+        const msg = labels[fresh.status] || `Status updated to: ${fresh.statusLabel || fresh.status}`;
+        new Notification('Campaign Update 📢', {
+          body: msg,
+          icon: '/icons/portal-icon-192.png',
+          tag: 'status-update',
+        });
+      }
+      toast('📢 Status updated: ' + (fresh.statusLabel || fresh.status));
+    }
+
+    // Plan URL available now — update button
+    if (fresh.dashboardUrl && fresh.dashboardUrl !== _lastDashUrl) {
+      const planLink = document.getElementById('plan-link');
+      if (planLink) planLink.href = fresh.dashboardUrl;
+      _lastDashUrl = fresh.dashboardUrl;
+      if (_lastStatus !== null && !_lastDashUrl) toast('✨ Your marketing plan is ready!');
+    }
+
+    _lastStatus = fresh.status;
+    _lastDashUrl = fresh.dashboardUrl || _lastDashUrl;
+    C = fresh; // Update global client object
+  } catch(e) {
+    // Silent fail — don't disrupt UX on network error
+    console.log('[portal] Poll error:', e.message);
+  }
+}
+
+// Start polling after portal loads, every 30 seconds
+window.addEventListener('portalLoaded', () => {
+  if (C) { _lastStatus = C.status; _lastDashUrl = C.dashboardUrl; }
+  // Poll every 30s while app is visible
+  let pollInterval = setInterval(pollStatus, 30000);
+  // Pause polling when app is backgrounded, resume on foreground
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(pollInterval);
+    } else {
+      // Immediate poll on return, then resume interval
+      pollStatus();
+      pollInterval = setInterval(pollStatus, 30000);
+    }
+  });
+});
 
 // ── PWA: Service Worker Registration ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
