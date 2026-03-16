@@ -309,6 +309,28 @@ export default async (req) => {
 
     console.log('[bg] ALL DONE for', data.businessName);
 
+    // STEP 7: Send push notification (non-blocking)
+    console.log('[bg] STEP 7: sending push notification to', clientId);
+    try {
+      const pushRes = await fetch('https://marketingplan.astroaibots.com/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyId,
+          clientId,
+          title: '🎯 Your Marketing Plan is Ready!',
+          body:  `Your AI marketing plan for ${data.businessName} has been generated. Tap to view your ad copy, targeting strategy, and 90-day roadmap.`,
+          tag:   'plan-ready',
+          url:   planUrl || `https://marketingplan.astroaibots.com/plans/${agencyId}/${clientId}`,
+        }),
+      });
+      const pushResult = await pushRes.json();
+      if (pushResult.ok) console.log('[bg] STEP 7 OK: push notification sent');
+      else console.log('[bg] STEP 7: no push subscription or send failed:', pushResult.reason || pushResult.status);
+    } catch(pushErr) {
+      console.log('[bg] STEP 7 SKIPPED: push failed (non-fatal):', pushErr.message);
+    }
+
   } catch(e) {
     console.error('[bg] UNEXPECTED ERROR:', e.message);
     console.error('[bg] STACK:', e.stack);
