@@ -162,6 +162,21 @@
   to = "/.netlify/functions/agency-process-plan"
   status = 200
 
+
+[[headers]]
+  for = "/portal-sw.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Service-Worker-Allowed = "/"
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Service-Worker-Allowed = "/"
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/api/*"
   [headers.values]
@@ -180,3 +195,9 @@
   from = "/api/delete-file"
   to = "/.netlify/functions/delete-file"
   status = 200
+
+[functions."send-push"]
+  timeout = 30
+
+[functions."save-push-subscription"]
+  timeout = 15
