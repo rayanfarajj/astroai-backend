@@ -184,6 +184,7 @@ export default async (req) => {
     // ── REFERRAL BONUS ────────────────────────────────────
     let referralBonus = '';
     let referralResources = '';
+    let metaBusinessId = '';
     let bookingUrl = '';
     let supportPhone = '';
     let supportEmail = '';
@@ -196,6 +197,7 @@ export default async (req) => {
         if (agencyDoc?.fields) {
           referralBonus     = agencyDoc.fields.referralBonus?.stringValue     || '';
           referralResources = agencyDoc.fields.referralResources?.stringValue || '';
+          metaBusinessId    = agencyDoc.fields.metaBusinessId?.stringValue    || '';
           bookingUrl        = agencyDoc.fields.bookingUrl?.stringValue        || '';
           supportPhone      = agencyDoc.fields.supportPhone?.stringValue      || '';
           supportEmail      = agencyDoc.fields.supportEmail?.stringValue      || '';
@@ -208,7 +210,7 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
+    return new Response(JSON.stringify({client, offer, billing, referralBonus, referralResources, metaBusinessId, bookingUrl, supportPhone, supportEmail, agencyWebsite, customLinks}),{status:200,headers:CORS});
 
   } catch(e) {
     console.error('[get-portal]', e.message);
