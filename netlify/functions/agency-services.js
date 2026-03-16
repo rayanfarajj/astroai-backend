@@ -43,7 +43,7 @@ function fsHttp(method, path, body, token) {
   });
 }
 
-async function verifySession(sessionToken) {
+async async function verifySession(sessionToken) {
   if (!sessionToken) return null;
   try {
     const fbToken = await getToken();
