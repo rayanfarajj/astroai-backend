@@ -85,7 +85,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--text-dim);font-size:.8rem;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .nav-item:hover{background:var(--surface-2);color:var(--text)}
 .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600}
-.nav-item .ni{font-size:.9rem;width:18px;text-align:center;flex-shrink:0}
+.nav-item .ni{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:inherit}
 .nav-badge{margin-left:auto;background:var(--teal);color:#07090f;font-size:.55rem;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
 .nav-badge.orange{background:var(--orange);color:#fff}
 .sb-onboard{margin:8px 8px 4px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px}
@@ -437,29 +437,22 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
     <nav class="sb-nav">
       <div class="sb-section">Menu</div>
-      <button class="nav-item active" id="nav-clients" onclick="showPage('clients',this)">
-        <span class="ni"></span><span>Clients</span>
+      <button class="nav-item active" id="nav-clients" onclick="showPage('clients',this)"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Clients</span>
       </button>
-      <button class="nav-item" id="nav-purchased" onclick="showPage('purchased',this)">
-        <span class="ni"></span><span>Purchased Leads</span>
+      <button class="nav-item" id="nav-purchased" onclick="showPage('purchased',this)"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span>Purchased Leads</span>
         <span class="nav-badge orange" id="pl-badge" style="display:none">0</span>
       </button>
-      <button class="nav-item" id="nav-leads" onclick="showPage('leads',this);loadLeadPool()">
-        <span class="ni"></span><span>Lead Pool</span>
+      <button class="nav-item" id="nav-leads" onclick="showPage('leads',this);loadLeadPool()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></span><span>Lead Pool</span>
         <span class="nav-badge" id="leads-badge" style="display:none">0</span>
       </button>
-      <button class="nav-item" id="nav-embed" onclick="showPage('embed',this)">
-        <span class="ni"></span><span>Embed Code</span>
+      <button class="nav-item" id="nav-embed" onclick="showPage('embed',this)"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg></span><span>Embed Code</span>
       </button>
-      <button class="nav-item" id="nav-referrals" onclick="showPage('referrals',this)">
-        <span class="ni"></span><span>Referrals</span>
+      <button class="nav-item" id="nav-referrals" onclick="showPage('referrals',this)"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span><span>Referrals</span>
         <span class="nav-badge" id="ref-badge" style="display:none">0</span>
       </button>
-      <button class="nav-item" onclick="openBlast()">
-        <span class="ni"></span><span>Message Client</span>
+      <button class="nav-item" onclick="openBlast()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg></span><span>Message Client</span>
       </button>
-      <button class="nav-item" onclick="openSettings()">
-        <span class="ni"></span><span>Settings</span>
+      <button class="nav-item" onclick="openSettings()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg></span><span>Settings</span>
       </button>
     </nav>
     <div class="sb-onboard">
@@ -472,7 +465,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <span class="ni" id="theme-icon"></span><span id="theme-label">Dark Mode</span>
       </button>
       <button class="sb-action danger" onclick="logout()">
-        <span class="ni"></span><span>Sign Out</span>
+        <span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sign Out</span>
       </button>
     </div>
   </aside>
@@ -1056,17 +1049,17 @@ function buildDetailPage(c, j) {
       </div>
     </div>
     <div class="detail-tabs">
-      <button class="detail-tab on" onclick="dTab(this,'dt-info')"> Overview</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-ads');buildAds()"> Ad Copy</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-targeting')"> Targeting</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-roadmap')"> Roadmap</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-script')"> Script</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-notes')"> Notes</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-billing')"> Billing</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-access')"> Platform Access</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-offer')"> Special Offer</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-files');buildFiles()"> Files</button>
-      <button class="detail-tab" onclick="dTab(this,'dt-services');buildDetailServices()"> Services</button>
+      <button class="detail-tab on" onclick="dTab(this,'dt-info')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>  Overview</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-ads');buildAds()"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>  Ad Copy</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-targeting')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>  Targeting</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-roadmap')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>  Roadmap</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-script')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>  Script</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-notes')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>  Notes</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-billing')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>  Billing</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-access')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>  Platform Access</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-offer')"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,12 20,22 4,22 4,12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>  Special Offer</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-files');buildFiles()"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>  Files</button>
+      <button class="detail-tab" onclick="dTab(this,'dt-services');buildDetailServices()"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>  Services</button>
     </div>
     <div>
       <div class="detail-pane on" id="dt-info"></div>
