@@ -460,6 +460,9 @@ html, body { overscroll-behavior: none; }
 
   <div class="sb-foot">
     <div class="sb-status"><div class="dot"></div><span id="sb-status">Loading...</span></div>
+    <button id="install-app-btn" onclick="showInstallInstructions()" style="display:none;margin-top:10px;width:100%;padding:8px 10px;background:var(--teal-dim);border:1px solid rgba(0,217,163,.25);border-radius:7px;color:var(--teal);font-size:.75rem;font-weight:700;cursor:pointer;font-family:var(--font);">
+      📱 Install App
+    </button>
   </div>
 </aside>
 
@@ -1129,19 +1132,21 @@ window.addEventListener('beforeinstallprompt', e => {
   }
 });
 
-(function checkInstallBanner() {
-  if (isStandalone()) return; // Already installed
+window.addEventListener('DOMContentLoaded', function() {
+  if (isStandalone()) return;
   const dismissed = localStorage.getItem('pwa-banner-dismissed');
-  if (dismissed && Date.now() - parseInt(dismissed) < 3 * 86400000) return; // 3 days
+  if (dismissed && Date.now() - parseInt(dismissed) < 86400000) return;
 
-  // Show on iOS Safari always (they need manual Add to Home Screen)
-  // Show on other platforms too — wait for beforeinstallprompt or show after 3s
+  const installBtn = document.getElementById('install-app-btn');
+  if (installBtn) installBtn.style.display = 'flex';
+
   setTimeout(() => {
     if (!isStandalone()) {
-      document.getElementById('pwa-banner').classList.add('show');
+      const b = document.getElementById('pwa-banner');
+      if (b) b.classList.add('show');
     }
   }, 3000);
-})();
+});
 
 function dismissBanner() {
   document.getElementById('pwa-banner').classList.remove('show');
@@ -1171,12 +1176,34 @@ async function showInstallInstructions() {
 function showNotifCardIfNeeded() {
   const card = document.getElementById('notif-card');
   if (!card) return;
+
+  // Only show if: installed PWA on iOS OR desktop browser with push support
   if (isIOS() && !isStandalone()) return;
   if (!('Notification' in window) || !('PushManager' in window)) return;
+
+  // Already denied — can't do anything
   if (Notification.permission === 'denied') return;
+
+  // Already enabled (saved to localStorage on successful subscribe + server save)
   if (localStorage.getItem('notif-enabled') === '1') return;
-  // Show card — if they're already subscribed it hides itself silently
+
+  // Already granted permission — show card briefly then check subscription async
+  // This handles the case where permission was granted but subscription wasn't saved
   card.style.display = 'flex';
+
+  // Async: if already subscribed AND saved, hide immediately
+  if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration('/portal-sw.js').then(reg => {
+      if (!reg) return;
+      return reg.pushManager.getSubscription();
+    }).then(sub => {
+      if (sub) {
+        // Have a subscription — mark as enabled and hide
+        localStorage.setItem('notif-enabled', '1');
+        card.style.display = 'none';
+      }
+    }).catch(() => {});
+  }
 }
 
 async function checkNotifBar(reg) {
@@ -1230,8 +1257,11 @@ async function requestNotifPermission() {
       return;
     }
 
-    // Get service worker registration
-    const reg = await navigator.serviceWorker.ready;
+    // Get SW registration with 8s timeout — serviceWorker.ready can hang on iOS
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('SW timeout — try closing and reopening the app')), 8000))
+    ]);
 
     // Subscribe to Web Push with VAPID
     const subscription = await reg.pushManager.subscribe({
@@ -1239,36 +1269,29 @@ async function requestNotifPermission() {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
     });
 
-    // Save subscription to server so we can send push from backend
-    const res = await fetch('/api/save-push-subscription', {
+    // Mark as enabled immediately — so card stays hidden even if API call fails
+    localStorage.setItem('notif-enabled', '1');
+
+    // Hide card and show success RIGHT NOW — don't wait for server
+    const card = document.getElementById('notif-card');
+    if (card) card.style.display = 'none';
+    document.getElementById('notif-bar').classList.remove('show');
+    reg.showNotification('Notifications Enabled! 🔔', {
+      body: "You'll get notified when your plan is ready and when your agency has updates.",
+      icon: '/icons/portal-icon-192.png',
+      tag:  'welcome',
+      data: { url: `/onboard/portal?a=${_agencyId}&s=${slug}` },
+    });
+    toast('✅ Notifications enabled!');
+
+    // Save subscription to server in background (non-blocking)
+    fetch('/api/save-push-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agencyId: _agencyId,
-        clientId: slug,
-        subscription: subscription.toJSON(),
-      }),
-    });
-    const result = await res.json();
-
-    if (result.ok) {
-      localStorage.setItem('notif-enabled', '1');
-      // Hide the card permanently
-      const card = document.getElementById('notif-card');
-      if (card) card.style.display = 'none';
-      document.getElementById('notif-bar').classList.remove('show');
-      // Show a welcome notification immediately to confirm it works
-      reg.showNotification('Notifications Enabled! 🔔', {
-        body: "You'll be notified when your plan is ready and when your agency has updates for you.",
-        icon: '/icons/portal-icon-192.png',
-        tag:  'welcome',
-        data: { url: `/onboard/portal?a=${_agencyId}&s=${slug}` },
-      });
-      toast('✅ Notifications enabled!');
-    } else {
-      if (enableBtn) { enableBtn.textContent = 'Enable Notifications'; enableBtn.disabled = false; }
-      toast('❌ Could not save — try again');
-    }
+      body: JSON.stringify({ agencyId: _agencyId, clientId: slug, subscription: subscription.toJSON() }),
+    }).then(r => r.json()).then(r => {
+      if (!r.ok) console.warn('[PWA] Subscription save failed:', r);
+    }).catch(e => console.warn('[PWA] Subscription save error:', e.message));
   } catch(e) {
     console.log('[PWA] Push subscription error:', e.message);
     if (enableBtn) { enableBtn.textContent = 'Enable Notifications'; enableBtn.disabled = false; }
